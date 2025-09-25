@@ -1,0 +1,214 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: registry.digitalocean.com
+
+jobs:
+  test:
+    name: Test and Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ./backend
+        run: npm test -- --coverage --watchAll=false
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+
+      - name: Run linter
+        working-directory: ./backend
+        run: npm run lint || true
+
+      - name: Check for security vulnerabilities
+        working-directory: ./backend
+        run: npm audit --audit-level=moderate || true
+
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Digital Ocean Container Registry
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          password: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ secrets.DIGITALOCEAN_REGISTRY_NAME }}/caos-crm
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-app-platform:
+    name: Deploy to Digital Ocean App Platform
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://caos-crm.ondigitalocean.app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Digital Ocean App Platform
+        uses: digitalocean/app_action@v2
+        with:
+          app_name: caos-crm
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+  deploy-droplet:
+    name: Deploy to Digital Ocean Droplet
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main' && false # Set to true to enable
+    environment:
+      name: production
+      url: https://caos-crm.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Droplet via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            cd /home/caosapp/caos
+            git pull origin main
+            docker-compose pull
+            docker-compose up -d --build
+            docker-compose exec -T app npm run migrate
+            docker system prune -f
+
+  deploy-kubernetes:
+    name: Deploy to Digital Ocean Kubernetes
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main' && false # Set to true to enable
+    environment:
+      name: production
+      url: https://caos-crm.k8s.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Save DigitalOcean kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ secrets.K8S_CLUSTER_NAME }}
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/caos-crm \
+            app=${{ env.REGISTRY }}/${{ secrets.DIGITALOCEAN_REGISTRY_NAME }}/caos-crm:${{ github.sha }} \
+            -n caos-crm
+          kubectl rollout status deployment/caos-crm -n caos-crm
+
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    needs: [deploy-app-platform]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Wait for deployment
+        run: sleep 60
+
+      - name: Check application health
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://caos-crm.ondigitalocean.app/api/health)
+          if [ $response -eq 200 ]; then
+            echo "Health check passed"
+          else
+            echo "Health check failed with status $response"
+            exit 1
+          fi
+
+      - name: Run smoke tests
+        run: |
+          # Test API endpoints
+          curl -f https://caos-crm.ondigitalocean.app/api/health/ready
+          curl -f https://caos-crm.ondigitalocean.app/api/health/live
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [health-check]
+    if: always()
+
+    steps:
+      - name: Notify success
+        if: success()
+        run: |
+          echo "Deployment successful! 🎉"
+          # Add Slack/Discord notification here
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "Deployment failed! ❌"
+          # Add Slack/Discord notification here
