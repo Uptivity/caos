@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <style>
+        /* Dashboard Component - Built on SnowUI Design System */
+
+        /* Layout Structure */
+        .dashboard-container {
+            min-height: 100vh;
+            background: var(--snow-gray-50);
+        }
+
+        .dashboard-header {
+            background: var(--snow-white);
+            border-bottom: 1px solid var(--snow-gray-200);
+            padding: var(--space-4) var(--space-6);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .header-title {
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            color: var(--snow-gray-900);
+            margin: 0;
+        }
+
+        .header-subtitle {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-600);
+            margin: 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--snow-primary);
+            color: var(--snow-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid var(--snow-gray-200);
+            transition: all 150ms ease;
+        }
+
+        .user-avatar:hover {
+            border-color: var(--snow-primary);
+            transform: scale(1.05);
+        }
+
+        /* Main Layout */
+        .dashboard-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-6);
+            display: grid;
+            gap: var(--space-6);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+
+        .stat-card {
+            background: var(--snow-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            border: 1px solid var(--snow-gray-200);
+            transition: all 150ms ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--stat-color, var(--snow-primary));
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-xl);
+            background: var(--stat-bg, var(--snow-primary-light));
+            color: var(--stat-color, var(--snow-primary));
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-size: var(--text-sm);
+            font-weight: 500;
+        }
+
+        .trend-up {
+            color: var(--snow-green-600);
+        }
+
+        .trend-down {
+            color: var(--snow-red-600);
+        }
+
+        .trend-neutral {
+            color: var(--snow-gray-500);
+        }
+
+        .stat-value {
+            font-size: var(--text-3xl);
+            font-weight: 700;
+            color: var(--snow-gray-900);
+            margin-bottom: var(--space-1);
+        }
+
+        .stat-label {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-600);
+            margin-bottom: var(--space-2);
+        }
+
+        .stat-description {
+            font-size: var(--text-xs);
+            color: var(--snow-gray-500);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--snow-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            border: 1px solid var(--snow-gray-200);
+            margin-bottom: var(--space-6);
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-6);
+        }
+
+        .chart-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--snow-gray-900);
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .chart-mock {
+            height: 300px;
+            background: linear-gradient(135deg, var(--snow-primary-light) 0%, var(--snow-secondary-light) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--snow-gray-600);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-mock::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: var(--radius-md);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+
+        .action-card {
+            background: var(--snow-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            border: 1px solid var(--snow-gray-200);
+            text-align: center;
+            cursor: pointer;
+            transition: all 150ms ease;
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--snow-primary);
+        }
+
+        .action-icon {
+            font-size: var(--text-2xl);
+            margin-bottom: var(--space-2);
+            color: var(--snow-primary);
+        }
+
+        .action-title {
+            font-weight: 600;
+            color: var(--snow-gray-900);
+            margin-bottom: var(--space-1);
+        }
+
+        .action-description {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-600);
+        }
+
+        /* Recent Activity */
+        .activity-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-6);
+        }
+
+        .activity-card {
+            background: var(--snow-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--snow-gray-200);
+            overflow: hidden;
+        }
+
+        .activity-header {
+            padding: var(--space-4) var(--space-6);
+            border-bottom: 1px solid var(--snow-gray-200);
+            background: var(--snow-gray-25);
+        }
+
+        .activity-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--snow-gray-900);
+        }
+
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+            padding: var(--space-4) var(--space-6);
+            border-bottom: 1px solid var(--snow-gray-100);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--snow-primary);
+            color: var(--snow-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-sm);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-700);
+            margin-bottom: var(--space-1);
+        }
+
+        .activity-time {
+            font-size: var(--text-xs);
+            color: var(--snow-gray-500);
+        }
+
+        /* Task Panel */
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-6);
+            border-bottom: 1px solid var(--snow-gray-100);
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--snow-primary);
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-900);
+            margin-bottom: 2px;
+        }
+
+        .task-meta {
+            font-size: var(--text-xs);
+            color: var(--snow-gray-500);
+        }
+
+        .task-priority {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .priority-high {
+            background: var(--snow-red-500);
+        }
+
+        .priority-medium {
+            background: var(--snow-yellow-500);
+        }
+
+        .priority-low {
+            background: var(--snow-green-500);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .dashboard-main {
+                padding: var(--space-4);
+            }
+
+            .activity-section {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-content {
+                flex-direction: column;
+                gap: var(--space-3);
+                text-align: center;
+            }
+
+            .header-right {
+                order: -1;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .chart-filters {
+                flex-direction: column;
+            }
+        }
+
+        /* Custom Properties for Stats */
+        .stat-card.leads {
+            --stat-color: var(--snow-blue-600);
+            --stat-bg: var(--snow-blue-light);
+        }
+
+        .stat-card.revenue {
+            --stat-color: var(--snow-green-600);
+            --stat-bg: var(--snow-green-light);
+        }
+
+        .stat-card.deals {
+            --stat-color: var(--snow-purple-600);
+            --stat-bg: var(--snow-purple-light);
+        }
+
+        .stat-card.conversion {
+            --stat-color: var(--snow-orange-600);
+            --stat-bg: var(--snow-orange-light);
+        }
+
+        /* Dark theme support */
+        @media (prefers-color-scheme: dark) {
+            .dashboard-container {
+                background: var(--snow-dark-bg-primary);
+            }
+
+            .dashboard-header,
+            .stat-card,
+            .chart-container,
+            .action-card,
+            .activity-card {
+                background: var(--snow-dark-bg-secondary);
+                border-color: var(--snow-dark-border);
+            }
+
+            .header-title,
+            .stat-value,
+            .chart-title,
+            .activity-title,
+            .action-title,
+            .task-title {
+                color: var(--snow-dark-text-primary);
+            }
+
+            .header-subtitle,
+            .stat-label,
+            .stat-description,
+            .activity-text,
+            .action-description {
+                color: var(--snow-dark-text-secondary);
+            }
+
+            .chart-mock {
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div>
+                        <h1 class="header-title">Welcome back, John! 👋</h1>
+                        <p class="header-subtitle">Here's what's happening with your business today</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-ghost btn-sm">
+                        🔔
+                    </button>
+                    <button class="btn btn-ghost btn-sm">
+                        ⚙️
+                    </button>
+                    <div class="user-menu">
+                        <div class="user-avatar" title="John Smith">
+                            JS
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="dashboard-main">
+            <!-- Key Metrics Stats -->
+            <section class="stats-grid">
+                <div class="stat-card leads">
+                    <div class="stat-header">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-trend trend-up">
+                            <span>↗</span>
+                            <span>+12%</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">248</div>
+                    <div class="stat-label">New Leads</div>
+                    <div class="stat-description">+23 from last week</div>
+                </div>
+
+                <div class="stat-card revenue">
+                    <div class="stat-header">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-trend trend-up">
+                            <span>↗</span>
+                            <span>+8%</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">$124,500</div>
+                    <div class="stat-label">Monthly Revenue</div>
+                    <div class="stat-description">+$9,200 from last month</div>
+                </div>
+
+                <div class="stat-card deals">
+                    <div class="stat-header">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-trend trend-up">
+                            <span>↗</span>
+                            <span>+15%</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">67</div>
+                    <div class="stat-label">Active Deals</div>
+                    <div class="stat-description">$89K pipeline value</div>
+                </div>
+
+                <div class="stat-card conversion">
+                    <div class="stat-header">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-trend trend-down">
+                            <span>↘</span>
+                            <span>-2%</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">24.5%</div>
+                    <div class="stat-label">Conversion Rate</div>
+                    <div class="stat-description">Still above target (22%)</div>
+                </div>
+            </section>
+
+            <!-- Revenue Chart -->
+            <section class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Revenue Overview</h2>
+                    <div class="chart-filters">
+                        <select class="form-select" style="min-width: 120px;">
+                            <option>Last 30 days</option>
+                            <option>Last 3 months</option>
+                            <option>Last 6 months</option>
+                            <option>Last year</option>
+                        </select>
+                        <button class="btn btn-ghost btn-sm">📊 Export</button>
+                    </div>
+                </div>
+                <div class="chart-mock">
+                    📈 Revenue Chart Placeholder
+                    <br>
+                    <small>Chart.js or D3.js integration would go here</small>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <div class="action-card" onclick="window.location.href='../leads/LeadsList.html'">
+                    <div class="action-icon">➕</div>
+                    <div class="action-title">Add Lead</div>
+                    <div class="action-description">Create new lead entry</div>
+                </div>
+                <div class="action-card" onclick="alert('New Deal functionality')">
+                    <div class="action-icon">💼</div>
+                    <div class="action-title">New Deal</div>
+                    <div class="action-description">Start a new deal</div>
+                </div>
+                <div class="action-card" onclick="alert('Schedule Meeting functionality')">
+                    <div class="action-icon">📅</div>
+                    <div class="action-title">Schedule Meeting</div>
+                    <div class="action-description">Book with prospects</div>
+                </div>
+                <div class="action-card" onclick="alert('Send Campaign functionality')">
+                    <div class="action-icon">📧</div>
+                    <div class="action-title">Send Campaign</div>
+                    <div class="action-description">Email marketing</div>
+                </div>
+                <div class="action-card" onclick="alert('Generate Report functionality')">
+                    <div class="action-icon">📊</div>
+                    <div class="action-title">Generate Report</div>
+                    <div class="action-description">Sales analytics</div>
+                </div>
+                <div class="action-card" onclick="alert('Import Data functionality')">
+                    <div class="action-icon">📥</div>
+                    <div class="action-title">Import Data</div>
+                    <div class="action-description">Bulk data import</div>
+                </div>
+            </section>
+
+            <!-- Recent Activity & Tasks -->
+            <section class="activity-section">
+                <div class="activity-card">
+                    <div class="activity-header">
+                        <h3 class="activity-title">Recent Activity</h3>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-avatar">SM</div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>Sarah Miller</strong> closed deal "Enterprise Software License" worth $45,000
+                                </div>
+                                <div class="activity-time">2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" role="listitem">
+                            <div class="activity-avatar" aria-label="David Johnson" role="img">DJ</div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>David Johnson</strong> added new lead "Tech Startup Inc." from website form
+                                </div>
+                                <div class="activity-time" aria-label="Activity occurred 4 hours ago">4 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" role="listitem">
+                            <div class="activity-avatar" aria-label="Emily Rodriguez" role="img">ER</div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>Emily Rodriguez</strong> sent follow-up email to 15 prospects in "Q4 Campaign"
+                                </div>
+                                <div class="activity-time" aria-label="Activity occurred 6 hours ago">6 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" role="listitem">
+                            <div class="activity-avatar" aria-label="Mike Thompson" role="img">MT</div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>Mike Thompson</strong> scheduled demo for "Global Manufacturing Corp." next Tuesday
+                                </div>
+                                <div class="activity-time" aria-label="Activity occurred 8 hours ago">8 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" role="listitem">
+                            <div class="activity-avatar" aria-label="Anna Lee" role="img">AL</div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>Anna Lee</strong> updated contact information for "Regional Bank Ltd."
+                                </div>
+                                <div class="activity-time" aria-label="Activity occurred 1 day ago">1 day ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item" role="listitem">
+                            <div class="activity-avatar" aria-label="James Smith" role="img">JS</div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>James Smith</strong> created new sales report "November Performance Summary"
+                                </div>
+                                <div class="activity-time" aria-label="Activity occurred 1 day ago">1 day ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="activity-card">
+                    <div class="activity-header">
+                        <h3 class="activity-title">Today's Tasks</h3>
+                    </div>
+                    <div class="activity-list">
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <div class="task-content">
+                                <div class="task-title">Follow up with ABC Corp</div>
+                                <div class="task-meta">Due: 2:00 PM</div>
+                            </div>
+                            <div class="task-priority priority-high"></div>
+                        </div>
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox" checked>
+                            <div class="task-content">
+                                <div class="task-title">Prepare demo presentation</div>
+                                <div class="task-meta">Completed</div>
+                            </div>
+                            <div class="task-priority priority-medium"></div>
+                        </div>
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <div class="task-content">
+                                <div class="task-title">Update pipeline report</div>
+                                <div class="task-meta">Due: 5:00 PM</div>
+                            </div>
+                            <div class="task-priority priority-medium"></div>
+                        </div>
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <div class="task-content">
+                                <div class="task-title">Review new lead qualifications</div>
+                                <div class="task-meta">Due: Tomorrow</div>
+                            </div>
+                            <div class="task-priority priority-low"></div>
+                        </div>
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <div class="task-content">
+                                <div class="task-title">Send weekly newsletter</div>
+                                <div class="task-meta">Due: Friday</div>
+                            </div>
+                            <div class="task-priority priority-low"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Dashboard interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-refresh data every 5 minutes
+            const refreshInterval = 5 * 60 * 1000; // 5 minutes
+
+            function refreshDashboard() {
+                console.log('Refreshing dashboard data...');
+                // In real implementation, this would fetch fresh data from API
+                updateLastRefresh();
+            }
+
+            function updateLastRefresh() {
+                const now = new Date().toLocaleTimeString();
+                console.log(`Dashboard last updated: ${now}`);
+            }
+
+            // Set up auto-refresh
+            setInterval(refreshDashboard, refreshInterval);
+
+            // Task checkbox handling
+            const taskCheckboxes = document.querySelectorAll('.task-checkbox');
+            taskCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const taskItem = this.closest('.task-item');
+                    const taskTitle = taskItem.querySelector('.task-title');
+
+                    if (this.checked) {
+                        taskTitle.style.textDecoration = 'line-through';
+                        taskTitle.style.opacity = '0.6';
+                        taskItem.querySelector('.task-meta').textContent = 'Completed';
+                    } else {
+                        taskTitle.style.textDecoration = 'none';
+                        taskTitle.style.opacity = '1';
+                        // Reset to original due time - in real app this would come from data
+                        const meta = taskItem.querySelector('.task-meta');
+                        if (meta.textContent === 'Completed') {
+                            meta.textContent = 'Due: Today';
+                        }
+                    }
+                });
+            });
+
+            // Stat card hover effects
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+            });
+
+            // Chart filter change handling
+            const chartFilter = document.querySelector('.chart-filters select');
+            if (chartFilter) {
+                chartFilter.addEventListener('change', function() {
+                    console.log(`Chart filter changed to: ${this.value}`);
+                    // In real implementation, this would update the chart
+                });
+            }
+
+            // Welcome message time-based greeting
+            function updateGreeting() {
+                const hour = new Date().getHours();
+                const headerTitle = document.querySelector('.header-title');
+                let greeting;
+
+                if (hour < 12) {
+                    greeting = 'Good morning, John! 🌅';
+                } else if (hour < 17) {
+                    greeting = 'Good afternoon, John! ☀️';
+                } else {
+                    greeting = 'Good evening, John! 🌆';
+                }
+
+                headerTitle.textContent = greeting;
+            }
+
+            updateGreeting();
+
+            // Simulate real-time updates
+            function simulateRealTimeUpdates() {
+                // Randomly update one of the stat values
+                const statValues = document.querySelectorAll('.stat-value');
+                const randomStat = statValues[Math.floor(Math.random() * statValues.length)];
+
+                // Add a subtle pulse animation when data updates
+                randomStat.style.animation = 'pulse 0.5s ease-in-out';
+                setTimeout(() => {
+                    randomStat.style.animation = '';
+                }, 500);
+            }
+
+            // Simulate updates every 30 seconds
+            setInterval(simulateRealTimeUpdates, 30000);
+
+            console.log('Dashboard initialized successfully');
+        });
+
+        // Add pulse animation for real-time updates
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

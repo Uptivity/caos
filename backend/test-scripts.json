@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "test": "NODE_ENV=test jest",
+    "test:watch": "NODE_ENV=test jest --watch",
+    "test:coverage": "NODE_ENV=test jest --coverage",
+    "test:unit": "NODE_ENV=test jest __tests__/unit",
+    "test:integration": "NODE_ENV=test jest __tests__/integration",
+    "test:auth": "NODE_ENV=test jest __tests__/unit/auth.test.js __tests__/integration/auth.integration.test.js",
+    "test:leads": "NODE_ENV=test jest __tests__/unit/leads.test.js __tests__/integration/leads.integration.test.js",
+    "test:products": "NODE_ENV=test jest __tests__/unit/products.test.js __tests__/integration/products.integration.test.js",
+    "test:endpoints": "NODE_ENV=test jest __tests__/integration/api.endpoints.test.js",
+    "test:ci": "NODE_ENV=test jest --coverage --ci --watchAll=false --passWithNoTests",
+    "test:silent": "NODE_ENV=test jest --silent",
+    "test:verbose": "NODE_ENV=test jest --verbose",
+    "coverage:report": "NODE_ENV=test jest --coverage --coverageReporters=text-lcov",
+    "coverage:html": "NODE_ENV=test jest --coverage && echo 'Coverage report generated in coverage/lcov-report/index.html'"
+  },
+  "description": "Additional test scripts for CAOS CRM backend testing"
+}

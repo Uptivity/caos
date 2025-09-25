@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breadcrumbs Component - SnowUI</title>
+    <link rel="stylesheet" href="../../../styles/snowui.css">
+    <style>
+        /* Breadcrumbs Component - Built on SnowUI Design System */
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: var(--text-sm);
+            color: var(--snow-gray-600);
+            margin: var(--space-4) 0;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .breadcrumb-link {
+            color: var(--snow-gray-600);
+            text-decoration: none;
+            transition: color 150ms ease;
+            border-radius: var(--radius-sm);
+            padding: var(--space-1) var(--space-2);
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+        }
+
+        .breadcrumb-link:hover {
+            color: var(--snow-primary);
+            background: var(--snow-primary-light);
+        }
+
+        .breadcrumb-link:focus-visible {
+            outline: 2px solid var(--snow-primary);
+            outline-offset: 2px;
+        }
+
+        .breadcrumb-current {
+            color: var(--snow-gray-900);
+            font-weight: 500;
+            padding: var(--space-1) var(--space-2);
+        }
+
+        .breadcrumb-separator {
+            color: var(--snow-gray-400);
+            user-select: none;
+            font-size: var(--text-xs);
+        }
+
+        .breadcrumb-icon {
+            margin-right: var(--space-1);
+            font-size: var(--text-sm);
+        }
+
+        /* Responsive collapse for mobile */
+        @media (max-width: 640px) {
+            .breadcrumbs {
+                flex-wrap: wrap;
+            }
+
+            .breadcrumbs.collapse .breadcrumb-item:not(:first-child):not(:last-child) {
+                display: none;
+            }
+
+            .breadcrumbs.collapse .breadcrumb-item:nth-last-child(2) {
+                display: flex;
+            }
+
+            .breadcrumbs.collapse .breadcrumb-item:nth-last-child(2)::before {
+                content: "...";
+                margin-right: var(--space-2);
+                color: var(--snow-gray-400);
+            }
+        }
+
+        /* Dark theme support */
+        @media (prefers-color-scheme: dark) {
+            .breadcrumb-link {
+                color: var(--snow-dark-text-secondary);
+            }
+
+            .breadcrumb-link:hover {
+                color: var(--snow-primary);
+                background: rgba(59, 130, 246, 0.1);
+            }
+
+            .breadcrumb-current {
+                color: var(--snow-dark-text-primary);
+            }
+
+            .breadcrumb-separator {
+                color: var(--snow-dark-text-secondary);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Breadcrumbs Component</h1>
+            <p class="text-lg text-gray-600">Navigation breadcrumbs with responsive design and accessibility</p>
+        </header>
+
+        <!-- Basic Breadcrumbs -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-4">Basic Breadcrumbs</h2>
+            <div class="card">
+                <div class="card-body">
+                    <nav aria-label="Breadcrumb navigation" class="breadcrumbs">
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link">
+                                <span class="breadcrumb-icon">🏠</span>
+                                Home
+                            </a>
+                            <span class="breadcrumb-separator">›</span>
+                        </div>
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link">Customers</a>
+                            <span class="breadcrumb-separator">›</span>
+                        </div>
+                        <div class="breadcrumb-item">
+                            <span class="breadcrumb-current">Customer Details</span>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </section>
+
+        <!-- Long Path Breadcrumbs -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-4">Long Path (Mobile Collapsible)</h2>
+            <div class="card">
+                <div class="card-body">
+                    <nav aria-label="Long path breadcrumb navigation" class="breadcrumbs collapse">
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link">
+                                <span class="breadcrumb-icon">🏠</span>
+                                Home
+                            </a>
+                            <span class="breadcrumb-separator">›</span>
+                        </div>
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link">Dashboard</a>
+                            <span class="breadcrumb-separator">›</span>
+                        </div>
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link">CRM</a>
+                            <span class="breadcrumb-separator">›</span>
+                        </div>
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link">Customers</a>
+                            <span class="breadcrumb-separator">›</span>
+                        </div>
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link">Customer List</a>
+                            <span class="breadcrumb-separator">›</span>
+                        </div>
+                        <div class="breadcrumb-item">
+                            <span class="breadcrumb-current">John Smith Profile</span>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Breadcrumbs -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-4">Interactive Example</h2>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Dynamic Breadcrumbs</h3>
+                    <p class="card-subtitle">Click buttons to navigate through different paths</p>
+                </div>
+                <div class="card-body">
+                    <nav aria-label="Dynamic breadcrumb navigation" id="dynamicBreadcrumbs" class="breadcrumbs">
+                        <!-- Dynamic content will be inserted here -->
+                    </nav>
+
+                    <div class="mt-6 flex gap-2 flex-wrap">
+                        <button class="btn btn-ghost btn-sm" onclick="navigateTo(['Home'])">Home</button>
+                        <button class="btn btn-ghost btn-sm" onclick="navigateTo(['Home', 'Dashboard'])">Dashboard</button>
+                        <button class="btn btn-ghost btn-sm" onclick="navigateTo(['Home', 'Customers'])">Customers</button>
+                        <button class="btn btn-ghost btn-sm" onclick="navigateTo(['Home', 'Customers', 'List'])">Customer List</button>
+                        <button class="btn btn-ghost btn-sm" onclick="navigateTo(['Home', 'Customers', 'List', 'Profile'])">Profile</button>
+                        <button class="btn btn-ghost btn-sm" onclick="navigateTo(['Home', 'Products', 'Categories', 'Electronics', 'Smartphones'])">Deep Path</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Different Styles -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-4">Style Variations</h2>
+            <div class="grid gap-6">
+                <!-- Slash Separator -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Slash Separator</h4>
+                    </div>
+                    <div class="card-body">
+                        <nav aria-label="Slash separator breadcrumbs" class="breadcrumbs">
+                            <div class="breadcrumb-item">
+                                <a href="#" class="breadcrumb-link">Home</a>
+                                <span class="breadcrumb-separator">/</span>
+                            </div>
+                            <div class="breadcrumb-item">
+                                <a href="#" class="breadcrumb-link">Products</a>
+                                <span class="breadcrumb-separator">/</span>
+                            </div>
+                            <div class="breadcrumb-item">
+                                <span class="breadcrumb-current">Electronics</span>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Arrow Separator -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Arrow Separator</h4>
+                    </div>
+                    <div class="card-body">
+                        <nav aria-label="Arrow separator breadcrumbs" class="breadcrumbs">
+                            <div class="breadcrumb-item">
+                                <a href="#" class="breadcrumb-link">Home</a>
+                                <span class="breadcrumb-separator">→</span>
+                            </div>
+                            <div class="breadcrumb-item">
+                                <a href="#" class="breadcrumb-link">Settings</a>
+                                <span class="breadcrumb-separator">→</span>
+                            </div>
+                            <div class="breadcrumb-item">
+                                <span class="breadcrumb-current">Account</span>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Minimal Style -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Minimal Style</h4>
+                    </div>
+                    <div class="card-body">
+                        <nav aria-label="Minimal breadcrumbs" class="breadcrumbs">
+                            <div class="breadcrumb-item">
+                                <a href="#" class="breadcrumb-link text-xs uppercase tracking-wide">Dashboard</a>
+                                <span class="breadcrumb-separator">•</span>
+                            </div>
+                            <div class="breadcrumb-item">
+                                <span class="breadcrumb-current text-xs uppercase tracking-wide font-semibold">Analytics</span>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Accessibility Features -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-4">Accessibility Features</h2>
+            <div class="card">
+                <div class="card-body">
+                    <div class="prose max-w-none">
+                        <h4>Built-in Accessibility:</h4>
+                        <ul>
+                            <li><strong>ARIA Labels:</strong> Each breadcrumb nav has proper aria-label</li>
+                            <li><strong>Semantic HTML:</strong> Uses nav, links, and proper structure</li>
+                            <li><strong>Keyboard Navigation:</strong> All links are keyboard accessible</li>
+                            <li><strong>Focus Indicators:</strong> Clear focus states for navigation</li>
+                            <li><strong>Screen Reader:</strong> Current page identified appropriately</li>
+                            <li><strong>Touch Targets:</strong> Minimum 32px height for mobile users</li>
+                        </ul>
+
+                        <h4>Usage Guidelines:</h4>
+                        <ul>
+                            <li>Always wrap breadcrumbs in a nav element with aria-label</li>
+                            <li>Use links for navigable items, spans for current page</li>
+                            <li>Include home icon for better visual hierarchy</li>
+                            <li>Collapse on mobile for long paths (use "..." indicator)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Dynamic breadcrumbs functionality
+        function navigateTo(path) {
+            const breadcrumbsContainer = document.getElementById('dynamicBreadcrumbs');
+
+            const breadcrumbsHTML = path.map((item, index) => {
+                const isLast = index === path.length - 1;
+                const icon = index === 0 ? '<span class="breadcrumb-icon">🏠</span>' : '';
+
+                if (isLast) {
+                    return `
+                        <div class="breadcrumb-item">
+                            <span class="breadcrumb-current">${icon}${item}</span>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link" onclick="navigateTo(['${path.slice(0, index + 1).join("', '")}'])">
+                                ${icon}${item}
+                            </a>
+                            <span class="breadcrumb-separator">›</span>
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            breadcrumbsContainer.innerHTML = breadcrumbsHTML;
+
+            // Announce navigation to screen readers
+            const announcement = `Navigated to ${path.join(' > ')}`;
+            announceToScreenReader(announcement);
+        }
+
+        function announceToScreenReader(message) {
+            const announcement = document.createElement('div');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.setAttribute('aria-atomic', 'true');
+            announcement.className = 'sr-only';
+            announcement.textContent = message;
+
+            document.body.appendChild(announcement);
+
+            setTimeout(() => {
+                document.body.removeChild(announcement);
+            }, 1000);
+        }
+
+        // Initialize with home
+        document.addEventListener('DOMContentLoaded', function() {
+            navigateTo(['Home']);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Builder - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <style>
+        .builder-container {
+            min-height: 100vh;
+            background: var(--gray-50);
+        }
+
+        .builder-header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 1rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .breadcrumb a {
+            color: var(--primary-600);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .campaign-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0.5rem 0 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .builder-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 1.5rem;
+        }
+
+        .main-panel {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .steps-nav {
+            display: flex;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .step-tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .step-tab:hover {
+            background: var(--gray-50);
+        }
+
+        .step-tab.active {
+            color: var(--primary-600);
+            border-bottom-color: var(--primary-600);
+            font-weight: 600;
+        }
+
+        .step-tab.completed::after {
+            content: '✓';
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--success-600);
+            font-weight: 700;
+        }
+
+        .step-content {
+            padding: 2rem;
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-label .required {
+            color: var(--error-500);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .template-editor {
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            overflow: hidden;
+        }
+
+        .editor-toolbar {
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-300);
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .editor-btn {
+            padding: 0.375rem 0.5rem;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 0.25rem;
+            font-size: 0.813rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .editor-btn:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-400);
+        }
+
+        .editor-btn.active {
+            background: var(--primary-100);
+            border-color: var(--primary-500);
+            color: var(--primary-700);
+        }
+
+        .editor-content {
+            min-height: 300px;
+            padding: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .editor-content:focus {
+            outline: none;
+        }
+
+        .recipients-selector {
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            padding: 1rem;
+        }
+
+        .recipient-filter {
+            margin-bottom: 1rem;
+        }
+
+        .recipient-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+        }
+
+        .recipient-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .recipient-item:hover {
+            background: var(--gray-50);
+        }
+
+        .recipient-count {
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .schedule-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .schedule-option {
+            border: 2px solid var(--gray-300);
+            border-radius: 0.375rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .schedule-option:hover {
+            border-color: var(--gray-400);
+            background: var(--gray-50);
+        }
+
+        .schedule-option.selected {
+            border-color: var(--primary-500);
+            background: var(--primary-50);
+        }
+
+        .schedule-option h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0 0 0.25rem;
+        }
+
+        .schedule-option p {
+            font-size: 0.813rem;
+            color: var(--gray-600);
+            margin: 0;
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .preview-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            padding: 1.25rem;
+        }
+
+        .preview-card h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0 0 1rem;
+        }
+
+        .preview-device-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .device-tab {
+            flex: 1;
+            padding: 0.375rem;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .device-tab.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+
+        .preview-frame {
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            padding: 1rem;
+            min-height: 200px;
+            font-size: 0.813rem;
+            background: white;
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            padding: 1.25rem;
+        }
+
+        .settings-card h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0 0 1rem;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .setting-label {
+            font-size: 0.813rem;
+            color: var(--gray-700);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gray-300);
+            transition: 0.3s;
+            border-radius: 20px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background: var(--primary-500);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .test-send-card {
+            background: var(--info-50);
+            border: 1px solid var(--info-300);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .test-send-card h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--info-900);
+            margin: 0 0 0.75rem;
+        }
+
+        .test-email-input {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .test-email-input input {
+            flex: 1;
+        }
+
+        .test-info {
+            font-size: 0.75rem;
+            color: var(--info-700);
+        }
+
+        @media (max-width: 1024px) {
+            .builder-content {
+                grid-template-columns: 1fr;
+            }
+
+            .side-panel {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .builder-header {
+                padding: 0.75rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .builder-content {
+                padding: 1rem;
+            }
+
+            .steps-nav {
+                flex-wrap: wrap;
+            }
+
+            .step-tab {
+                flex: 1 1 50%;
+                font-size: 0.75rem;
+                padding: 0.75rem;
+            }
+
+            .step-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="builder-container">
+        <!-- Header -->
+        <div class="builder-header">
+            <div class="header-content">
+                <div>
+                    <div class="breadcrumb">
+                        <a href="CampaignsList.html">Campaigns</a>
+                        <span>›</span>
+                        <span id="breadcrumbTitle">New Campaign</span>
+                    </div>
+                    <h1 class="campaign-title" id="campaignTitle">New Campaign</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+                    <button class="btn btn-secondary" onclick="previewCampaign()">Preview</button>
+                    <button class="btn btn-primary" onclick="sendCampaign()">Send Campaign</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="builder-content">
+            <!-- Main Panel -->
+            <div class="main-panel">
+                <!-- Steps Navigation -->
+                <div class="steps-nav">
+                    <button class="step-tab active" onclick="switchStep(1)" id="step1Tab">
+                        1. Setup
+                    </button>
+                    <button class="step-tab" onclick="switchStep(2)" id="step2Tab">
+                        2. Content
+                    </button>
+                    <button class="step-tab" onclick="switchStep(3)" id="step3Tab">
+                        3. Recipients
+                    </button>
+                    <button class="step-tab" onclick="switchStep(4)" id="step4Tab">
+                        4. Schedule
+                    </button>
+                </div>
+
+                <!-- Step 1: Setup -->
+                <div class="step-content active" id="step1Content">
+                    <div class="form-section">
+                        <h3>Campaign Information</h3>
+                        <div class="form-group">
+                            <label class="form-label">
+                                Campaign Name <span class="required">*</span>
+                            </label>
+                            <input type="text" id="campaignName" class="form-input"
+                                   placeholder="e.g., Monthly Newsletter, Product Launch">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                Campaign Type <span class="required">*</span>
+                            </label>
+                            <select id="campaignType" class="form-select">
+                                <option value="email">Email</option>
+                                <option value="newsletter">Newsletter</option>
+                                <option value="promotional">Promotional</option>
+                                <option value="transactional">Transactional</option>
+                                <option value="drip">Drip Campaign</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                Subject Line <span class="required">*</span>
+                            </label>
+                            <input type="text" id="subjectLine" class="form-input"
+                                   placeholder="Enter your email subject line">
+                            <small style="color: var(--gray-600); font-size: 0.813rem;">
+                                Keep it under 50 characters for best results
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Preview Text</label>
+                            <input type="text" id="previewText" class="form-input"
+                                   placeholder="Text that appears next to subject in inbox">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Sender Information</h3>
+                        <div class="form-group">
+                            <label class="form-label">
+                                From Name <span class="required">*</span>
+                            </label>
+                            <input type="text" id="fromName" class="form-input"
+                                   value="CAOS Team" placeholder="Your company or name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">
+                                From Email <span class="required">*</span>
+                            </label>
+                            <input type="email" id="fromEmail" class="form-input"
+                                   value="hello@caoscrm.com" placeholder="sender@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Reply-To Email</label>
+                            <input type="email" id="replyTo" class="form-input"
+                                   value="support@caoscrm.com" placeholder="reply@example.com">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Content -->
+                <div class="step-content" id="step2Content">
+                    <div class="form-section">
+                        <h3>Email Content</h3>
+                        <div class="form-group">
+                            <label class="form-label">Template</label>
+                            <select id="templateSelect" class="form-select" onchange="loadTemplate()">
+                                <option value="">Start from scratch</option>
+                                <option value="welcome">Welcome Email</option>
+                                <option value="newsletter">Newsletter Template</option>
+                                <option value="promotional">Promotional Template</option>
+                                <option value="announcement">Announcement Template</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Body</label>
+                            <div class="template-editor">
+                                <div class="editor-toolbar">
+                                    <button class="editor-btn" onclick="formatText('bold')"><b>B</b></button>
+                                    <button class="editor-btn" onclick="formatText('italic')"><i>I</i></button>
+                                    <button class="editor-btn" onclick="formatText('underline')"><u>U</u></button>
+                                    <button class="editor-btn" onclick="formatText('createLink')">🔗</button>
+                                    <button class="editor-btn" onclick="insertImage()">🖼️</button>
+                                    <button class="editor-btn" onclick="formatText('justifyLeft')">⬅️</button>
+                                    <button class="editor-btn" onclick="formatText('justifyCenter')">↔️</button>
+                                    <button class="editor-btn" onclick="formatText('justifyRight')">➡️</button>
+                                    <button class="editor-btn" onclick="insertVariable()">{ }</button>
+                                </div>
+                                <div class="editor-content" contenteditable="true" id="emailContent">
+                                    <p>Hi {{firstName}},</p>
+                                    <p>Start writing your email content here...</p>
+                                    <p>Best regards,<br>The CAOS Team</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Plain Text Version</label>
+                            <textarea id="plainText" class="form-textarea"
+                                      placeholder="Plain text version for email clients that don't support HTML"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Recipients -->
+                <div class="step-content" id="step3Content">
+                    <div class="form-section">
+                        <h3>Select Recipients</h3>
+                        <div class="form-group">
+                            <label class="form-label">Recipient Type</label>
+                            <select id="recipientType" class="form-select" onchange="updateRecipientList()">
+                                <option value="all">All Leads</option>
+                                <option value="status">By Lead Status</option>
+                                <option value="score">By Lead Score</option>
+                                <option value="source">By Lead Source</option>
+                                <option value="segment">Custom Segment</option>
+                                <option value="import">Import List</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Filter Recipients</label>
+                            <div class="recipients-selector">
+                                <div class="recipient-filter">
+                                    <input type="text" class="form-input" placeholder="Search recipients..."
+                                           id="recipientSearch" onkeyup="filterRecipients()">
+                                </div>
+                                <div class="recipient-list" id="recipientList">
+                                    <div class="recipient-item">
+                                        <input type="checkbox" id="allRecipients" checked>
+                                        <label for="allRecipients">All Qualified Leads (1,250)</label>
+                                    </div>
+                                    <div class="recipient-item">
+                                        <input type="checkbox" id="newLeads">
+                                        <label for="newLeads">New Leads (450)</label>
+                                    </div>
+                                    <div class="recipient-item">
+                                        <input type="checkbox" id="hotLeads">
+                                        <label for="hotLeads">Hot Leads (Score > 80) (125)</label>
+                                    </div>
+                                    <div class="recipient-item">
+                                        <input type="checkbox" id="contactedLeads">
+                                        <label for="contactedLeads">Recently Contacted (320)</label>
+                                    </div>
+                                </div>
+                                <div class="recipient-count">
+                                    <strong>Total Recipients:</strong> <span id="recipientCount">1,250</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Exclude Lists</label>
+                            <select id="excludeLists" class="form-select" multiple style="height: 80px;">
+                                <option value="unsubscribed">Unsubscribed</option>
+                                <option value="bounced">Bounced Emails</option>
+                                <option value="competitors">Competitors</option>
+                                <option value="donotcontact">Do Not Contact</option>
+                            </select>
+                            <small style="color: var(--gray-600); font-size: 0.813rem;">
+                                Hold Ctrl/Cmd to select multiple
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Schedule -->
+                <div class="step-content" id="step4Content">
+                    <div class="form-section">
+                        <h3>Schedule Your Campaign</h3>
+                        <div class="schedule-options">
+                            <div class="schedule-option selected" onclick="selectSchedule('immediate')">
+                                <h4>Send Immediately</h4>
+                                <p>Campaign will start sending right away</p>
+                            </div>
+                            <div class="schedule-option" onclick="selectSchedule('scheduled')">
+                                <h4>Schedule for Later</h4>
+                                <p>Pick a specific date and time</p>
+                            </div>
+                            <div class="schedule-option" onclick="selectSchedule('timezone')">
+                                <h4>Time Zone Send</h4>
+                                <p>Send at optimal time per recipient</p>
+                            </div>
+                        </div>
+                        <div id="scheduleDetails" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">Send Date</label>
+                                <input type="date" id="sendDate" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Send Time</label>
+                                <input type="time" id="sendTime" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Time Zone</label>
+                                <select id="timezone" class="form-select">
+                                    <option value="UTC">UTC</option>
+                                    <option value="EST">Eastern Time</option>
+                                    <option value="CST">Central Time</option>
+                                    <option value="PST">Pacific Time</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <h3>Sending Options</h3>
+                            <div class="form-group">
+                                <label class="form-label">Batch Size</label>
+                                <input type="number" id="batchSize" class="form-input" value="100"
+                                       placeholder="Recipients per batch">
+                                <small style="color: var(--gray-600); font-size: 0.813rem;">
+                                    Send in batches to improve deliverability
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Send Rate</label>
+                                <input type="number" id="sendRate" class="form-input" value="10"
+                                       placeholder="Emails per second">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Panel -->
+            <div class="side-panel">
+                <!-- Email Preview -->
+                <div class="preview-card">
+                    <h3>Email Preview</h3>
+                    <div class="preview-device-tabs">
+                        <button class="device-tab active" onclick="switchPreview('desktop')">Desktop</button>
+                        <button class="device-tab" onclick="switchPreview('mobile')">Mobile</button>
+                    </div>
+                    <div class="preview-frame" id="previewFrame">
+                        <div style="border-bottom: 1px solid var(--gray-200); padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Subject: <span id="previewSubject">Your subject line here</span></div>
+                            <div style="font-size: 0.75rem; color: var(--gray-600);">From: CAOS Team &lt;hello@caoscrm.com&gt;</div>
+                        </div>
+                        <div id="previewContent">
+                            Your email content will appear here...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campaign Settings -->
+                <div class="settings-card">
+                    <h3>Tracking Settings</h3>
+                    <div class="setting-item">
+                        <span class="setting-label">Track Opens</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="trackOpens" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Track Clicks</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="trackClicks" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Enable Unsubscribe</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enableUnsubscribe" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Test Send -->
+                <div class="test-send-card">
+                    <h3>Send Test Email</h3>
+                    <div class="test-email-input">
+                        <input type="email" id="testEmail" class="form-input" placeholder="test@example.com">
+                        <button class="btn btn-secondary" onclick="sendTest()">Send</button>
+                    </div>
+                    <div class="test-info">
+                        Test your campaign before sending to recipients
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let campaignData = {
+            name: '',
+            type: 'email',
+            subject: '',
+            content: '',
+            recipients: [],
+            schedule: 'immediate'
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            updatePreview();
+
+            // Check if editing existing campaign
+            const urlParams = new URLSearchParams(window.location.search);
+            const campaignId = urlParams.get('id');
+            if (campaignId) {
+                loadCampaign(campaignId);
+            }
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('campaignName').addEventListener('input', updateCampaignTitle);
+            document.getElementById('subjectLine').addEventListener('input', updatePreview);
+            document.getElementById('emailContent').addEventListener('input', updatePreview);
+        }
+
+        // Step navigation
+        function switchStep(step) {
+            // Update tabs
+            document.querySelectorAll('.step-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(`step${step}Tab`).classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`step${step}Content`).classList.add('active');
+
+            // Mark previous steps as completed
+            for (let i = 1; i < step; i++) {
+                document.getElementById(`step${i}Tab`).classList.add('completed');
+            }
+
+            currentStep = step;
+        }
+
+        // Update campaign title
+        function updateCampaignTitle() {
+            const name = document.getElementById('campaignName').value;
+            document.getElementById('campaignTitle').textContent = name || 'New Campaign';
+            document.getElementById('breadcrumbTitle').textContent = name || 'New Campaign';
+        }
+
+        // Update preview
+        function updatePreview() {
+            const subject = document.getElementById('subjectLine').value;
+            const content = document.getElementById('emailContent').innerHTML;
+
+            document.getElementById('previewSubject').textContent = subject || 'Your subject line here';
+            document.getElementById('previewContent').innerHTML = content || 'Your email content will appear here...';
+        }
+
+        // Template loading
+        function loadTemplate() {
+            const template = document.getElementById('templateSelect').value;
+            const editor = document.getElementById('emailContent');
+
+            const templates = {
+                welcome: `
+                    <h2 style="color: #1f2937;">Welcome to CAOS CRM!</h2>
+                    <p>Hi {{firstName}},</p>
+                    <p>We're thrilled to have you join our community. CAOS CRM is designed to help you manage your customer relationships more effectively.</p>
+                    <p>Here are a few things to get you started:</p>
+                    <ul>
+                        <li>Complete your profile</li>
+                        <li>Import your contacts</li>
+                        <li>Set up your first campaign</li>
+                    </ul>
+                    <p>If you have any questions, feel free to reach out to our support team.</p>
+                    <p>Best regards,<br>The CAOS Team</p>
+                `,
+                newsletter: `
+                    <h2 style="color: #1f2937;">Monthly Newsletter</h2>
+                    <p>Hi {{firstName}},</p>
+                    <p>Here's what's new this month:</p>
+                    <h3>Feature Updates</h3>
+                    <p>[Add your feature updates here]</p>
+                    <h3>Tips & Tricks</h3>
+                    <p>[Share helpful tips]</p>
+                    <h3>Customer Spotlight</h3>
+                    <p>[Feature a customer success story]</p>
+                    <p>Stay tuned for more updates!</p>
+                    <p>Best regards,<br>The CAOS Team</p>
+                `,
+                promotional: `
+                    <h2 style="color: #1f2937;">Special Offer Just for You!</h2>
+                    <p>Hi {{firstName}},</p>
+                    <p>For a limited time, we're offering an exclusive discount on our premium plans.</p>
+                    <div style="text-align: center; margin: 2rem 0;">
+                        <a href="#" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Claim Your Discount</a>
+                    </div>
+                    <p>Don't miss out on this opportunity to upgrade your CRM experience.</p>
+                    <p>Offer expires in 48 hours!</p>
+                    <p>Best regards,<br>The CAOS Team</p>
+                `
+            };
+
+            if (templates[template]) {
+                editor.innerHTML = templates[template];
+                updatePreview();
+            }
+        }
+
+        // Format text in editor
+        function formatText(command) {
+            if (command === 'createLink') {
+                const url = prompt('Enter URL:');
+                if (url) {
+                    document.execCommand(command, false, url);
+                }
+            } else {
+                document.execCommand(command, false, null);
+            }
+            updatePreview();
+        }
+
+        // Insert image
+        function insertImage() {
+            const url = prompt('Enter image URL:');
+            if (url) {
+                document.execCommand('insertImage', false, url);
+                updatePreview();
+            }
+        }
+
+        // Insert variable
+        function insertVariable() {
+            const variable = prompt('Enter variable name (e.g., firstName, companyName):');
+            if (variable) {
+                document.execCommand('insertText', false, `{{${variable}}}`);
+                updatePreview();
+            }
+        }
+
+        // Recipient selection
+        function updateRecipientList() {
+            const type = document.getElementById('recipientType').value;
+            // Update recipient list based on type
+            updateRecipientCount();
+        }
+
+        function filterRecipients() {
+            const search = document.getElementById('recipientSearch').value.toLowerCase();
+            // Filter recipient list based on search
+            updateRecipientCount();
+        }
+
+        function updateRecipientCount() {
+            // Calculate total selected recipients
+            let count = 0;
+            const checkboxes = document.querySelectorAll('#recipientList input[type="checkbox"]:checked');
+            checkboxes.forEach(cb => {
+                const label = cb.nextElementSibling.textContent;
+                const match = label.match(/\((\d+(?:,\d+)*)\)/);
+                if (match) {
+                    count += parseInt(match[1].replace(/,/g, ''));
+                }
+            });
+            document.getElementById('recipientCount').textContent = count.toLocaleString();
+        }
+
+        // Schedule selection
+        function selectSchedule(type) {
+            document.querySelectorAll('.schedule-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.closest('.schedule-option').classList.add('selected');
+
+            const detailsDiv = document.getElementById('scheduleDetails');
+            if (type === 'scheduled' || type === 'timezone') {
+                detailsDiv.style.display = 'block';
+            } else {
+                detailsDiv.style.display = 'none';
+            }
+
+            campaignData.schedule = type;
+        }
+
+        // Preview switching
+        function switchPreview(device) {
+            document.querySelectorAll('.device-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const previewFrame = document.getElementById('previewFrame');
+            if (device === 'mobile') {
+                previewFrame.style.maxWidth = '320px';
+                previewFrame.style.fontSize = '0.75rem';
+            } else {
+                previewFrame.style.maxWidth = '100%';
+                previewFrame.style.fontSize = '0.813rem';
+            }
+        }
+
+        // Campaign actions
+        function saveDraft() {
+            collectCampaignData();
+            alert('Campaign saved as draft');
+        }
+
+        function previewCampaign() {
+            collectCampaignData();
+            // Open preview modal or page
+            alert('Opening campaign preview...');
+        }
+
+        function sendCampaign() {
+            if (!validateCampaign()) {
+                return;
+            }
+
+            if (confirm('Are you sure you want to send this campaign?')) {
+                collectCampaignData();
+                alert('Campaign is being sent...');
+                window.location.href = 'CampaignsList.html';
+            }
+        }
+
+        function sendTest() {
+            const email = document.getElementById('testEmail').value;
+            if (!email) {
+                alert('Please enter a test email address');
+                return;
+            }
+            alert(`Test email sent to ${email}`);
+        }
+
+        // Validation
+        function validateCampaign() {
+            const name = document.getElementById('campaignName').value;
+            const subject = document.getElementById('subjectLine').value;
+            const fromName = document.getElementById('fromName').value;
+            const fromEmail = document.getElementById('fromEmail').value;
+
+            if (!name || !subject || !fromName || !fromEmail) {
+                alert('Please fill in all required fields');
+                return false;
+            }
+
+            const recipientCount = document.getElementById('recipientCount').textContent;
+            if (recipientCount === '0') {
+                alert('Please select at least one recipient');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Collect campaign data
+        function collectCampaignData() {
+            campaignData = {
+                name: document.getElementById('campaignName').value,
+                type: document.getElementById('campaignType').value,
+                subject: document.getElementById('subjectLine').value,
+                previewText: document.getElementById('previewText').value,
+                fromName: document.getElementById('fromName').value,
+                fromEmail: document.getElementById('fromEmail').value,
+                replyTo: document.getElementById('replyTo').value,
+                content: {
+                    html: document.getElementById('emailContent').innerHTML,
+                    text: document.getElementById('plainText').value
+                },
+                settings: {
+                    trackOpens: document.getElementById('trackOpens').checked,
+                    trackClicks: document.getElementById('trackClicks').checked,
+                    enableUnsubscribe: document.getElementById('enableUnsubscribe').checked
+                },
+                recipients: getSelectedRecipients(),
+                schedule: campaignData.schedule,
+                batchSize: document.getElementById('batchSize').value,
+                sendRate: document.getElementById('sendRate').value
+            };
+
+            if (campaignData.schedule === 'scheduled' || campaignData.schedule === 'timezone') {
+                campaignData.sendDate = document.getElementById('sendDate').value;
+                campaignData.sendTime = document.getElementById('sendTime').value;
+                campaignData.timezone = document.getElementById('timezone').value;
+            }
+
+            return campaignData;
+        }
+
+        // Get selected recipients
+        function getSelectedRecipients() {
+            const recipients = [];
+            const checkboxes = document.querySelectorAll('#recipientList input[type="checkbox"]:checked');
+            checkboxes.forEach(cb => {
+                recipients.push({
+                    id: cb.id,
+                    label: cb.nextElementSibling.textContent
+                });
+            });
+            return recipients;
+        }
+
+        // Load campaign for editing
+        function loadCampaign(campaignId) {
+            // Simulate loading campaign data
+            document.getElementById('campaignTitle').textContent = 'Edit Campaign';
+            document.getElementById('breadcrumbTitle').textContent = 'Edit Campaign';
+            // Load campaign data into form fields
+        }
+    </script>
+</body>
+</html>

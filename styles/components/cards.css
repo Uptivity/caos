@@ -1,0 +1,235 @@
+/* SnowUI Cards - Law of Common Region + All Variants */
+/* Based on design/snowui-lawsofux-design-system.md */
+
+/* BASE CARD - Use for grouping related content */
+.card {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--snow-gray-200);
+  box-shadow: var(--shadow-sm);
+  transition: all 200ms ease;
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* CARD SECTIONS */
+.card-header {
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--snow-gray-200);
+  background: var(--snow-gray-50);
+}
+
+.card-body {
+  padding: var(--space-6);
+}
+
+.card-footer {
+  padding: var(--space-6);
+  border-top: 1px solid var(--snow-gray-200);
+  background: var(--snow-gray-50);
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+/* CARD CONTENT ELEMENTS */
+.card-title {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--snow-gray-900);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.card-subtitle {
+  font-size: var(--text-sm);
+  color: var(--snow-gray-600);
+  margin: 0;
+}
+
+.card-text {
+  font-size: var(--text-base);
+  color: var(--snow-gray-700);
+  line-height: 1.6;
+  margin: var(--space-4) 0;
+}
+
+.card-text:first-child {
+  margin-top: 0;
+}
+
+.card-text:last-child {
+  margin-bottom: 0;
+}
+
+/* CARD VARIANTS */
+.card-interactive {
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  border-color: var(--snow-primary-light);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+}
+
+.card-interactive:focus-visible {
+  outline: 2px solid var(--snow-primary);
+  outline-offset: 2px;
+}
+
+/* STATUS CARDS */
+.card-danger {
+  border-color: var(--snow-error-light);
+}
+
+.card-danger .card-header {
+  background: var(--snow-error-light);
+}
+
+.card-success {
+  border-color: var(--snow-success-light);
+}
+
+.card-success .card-header {
+  background: var(--snow-success-light);
+}
+
+.card-warning {
+  border-color: var(--snow-warning-light);
+}
+
+.card-warning .card-header {
+  background: var(--snow-warning-light);
+}
+
+.card-info {
+  border-color: var(--snow-primary-light);
+}
+
+.card-info .card-header {
+  background: var(--snow-primary-light);
+}
+
+/* CARD LAYOUTS */
+.card-horizontal {
+  display: flex;
+}
+
+.card-horizontal .card-body {
+  flex: 1;
+}
+
+.card-horizontal .card-image {
+  width: 200px;
+  object-fit: cover;
+}
+
+/* CARD LOADING STATE */
+.card.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.card.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: card-shimmer 1.5s infinite;
+}
+
+@keyframes card-shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* CARD GRID LAYOUTS */
+.card-grid {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 641px) {
+  .card-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 769px) {
+  .card-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .card-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* RESPONSIVE CARDS */
+@media (max-width: 640px) {
+  .card {
+    border-radius: var(--radius);
+    margin: 0;
+  }
+
+  .card-header,
+  .card-body,
+  .card-footer {
+    padding: var(--space-4);
+  }
+
+  .card-footer {
+    flex-direction: column;
+  }
+
+  .card-footer .btn {
+    width: 100%;
+  }
+
+  .card-horizontal {
+    flex-direction: column;
+  }
+
+  .card-horizontal .card-image {
+    width: 100%;
+    height: 200px;
+  }
+}
+
+/* DARK THEME SUPPORT */
+@media (prefers-color-scheme: dark) {
+  .card {
+    background: var(--snow-dark-surface);
+    border-color: var(--snow-dark-border);
+  }
+
+  .card-header,
+  .card-footer {
+    background: var(--snow-dark-elevated);
+    border-color: var(--snow-dark-border);
+  }
+
+  .card-title {
+    color: var(--snow-dark-text-primary);
+  }
+
+  .card-subtitle {
+    color: var(--snow-dark-text-secondary);
+  }
+
+  .card-text {
+    color: var(--snow-dark-text-primary);
+  }
+}

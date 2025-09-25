@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # CAOS CRM Application
+  caos-crm:
+    build: .
+    container_name: caos-crm-app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=caos_crm
+      - DB_USER=caos_user
+      - DB_PASSWORD=${DB_PASSWORD:-changeme123}
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-your-super-secret-refresh-key-change-in-production}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-900000}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - caos-network
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "node", "backend/health-check.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: caos-crm-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: caos_crm
+      MYSQL_USER: caos_user
+      MYSQL_PASSWORD: ${DB_PASSWORD:-changeme123}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass123}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./deployment/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - caos-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "caos_user", "-p${DB_PASSWORD:-changeme123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Session Storage and Caching
+  redis:
+    image: redis:7-alpine
+    container_name: caos-crm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redispass123}
+    volumes:
+      - redis_data:/data
+    networks:
+      - caos-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx Reverse Proxy (Production)
+  nginx:
+    image: nginx:alpine
+    container_name: caos-crm-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deployment/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./components:/usr/share/nginx/html/components:ro
+      - ./styles:/usr/share/nginx/html/styles:ro
+      - ./deployment/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - caos-crm
+    networks:
+      - caos-network
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  caos-network:
+    driver: bridge

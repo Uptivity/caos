@@ -1,0 +1,90 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output
+test-results/
+
+# Build
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Legacy files
+old/
+archive/
+backup/
+
+# Docker
+docker-compose.override.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Project specific
+*.bak
+*.tmp
+.claude/
+
+# Monitoring
+prometheus_data/
+grafana_data/
+
+# Uploads
+uploads/
+public/uploads/
+
+# Cache
+.cache/
+*.cache
+
+# Sessions
+sessions/
+
+# Generated files
+*.pid
+*.seed
+*.pid.lock

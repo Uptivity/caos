@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaigns - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <style>
+        .campaigns-container {
+            min-height: 100vh;
+            background: var(--gray-50);
+        }
+
+        .campaigns-header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        .header-left p {
+            color: var(--gray-600);
+            margin: 0.25rem 0 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .campaigns-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .filters-bar {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding-left: 2.5rem;
+        }
+
+        .search-box .icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+
+        .filter-dropdown {
+            min-width: 150px;
+        }
+
+        .campaigns-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success-600);
+        }
+
+        .stat-change.negative {
+            color: var(--error-600);
+        }
+
+        .campaigns-table {
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--gray-200);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 0.875rem;
+        }
+
+        tr:hover {
+            background: var(--gray-50);
+        }
+
+        .campaign-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            text-decoration: none;
+        }
+
+        .campaign-name:hover {
+            color: var(--primary-600);
+        }
+
+        .campaign-subject {
+            color: var(--gray-600);
+            font-size: 0.813rem;
+            margin-top: 0.25rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-badge.draft {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .status-badge.scheduled {
+            background: var(--info-100);
+            color: var(--info-700);
+        }
+
+        .status-badge.sending {
+            background: var(--warning-100);
+            color: var(--warning-700);
+        }
+
+        .status-badge.sent,
+        .status-badge.completed {
+            background: var(--success-100);
+            color: var(--success-700);
+        }
+
+        .status-badge.paused {
+            background: var(--warning-100);
+            color: var(--warning-700);
+        }
+
+        .status-badge.cancelled {
+            background: var(--error-100);
+            color: var(--error-700);
+        }
+
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .metrics-cell {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 4px;
+            background: var(--gray-200);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-500);
+            transition: width 0.3s ease;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 0.375rem;
+            font-size: 0.813rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+
+        .action-btn.primary {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+
+        .action-btn.primary:hover {
+            background: var(--primary-600);
+            border-color: var(--primary-600);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            color: var(--gray-400);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            color: var(--gray-900);
+            margin: 0 0 0.5rem;
+        }
+
+        .empty-state p {
+            color: var(--gray-600);
+            margin: 0 0 1.5rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .pagination-info {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .page-btn {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid var(--gray-300);
+            background: white;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-btn.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+
+        @media (max-width: 768px) {
+            .campaigns-header {
+                padding: 1rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .campaigns-content {
+                padding: 1rem;
+            }
+
+            .filters-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .campaigns-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                margin: 0 -1rem;
+                padding: 0 1rem;
+            }
+
+            .metrics-cell {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .actions-cell {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="campaigns-container">
+        <!-- Header -->
+        <div class="campaigns-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>Campaigns</h1>
+                    <p>Manage your email marketing campaigns</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="importRecipients()">
+                        <span class="icon">📥</span> Import Recipients
+                    </button>
+                    <button class="btn btn-primary" onclick="createCampaign()">
+                        <span class="icon">➕</span> New Campaign
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="campaigns-content">
+            <!-- Stats Cards -->
+            <div class="campaigns-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Total Campaigns</div>
+                    <div class="stat-value" id="totalCampaigns">12</div>
+                    <div class="stat-change positive">↑ 20% from last month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Emails Sent</div>
+                    <div class="stat-value" id="emailsSent">45,230</div>
+                    <div class="stat-change positive">↑ 15% from last month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Open Rate</div>
+                    <div class="stat-value" id="avgOpenRate">24.5%</div>
+                    <div class="stat-change positive">↑ 2.3% improvement</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Click Rate</div>
+                    <div class="stat-value" id="avgClickRate">3.8%</div>
+                    <div class="stat-change negative">↓ 0.5% decrease</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-bar">
+                <div class="search-box">
+                    <span class="icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Search campaigns..." class="form-input">
+                </div>
+                <select id="statusFilter" class="form-select filter-dropdown">
+                    <option value="">All Status</option>
+                    <option value="draft">Draft</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="sending">Sending</option>
+                    <option value="completed">Completed</option>
+                    <option value="paused">Paused</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <select id="typeFilter" class="form-select filter-dropdown">
+                    <option value="">All Types</option>
+                    <option value="email">Email</option>
+                    <option value="newsletter">Newsletter</option>
+                    <option value="promotional">Promotional</option>
+                    <option value="drip">Drip</option>
+                </select>
+                <select id="sortBy" class="form-select filter-dropdown">
+                    <option value="createdAt">Newest First</option>
+                    <option value="name">Name</option>
+                    <option value="sentAt">Last Sent</option>
+                    <option value="openRate">Open Rate</option>
+                </select>
+            </div>
+
+            <!-- Campaigns Table -->
+            <div class="campaigns-table">
+                <div class="table-container">
+                    <table id="campaignsTable">
+                        <thead>
+                            <tr>
+                                <th width="30">
+                                    <input type="checkbox" id="selectAll">
+                                </th>
+                                <th>Campaign</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Recipients</th>
+                                <th>Performance</th>
+                                <th>Schedule</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="campaignsTableBody">
+                            <!-- Campaigns will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-state-icon">📧</div>
+                    <h3>No campaigns yet</h3>
+                    <p>Create your first campaign to start engaging with your audience.</p>
+                    <button class="btn btn-primary" onclick="createCampaign()">Create Campaign</button>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <div class="pagination-info">
+                        Showing <span id="showingStart">1</span>-<span id="showingEnd">10</span> of <span id="totalCount">0</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" id="prevBtn" onclick="previousPage()" disabled>Previous</button>
+                        <button class="page-btn active" id="page1">1</button>
+                        <button class="page-btn" id="page2">2</button>
+                        <button class="page-btn" id="page3">3</button>
+                        <button class="page-btn" id="nextBtn" onclick="nextPage()">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Campaign management functions
+        let campaigns = [];
+        let filteredCampaigns = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCampaigns();
+            setupEventListeners();
+            updateStats();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', debounce(filterCampaigns, 300));
+            document.getElementById('statusFilter').addEventListener('change', filterCampaigns);
+            document.getElementById('typeFilter').addEventListener('change', filterCampaigns);
+            document.getElementById('sortBy').addEventListener('change', sortCampaigns);
+            document.getElementById('selectAll').addEventListener('change', toggleSelectAll);
+        }
+
+        // Load campaigns
+        function loadCampaigns() {
+            // Simulated campaign data
+            campaigns = [
+                {
+                    id: 'CMP001',
+                    name: 'Welcome Email Series',
+                    subject: 'Welcome to CAOS CRM!',
+                    type: 'email',
+                    status: 'completed',
+                    recipients: 1250,
+                    sent: 1250,
+                    opened: 750,
+                    clicked: 125,
+                    openRate: 60,
+                    clickRate: 10,
+                    scheduledDate: null,
+                    sentAt: '2024-12-15T10:00:00',
+                    createdAt: '2024-12-10T09:00:00'
+                },
+                {
+                    id: 'CMP002',
+                    name: 'Holiday Promotion',
+                    subject: 'Special Holiday Offers Inside!',
+                    type: 'promotional',
+                    status: 'scheduled',
+                    recipients: 5000,
+                    sent: 0,
+                    opened: 0,
+                    clicked: 0,
+                    openRate: 0,
+                    clickRate: 0,
+                    scheduledDate: '2024-12-25T09:00:00',
+                    sentAt: null,
+                    createdAt: '2024-12-18T14:30:00'
+                },
+                {
+                    id: 'CMP003',
+                    name: 'December Newsletter',
+                    subject: 'Your Monthly Update',
+                    type: 'newsletter',
+                    status: 'draft',
+                    recipients: 0,
+                    sent: 0,
+                    opened: 0,
+                    clicked: 0,
+                    openRate: 0,
+                    clickRate: 0,
+                    scheduledDate: null,
+                    sentAt: null,
+                    createdAt: '2024-12-20T11:00:00'
+                },
+                {
+                    id: 'CMP004',
+                    name: 'Product Launch',
+                    subject: 'Introducing Our New Features',
+                    type: 'promotional',
+                    status: 'sending',
+                    recipients: 3500,
+                    sent: 1750,
+                    opened: 525,
+                    clicked: 87,
+                    openRate: 30,
+                    clickRate: 5,
+                    scheduledDate: null,
+                    sentAt: '2024-12-21T08:00:00',
+                    createdAt: '2024-12-19T16:00:00'
+                },
+                {
+                    id: 'CMP005',
+                    name: 'Customer Survey',
+                    subject: 'We Value Your Feedback',
+                    type: 'email',
+                    status: 'completed',
+                    recipients: 800,
+                    sent: 800,
+                    opened: 320,
+                    clicked: 64,
+                    openRate: 40,
+                    clickRate: 8,
+                    scheduledDate: null,
+                    sentAt: '2024-12-14T13:00:00',
+                    createdAt: '2024-12-13T10:00:00'
+                }
+            ];
+
+            filteredCampaigns = [...campaigns];
+            renderCampaigns();
+        }
+
+        // Render campaigns table
+        function renderCampaigns() {
+            const tbody = document.getElementById('campaignsTableBody');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filteredCampaigns.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            document.getElementById('pagination').style.display = 'flex';
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredCampaigns.length);
+            const pageCampaigns = filteredCampaigns.slice(startIndex, endIndex);
+
+            tbody.innerHTML = pageCampaigns.map(campaign => `
+                <tr>
+                    <td><input type="checkbox" class="campaign-checkbox" data-id="${campaign.id}"></td>
+                    <td>
+                        <a href="CampaignBuilder.html?id=${campaign.id}" class="campaign-name">${campaign.name}</a>
+                        <div class="campaign-subject">${campaign.subject}</div>
+                    </td>
+                    <td><span class="type-badge">${campaign.type}</span></td>
+                    <td><span class="status-badge ${campaign.status}">${campaign.status}</span></td>
+                    <td>${campaign.recipients.toLocaleString()}</td>
+                    <td>
+                        <div class="metrics-cell">
+                            ${campaign.status === 'completed' || campaign.status === 'sending' ? `
+                                <div class="metric-item">
+                                    <div class="metric-value">${campaign.openRate}%</div>
+                                    <div class="metric-label">Open</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-value">${campaign.clickRate}%</div>
+                                    <div class="metric-label">Click</div>
+                                </div>
+                            ` : '-'}
+                        </div>
+                    </td>
+                    <td>
+                        ${campaign.scheduledDate ?
+                            new Date(campaign.scheduledDate).toLocaleDateString() :
+                            campaign.sentAt ?
+                                new Date(campaign.sentAt).toLocaleDateString() :
+                                '-'}
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            ${campaign.status === 'draft' ?
+                                `<button class="action-btn primary" onclick="sendCampaign('${campaign.id}')">Send</button>` :
+                                campaign.status === 'scheduled' ?
+                                    `<button class="action-btn" onclick="cancelSchedule('${campaign.id}')">Cancel</button>` :
+                                    campaign.status === 'sending' ?
+                                        `<button class="action-btn" onclick="pauseCampaign('${campaign.id}')">Pause</button>` :
+                                        `<button class="action-btn" onclick="cloneCampaign('${campaign.id}')">Clone</button>`
+                            }
+                            <button class="action-btn" onclick="viewCampaign('${campaign.id}')">View</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            updatePagination();
+        }
+
+        // Filter campaigns
+        function filterCampaigns() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+
+            filteredCampaigns = campaigns.filter(campaign => {
+                const matchesSearch = !searchTerm ||
+                    campaign.name.toLowerCase().includes(searchTerm) ||
+                    campaign.subject.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusFilter || campaign.status === statusFilter;
+                const matchesType = !typeFilter || campaign.type === typeFilter;
+
+                return matchesSearch && matchesStatus && matchesType;
+            });
+
+            currentPage = 1;
+            renderCampaigns();
+        }
+
+        // Sort campaigns
+        function sortCampaigns() {
+            const sortBy = document.getElementById('sortBy').value;
+
+            filteredCampaigns.sort((a, b) => {
+                switch(sortBy) {
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'sentAt':
+                        return new Date(b.sentAt || 0) - new Date(a.sentAt || 0);
+                    case 'openRate':
+                        return b.openRate - a.openRate;
+                    default: // createdAt
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                }
+            });
+
+            renderCampaigns();
+        }
+
+        // Update statistics
+        function updateStats() {
+            // Calculate aggregated stats
+            const completedCampaigns = campaigns.filter(c => c.status === 'completed');
+            const totalSent = campaigns.reduce((sum, c) => sum + c.sent, 0);
+            const avgOpenRate = completedCampaigns.length > 0 ?
+                completedCampaigns.reduce((sum, c) => sum + c.openRate, 0) / completedCampaigns.length :
+                0;
+            const avgClickRate = completedCampaigns.length > 0 ?
+                completedCampaigns.reduce((sum, c) => sum + c.clickRate, 0) / completedCampaigns.length :
+                0;
+
+            document.getElementById('totalCampaigns').textContent = campaigns.length;
+            document.getElementById('emailsSent').textContent = totalSent.toLocaleString();
+            document.getElementById('avgOpenRate').textContent = avgOpenRate.toFixed(1) + '%';
+            document.getElementById('avgClickRate').textContent = avgClickRate.toFixed(1) + '%';
+        }
+
+        // Pagination functions
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+            const startItem = (currentPage - 1) * itemsPerPage + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, filteredCampaigns.length);
+
+            document.getElementById('showingStart').textContent = startItem;
+            document.getElementById('showingEnd').textContent = endItem;
+            document.getElementById('totalCount').textContent = filteredCampaigns.length;
+
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+
+            // Update page buttons
+            for (let i = 1; i <= 3; i++) {
+                const pageBtn = document.getElementById(`page${i}`);
+                if (pageBtn) {
+                    if (i <= totalPages) {
+                        pageBtn.style.display = 'block';
+                        pageBtn.textContent = i;
+                        pageBtn.className = i === currentPage ? 'page-btn active' : 'page-btn';
+                        pageBtn.onclick = () => goToPage(i);
+                    } else {
+                        pageBtn.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderCampaigns();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderCampaigns();
+            }
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderCampaigns();
+        }
+
+        // Campaign actions
+        function createCampaign() {
+            window.location.href = 'CampaignBuilder.html';
+        }
+
+        function viewCampaign(id) {
+            window.location.href = `CampaignBuilder.html?id=${id}`;
+        }
+
+        function sendCampaign(id) {
+            if (confirm('Are you sure you want to send this campaign?')) {
+                alert(`Campaign ${id} is being sent...`);
+                loadCampaigns(); // Reload to update status
+            }
+        }
+
+        function cloneCampaign(id) {
+            alert(`Campaign ${id} has been cloned.`);
+            loadCampaigns(); // Reload to show new campaign
+        }
+
+        function pauseCampaign(id) {
+            if (confirm('Are you sure you want to pause this campaign?')) {
+                alert(`Campaign ${id} has been paused.`);
+                loadCampaigns();
+            }
+        }
+
+        function cancelSchedule(id) {
+            if (confirm('Are you sure you want to cancel this scheduled campaign?')) {
+                alert(`Campaign ${id} schedule has been cancelled.`);
+                loadCampaigns();
+            }
+        }
+
+        function importRecipients() {
+            alert('Opening recipient import dialog...');
+        }
+
+        // Utility functions
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.campaign-checkbox');
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+/* SnowUI Forms - Miller's Rule + Validation + Accessibility */
+/* Based on design/snowui-lawsofux-design-system.md */
+
+/* FORM FOUNDATION */
+.form {
+  max-width: 600px; /* Optimal form width */
+}
+
+/* FORM SECTIONS - Group related fields (Miller's Rule: max 7 per section) */
+.form-section {
+  margin-bottom: var(--space-12);
+}
+
+.form-section-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--snow-gray-900);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--snow-gray-200);
+}
+
+/* FORM GROUP - Individual field container */
+.form-group {
+  margin-bottom: var(--space-6);
+}
+
+/* FORM LABELS - Required for accessibility */
+.form-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--snow-gray-700);
+  margin-bottom: var(--space-2);
+}
+
+.form-label.required::after {
+  content: ' *';
+  color: var(--snow-error);
+}
+
+/* BASE INPUT STYLING */
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  min-height: 44px;         /* CRITICAL: Fitts's Law */
+  padding: 12px 16px;
+  border: 1px solid var(--snow-gray-300);
+  border-radius: var(--radius);
+  font-size: var(--text-base);
+  font-family: inherit;
+  background: white;
+  color: var(--snow-gray-900);
+  transition: all 150ms ease;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--snow-gray-400);
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--snow-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* VALIDATION STATES */
+.form-input:invalid,
+.form-input.error,
+.form-textarea.error,
+.form-select.error {
+  border-color: var(--snow-error);
+}
+
+.form-input:invalid:focus,
+.form-input.error:focus,
+.form-textarea.error:focus,
+.form-select.error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-input:valid,
+.form-input.success,
+.form-textarea.success,
+.form-select.success {
+  border-color: var(--snow-success);
+}
+
+.form-input:valid:focus,
+.form-input.success:focus,
+.form-textarea.success:focus,
+.form-select.success:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* DISABLED STATE */
+.form-input:disabled,
+.form-textarea:disabled,
+.form-select:disabled {
+  background: var(--snow-gray-100);
+  color: var(--snow-gray-500);
+  cursor: not-allowed;
+}
+
+/* FORM MESSAGES */
+.form-help {
+  font-size: var(--text-sm);
+  color: var(--snow-gray-600);
+  margin-top: var(--space-2);
+}
+
+.form-error {
+  font-size: var(--text-sm);
+  color: var(--snow-error);
+  margin-top: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.form-error::before {
+  content: '⚠';
+  font-size: var(--text-base);
+}
+
+.form-success {
+  font-size: var(--text-sm);
+  color: var(--snow-success);
+  margin-top: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.form-success::before {
+  content: '✓';
+  font-size: var(--text-base);
+}
+
+/* TEXTAREA */
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* SELECT DROPDOWN */
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+/* CHECKBOX & RADIO */
+.form-checkbox,
+.form-radio {
+  width: 20px;
+  height: 20px;
+  margin-right: var(--space-3);
+  accent-color: var(--snow-primary);
+}
+
+.form-check-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.form-check-label {
+  font-size: var(--text-base);
+  color: var(--snow-gray-700);
+  cursor: pointer;
+}
+
+/* INPUT GROUPS */
+.form-input-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.form-input-group .form-input {
+  border-radius: 0;
+  border-right: none;
+}
+
+.form-input-group .form-input:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.form-input-group .form-input:last-child {
+  border-radius: 0 var(--radius) var(--radius) 0;
+  border-right: 1px solid var(--snow-gray-300);
+}
+
+.form-input-addon {
+  background: var(--snow-gray-100);
+  border: 1px solid var(--snow-gray-300);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  color: var(--snow-gray-600);
+  font-size: var(--text-base);
+  white-space: nowrap;
+}
+
+.form-input-addon:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+  border-right: none;
+}
+
+.form-input-addon:last-child {
+  border-radius: 0 var(--radius) var(--radius) 0;
+  border-left: none;
+}
+
+/* FORM LAYOUTS */
+.form-row {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* SIZE VARIATIONS */
+.form-input-sm,
+.form-select-sm {
+  min-height: 36px;
+  padding: 8px 12px;
+  font-size: var(--text-sm);
+}
+
+.form-input-lg,
+.form-select-lg {
+  min-height: 52px;
+  padding: 16px 20px;
+  font-size: var(--text-lg);
+}
+
+/* MOBILE OPTIMIZATION */
+@media (max-width: 640px) {
+  .form {
+    max-width: 100%;
+  }
+
+  .form-input,
+  .form-textarea,
+  .form-select {
+    min-height: 48px;
+    font-size: var(--text-lg);
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-row .form-group {
+    margin-bottom: var(--space-6);
+  }
+}
+
+/* DARK THEME SUPPORT */
+@media (prefers-color-scheme: dark) {
+  .form-section-title {
+    color: var(--snow-dark-text-primary);
+    border-color: var(--snow-dark-border);
+  }
+
+  .form-label {
+    color: var(--snow-dark-text-secondary);
+  }
+
+  .form-input,
+  .form-textarea,
+  .form-select {
+    background: var(--snow-dark-surface);
+    border-color: var(--snow-dark-border);
+    color: var(--snow-dark-text-primary);
+  }
+
+  .form-input:disabled,
+  .form-textarea:disabled,
+  .form-select:disabled {
+    background: var(--snow-dark-elevated);
+    color: var(--snow-dark-text-secondary);
+  }
+
+  .form-input-addon {
+    background: var(--snow-dark-elevated);
+    border-color: var(--snow-dark-border);
+    color: var(--snow-dark-text-secondary);
+  }
+
+  .form-check-label {
+    color: var(--snow-dark-text-primary);
+  }
+}

@@ -1,0 +1,17 @@
+# CAOS CRM Cron Jobs
+# Copy this to your crontab with: crontab deployment/crontab.example
+
+# Health monitoring - every 15 minutes
+*/15 * * * * cd /path/to/caos-crm && ./deployment/monitor.sh >> logs/cron.log 2>&1
+
+# Database backup - daily at 2 AM
+0 2 * * * cd /path/to/caos-crm && ./deployment/backup.sh >> logs/cron.log 2>&1
+
+# Log rotation - weekly on Sunday at 3 AM
+0 3 * * 0 cd /path/to/caos-crm && find logs/ -name "*.log" -mtime +7 -delete
+
+# Docker cleanup - monthly on first day at 4 AM
+0 4 1 * * cd /path/to/caos-crm && docker system prune -f >> logs/cron.log 2>&1
+
+# SSL certificate check - weekly on Monday at 6 AM (if using SSL)
+0 6 * * 1 cd /path/to/caos-crm && ./deployment/monitor.sh | grep -i ssl >> logs/ssl-check.log 2>&1

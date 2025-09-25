@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Details - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <style>
+        /* Lead Detail Component - Module 06 */
+
+        .lead-detail-container {
+            min-height: 100vh;
+            background: var(--snow-gray-50);
+        }
+
+        /* Header with Breadcrumbs */
+        .detail-header {
+            background: var(--snow-white);
+            border-bottom: 1px solid var(--snow-gray-200);
+            padding: var(--space-4) var(--space-6);
+        }
+
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: var(--text-sm);
+            margin-bottom: var(--space-3);
+        }
+
+        .breadcrumb-link {
+            color: var(--snow-gray-600);
+            text-decoration: none;
+            transition: color 150ms ease;
+        }
+
+        .breadcrumb-link:hover {
+            color: var(--snow-primary);
+        }
+
+        .breadcrumb-separator {
+            color: var(--snow-gray-400);
+        }
+
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lead-header-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .lead-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--radius-full);
+            background: var(--snow-primary);
+            color: var(--snow-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-xl);
+            font-weight: 700;
+        }
+
+        .lead-title-section {
+            flex: 1;
+        }
+
+        .lead-name-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-1);
+        }
+
+        .lead-name {
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            color: var(--snow-gray-900);
+        }
+
+        .lead-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            font-size: var(--text-sm);
+            color: var(--snow-gray-600);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        /* Main Content Layout */
+        .detail-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-6);
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: var(--space-6);
+        }
+
+        /* Left Column - Main Info */
+        .main-column {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        /* Contact Information Card */
+        .info-card {
+            background: var(--snow-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--snow-gray-200);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: var(--space-4) var(--space-6);
+            border-bottom: 1px solid var(--snow-gray-200);
+            background: var(--snow-gray-25);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--snow-gray-900);
+        }
+
+        .card-body {
+            padding: var(--space-6);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-6);
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+        }
+
+        .info-label {
+            font-size: var(--text-xs);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--snow-gray-500);
+        }
+
+        .info-value {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-900);
+        }
+
+        .info-value a {
+            color: var(--snow-primary);
+            text-decoration: none;
+        }
+
+        .info-value a:hover {
+            text-decoration: underline;
+        }
+
+        /* Activity Timeline */
+        .timeline {
+            position: relative;
+            padding-left: var(--space-8);
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 16px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--snow-gray-200);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: var(--space-6);
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -24px;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            background: var(--snow-white);
+            border: 2px solid var(--snow-gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-sm);
+        }
+
+        .timeline-marker.email {
+            background: var(--snow-blue-light);
+            border-color: var(--snow-blue-600);
+            color: var(--snow-blue-600);
+        }
+
+        .timeline-marker.call {
+            background: var(--snow-green-light);
+            border-color: var(--snow-green-600);
+            color: var(--snow-green-600);
+        }
+
+        .timeline-marker.meeting {
+            background: var(--snow-purple-light);
+            border-color: var(--snow-purple-600);
+            color: var(--snow-purple-600);
+        }
+
+        .timeline-marker.note {
+            background: var(--snow-yellow-light);
+            border-color: var(--snow-yellow-600);
+            color: var(--snow-yellow-600);
+        }
+
+        .timeline-content {
+            background: var(--snow-gray-50);
+            border: 1px solid var(--snow-gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: var(--snow-gray-900);
+            font-size: var(--text-sm);
+        }
+
+        .timeline-time {
+            font-size: var(--text-xs);
+            color: var(--snow-gray-500);
+        }
+
+        .timeline-description {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-700);
+            margin-bottom: var(--space-2);
+        }
+
+        .timeline-footer {
+            display: flex;
+            gap: var(--space-2);
+            font-size: var(--text-xs);
+            color: var(--snow-gray-500);
+        }
+
+        /* Right Sidebar */
+        .sidebar-column {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        /* Quick Info Widget */
+        .quick-info-widget {
+            background: var(--snow-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--snow-gray-200);
+            padding: var(--space-6);
+        }
+
+        .widget-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--snow-gray-900);
+            margin-bottom: var(--space-4);
+        }
+
+        .quick-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--snow-gray-100);
+        }
+
+        .quick-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .quick-info-label {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-600);
+        }
+
+        .quick-info-value {
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--snow-gray-900);
+        }
+
+        /* Lead Score Widget */
+        .score-widget {
+            background: var(--snow-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--snow-gray-200);
+            padding: var(--space-6);
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+        }
+
+        .score-value.high {
+            color: var(--snow-green-600);
+        }
+
+        .score-value.medium {
+            color: var(--snow-yellow-600);
+        }
+
+        .score-value.low {
+            color: var(--snow-gray-600);
+        }
+
+        .score-label {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-600);
+            margin-bottom: var(--space-4);
+        }
+
+        .score-factors {
+            text-align: left;
+            border-top: 1px solid var(--snow-gray-200);
+            padding-top: var(--space-4);
+            margin-top: var(--space-4);
+        }
+
+        .score-factor {
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--text-xs);
+            color: var(--snow-gray-600);
+            margin-bottom: var(--space-2);
+        }
+
+        /* Notes Section */
+        .notes-section {
+            background: var(--snow-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--snow-gray-200);
+            padding: var(--space-6);
+        }
+
+        .note-item {
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--snow-gray-100);
+        }
+
+        .note-item:last-child {
+            border-bottom: none;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+        }
+
+        .note-author {
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--snow-gray-900);
+        }
+
+        .note-time {
+            font-size: var(--text-xs);
+            color: var(--snow-gray-500);
+        }
+
+        .note-content {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-700);
+        }
+
+        /* Add Note Form */
+        .add-note-form {
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--snow-gray-200);
+        }
+
+        .note-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: var(--space-3);
+            border: 1px solid var(--snow-gray-300);
+            border-radius: var(--radius-md);
+            font-size: var(--text-sm);
+            resize: vertical;
+        }
+
+        .note-textarea:focus {
+            outline: none;
+            border-color: var(--snow-primary);
+            box-shadow: 0 0 0 3px var(--snow-primary-light);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .detail-main {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar-column {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--space-4);
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-main {
+                flex-direction: column;
+                gap: var(--space-4);
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-actions button {
+                flex: 1;
+            }
+
+            .sidebar-column {
+                grid-template-columns: 1fr;
+            }
+
+            .lead-header-info {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="lead-detail-container">
+        <!-- Header -->
+        <header class="detail-header">
+            <nav class="breadcrumbs">
+                <a href="LeadsList.html" class="breadcrumb-link">Leads</a>
+                <span class="breadcrumb-separator">›</span>
+                <span>John Smith</span>
+            </nav>
+
+            <div class="header-main">
+                <div class="lead-header-info">
+                    <div class="lead-avatar">JS</div>
+                    <div class="lead-title-section">
+                        <div class="lead-name-row">
+                            <h1 class="lead-name">John Smith</h1>
+                            <span class="lead-status qualified">Qualified</span>
+                        </div>
+                        <div class="lead-meta">
+                            <span>📧 john.smith@techcorp.com</span>
+                            <span>📞 +1 555-0123</span>
+                            <span>🏢 TechCorp Solutions</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn btn-ghost" onclick="sendEmail()">
+                        📧 Email
+                    </button>
+                    <button class="btn btn-ghost" onclick="makeCall()">
+                        📞 Call
+                    </button>
+                    <button class="btn btn-secondary" onclick="logActivity()">
+                        ➕ Log Activity
+                    </button>
+                    <button class="btn btn-primary" onclick="editLead()">
+                        ✏️ Edit Lead
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="detail-main">
+            <!-- Left Column -->
+            <div class="main-column">
+                <!-- Contact Information -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h2 class="card-title">Contact Information</h2>
+                        <button class="btn btn-ghost btn-sm" onclick="editContactInfo()">
+                            Edit
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-grid">
+                            <div class="info-group">
+                                <span class="info-label">Full Name</span>
+                                <span class="info-value">John Smith</span>
+                            </div>
+                            <div class="info-group">
+                                <span class="info-label">Email</span>
+                                <span class="info-value">
+                                    <a href="mailto:john.smith@techcorp.com">john.smith@techcorp.com</a>
+                                </span>
+                            </div>
+                            <div class="info-group">
+                                <span class="info-label">Phone</span>
+                                <span class="info-value">
+                                    <a href="tel:+15550123">+1 555-0123</a>
+                                </span>
+                            </div>
+                            <div class="info-group">
+                                <span class="info-label">Company</span>
+                                <span class="info-value">TechCorp Solutions</span>
+                            </div>
+                            <div class="info-group">
+                                <span class="info-label">Title</span>
+                                <span class="info-value">Chief Technology Officer</span>
+                            </div>
+                            <div class="info-group">
+                                <span class="info-label">Industry</span>
+                                <span class="info-value">Technology</span>
+                            </div>
+                            <div class="info-group">
+                                <span class="info-label">Company Size</span>
+                                <span class="info-value">51-200 employees</span>
+                            </div>
+                            <div class="info-group">
+                                <span class="info-label">Location</span>
+                                <span class="info-value">San Francisco, CA, USA</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Timeline -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h2 class="card-title">Activity Timeline</h2>
+                        <button class="btn btn-ghost btn-sm" onclick="showAllActivities()">
+                            View All
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-marker call">📞</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-title">Discovery Call</span>
+                                        <span class="timeline-time">2 hours ago</span>
+                                    </div>
+                                    <div class="timeline-description">
+                                        Had a 30-minute discovery call with John. Discussed their current tech stack challenges and how our solution could help. Very interested in enterprise features.
+                                    </div>
+                                    <div class="timeline-footer">
+                                        <span>Sarah Johnson</span>
+                                        <span>•</span>
+                                        <span>Outcome: Positive</span>
+                                        <span>•</span>
+                                        <span>Next: Send proposal</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item">
+                                <div class="timeline-marker email">✉️</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-title">Follow-up Email</span>
+                                        <span class="timeline-time">Yesterday</span>
+                                    </div>
+                                    <div class="timeline-description">
+                                        Sent follow-up email with case studies and pricing information as requested.
+                                    </div>
+                                    <div class="timeline-footer">
+                                        <span>Sarah Johnson</span>
+                                        <span>•</span>
+                                        <span>Opened: Yes</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item">
+                                <div class="timeline-marker meeting">📅</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-title">Demo Meeting Scheduled</span>
+                                        <span class="timeline-time">3 days ago</span>
+                                    </div>
+                                    <div class="timeline-description">
+                                        Product demo scheduled for next Tuesday at 2:00 PM PST. Will be joined by their technical team.
+                                    </div>
+                                    <div class="timeline-footer">
+                                        <span>Mike Thompson</span>
+                                        <span>•</span>
+                                        <span>Duration: 60 min</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item">
+                                <div class="timeline-marker note">📝</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-title">Lead Created</span>
+                                        <span class="timeline-time">5 days ago</span>
+                                    </div>
+                                    <div class="timeline-description">
+                                        Lead submitted form on website. Downloaded our enterprise whitepaper.
+                                    </div>
+                                    <div class="timeline-footer">
+                                        <span>System</span>
+                                        <span>•</span>
+                                        <span>Source: Website</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="sidebar-column">
+                <!-- Quick Info Widget -->
+                <div class="quick-info-widget">
+                    <h3 class="widget-title">Quick Information</h3>
+                    <div class="quick-info-item">
+                        <span class="quick-info-label">Status</span>
+                        <span class="quick-info-value">
+                            <span class="lead-status qualified">Qualified</span>
+                        </span>
+                    </div>
+                    <div class="quick-info-item">
+                        <span class="quick-info-label">Source</span>
+                        <span class="quick-info-value">Website</span>
+                    </div>
+                    <div class="quick-info-item">
+                        <span class="quick-info-label">Assigned To</span>
+                        <span class="quick-info-value">Sarah Johnson</span>
+                    </div>
+                    <div class="quick-info-item">
+                        <span class="quick-info-label">Created</span>
+                        <span class="quick-info-value">Dec 15, 2024</span>
+                    </div>
+                    <div class="quick-info-item">
+                        <span class="quick-info-label">Last Activity</span>
+                        <span class="quick-info-value">2 hours ago</span>
+                    </div>
+                    <div class="quick-info-item">
+                        <span class="quick-info-label">Expected Close</span>
+                        <span class="quick-info-value">Feb 28, 2025</span>
+                    </div>
+                    <div class="quick-info-item">
+                        <span class="quick-info-label">Deal Value</span>
+                        <span class="quick-info-value">$75,000</span>
+                    </div>
+                </div>
+
+                <!-- Lead Score Widget -->
+                <div class="score-widget">
+                    <h3 class="widget-title">Lead Score</h3>
+                    <div class="score-value high">85</div>
+                    <div class="score-label">High Quality Lead</div>
+                    <div class="score-factors">
+                        <div class="score-factor">
+                            <span>Company Size</span>
+                            <span>+40</span>
+                        </div>
+                        <div class="score-factor">
+                            <span>Industry Match</span>
+                            <span>+30</span>
+                        </div>
+                        <div class="score-factor">
+                            <span>Engagement Level</span>
+                            <span>+15</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes Section -->
+                <div class="notes-section">
+                    <h3 class="widget-title">Notes</h3>
+
+                    <div class="note-item">
+                        <div class="note-header">
+                            <span class="note-author">Sarah Johnson</span>
+                            <span class="note-time">2 hours ago</span>
+                        </div>
+                        <div class="note-content">
+                            Very engaged during the call. Main pain points are scalability and integration with existing systems. Budget approved for Q1.
+                        </div>
+                    </div>
+
+                    <div class="note-item">
+                        <div class="note-header">
+                            <span class="note-author">Mike Thompson</span>
+                            <span class="note-time">3 days ago</span>
+                        </div>
+                        <div class="note-content">
+                            Connected with John at the tech conference. Expressed immediate need for our enterprise solution.
+                        </div>
+                    </div>
+
+                    <div class="add-note-form">
+                        <textarea class="note-textarea" placeholder="Add a note..."></textarea>
+                        <button class="btn btn-primary btn-sm" style="margin-top: var(--space-2);">
+                            Add Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Lead Detail JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get lead ID from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const leadId = urlParams.get('id');
+
+            if (leadId) {
+                loadLeadDetails(leadId);
+            }
+        });
+
+        function loadLeadDetails(leadId) {
+            console.log('Loading lead details for:', leadId);
+            // In production, would fetch lead details from API
+        }
+
+        function editLead() {
+            console.log('Editing lead...');
+            // In production, would open edit modal or navigate to edit page
+        }
+
+        function editContactInfo() {
+            console.log('Editing contact information...');
+            // In production, would open inline edit or modal
+        }
+
+        function sendEmail() {
+            console.log('Opening email client...');
+            // In production, would open email modal or client
+        }
+
+        function makeCall() {
+            console.log('Initiating call...');
+            // In production, would integrate with phone system
+        }
+
+        function logActivity() {
+            console.log('Opening activity log modal...');
+            // In production, would open activity logging modal
+        }
+
+        function showAllActivities() {
+            console.log('Showing all activities...');
+            // In production, would expand timeline or open full activity view
+        }
+
+        // Add note functionality
+        document.querySelector('.add-note-form button').addEventListener('click', function() {
+            const noteTextarea = document.querySelector('.note-textarea');
+            const noteContent = noteTextarea.value.trim();
+
+            if (noteContent) {
+                console.log('Adding note:', noteContent);
+                // In production, would save note via API
+                noteTextarea.value = '';
+            }
+        });
+
+        // Update status dropdown
+        document.querySelector('.lead-status').addEventListener('click', function() {
+            console.log('Opening status change dropdown...');
+            // In production, would show status change options
+        });
+    </script>
+</body>
+</html>

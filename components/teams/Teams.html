@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teams Management - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <style>
+        /* Teams-specific styles */
+        .teams-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: var(--spacing-lg);
+            height: calc(100vh - 140px);
+        }
+
+        .teams-sidebar {
+            background: var(--snow-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+        }
+
+        .teams-main {
+            background: var(--snow-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+        }
+
+        .team-card {
+            background: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .team-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .team-card.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .team-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            margin-right: var(--spacing-md);
+        }
+
+        .team-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .team-info {
+            flex: 1;
+        }
+
+        .team-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .team-meta {
+            display: flex;
+            gap: var(--spacing-sm);
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .member-card {
+            background: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            transition: all 0.3s ease;
+        }
+
+        .member-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: var(--spacing-md);
+        }
+
+        .member-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .role-badge {
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .role-owner {
+            background: var(--error-light);
+            color: var(--error);
+        }
+
+        .role-admin {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .role-manager {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .role-member {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .role-viewer {
+            background: var(--gray-100);
+            color: var(--text-secondary);
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .tab-button {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .setting-group {
+            background: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+        }
+
+        .hierarchy-tree {
+            padding: var(--spacing-lg);
+        }
+
+        .hierarchy-node {
+            margin-left: var(--spacing-lg);
+            position: relative;
+        }
+
+        .hierarchy-node::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--border-color);
+        }
+
+        .hierarchy-node::after {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 20px;
+            width: 15px;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .metric-card {
+            background: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .invitation-card {
+            background: var(--snow-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .invitation-status {
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .status-accepted {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-declined {
+            background: var(--error-light);
+            color: var(--error);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl) var(--spacing-lg);
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: var(--spacing-md);
+            opacity: 0.5;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .quick-action-card {
+            background: var(--background);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .quick-action-icon {
+            font-size: 24px;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        @media (max-width: 768px) {
+            .teams-container {
+                grid-template-columns: 1fr;
+            }
+
+            .teams-sidebar {
+                display: none;
+            }
+
+            .members-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav-container">
+        <div class="nav-brand">
+            <span class="nav-logo">📊</span>
+            <span class="nav-title">CAOS CRM</span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="../dashboard/Dashboard.html" class="nav-link">Dashboard</a></li>
+            <li><a href="../leads/Leads.html" class="nav-link">Leads</a></li>
+            <li><a href="../campaigns/CampaignsList.html" class="nav-link">Campaigns</a></li>
+            <li><a href="../products/ProductCatalog.html" class="nav-link">Products</a></li>
+            <li><a href="../analytics/Analytics.html" class="nav-link">Analytics</a></li>
+            <li><a href="../tasks/Tasks.html" class="nav-link">Tasks</a></li>
+            <li><a href="../calendar/Calendar.html" class="nav-link">Calendar</a></li>
+            <li><a href="../email/Email.html" class="nav-link">Email</a></li>
+            <li><a href="../reports/Reports.html" class="nav-link">Reports</a></li>
+            <li><a href="#" class="nav-link active">Teams</a></li>
+            <li><a href="../settings/Settings.html" class="nav-link">Settings</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid" style="padding-top: 80px;">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Teams Management</h1>
+                <p class="page-description">Manage your teams, members, and collaboration settings</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-secondary" onclick="showInviteModal()">
+                    <span>✉️ Invite Members</span>
+                </button>
+                <button class="btn btn-primary" onclick="showCreateTeamModal()">
+                    <span>➕ Create Team</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Teams Container -->
+        <div class="teams-container">
+            <!-- Teams Sidebar -->
+            <div class="teams-sidebar">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="teamSearch" placeholder="🔍 Search teams...">
+                </div>
+
+                <h3 class="section-title">My Teams</h3>
+                <div id="teamsList">
+                    <!-- Teams will be loaded here -->
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>No teams yet</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateTeamModal()">Create Your First Team</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="teams-main" id="teamsMain">
+                <div class="empty-state">
+                    <div class="empty-state-icon">👈</div>
+                    <h3>Select a team to get started</h3>
+                    <p>Choose a team from the sidebar or create a new one</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Team Modal -->
+    <div id="createTeamModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Create New Team</h2>
+                <span class="modal-close" onclick="closeModal('createTeamModal')">&times;</span>
+            </div>
+            <form id="createTeamForm">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Team Name *</label>
+                            <input type="text" class="form-control" id="teamName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Industry</label>
+                            <select class="form-control" id="teamIndustry">
+                                <option value="">Select Industry</option>
+                                <option value="technology">Technology</option>
+                                <option value="finance">Finance</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="retail">Retail</option>
+                                <option value="manufacturing">Manufacturing</option>
+                                <option value="education">Education</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="teamDescription" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Team Size</label>
+                            <select class="form-control" id="teamSize">
+                                <option value="small">Small (1-10)</option>
+                                <option value="medium">Medium (11-50)</option>
+                                <option value="large">Large (51-200)</option>
+                                <option value="enterprise">Enterprise (200+)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Timezone</label>
+                            <select class="form-control" id="teamTimezone">
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York">Eastern Time</option>
+                                <option value="America/Chicago">Central Time</option>
+                                <option value="America/Denver">Mountain Time</option>
+                                <option value="America/Los_Angeles">Pacific Time</option>
+                                <option value="Europe/London">London</option>
+                                <option value="Europe/Paris">Paris</option>
+                                <option value="Asia/Tokyo">Tokyo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Visibility</label>
+                            <select class="form-control" id="teamVisibility">
+                                <option value="private">Private</option>
+                                <option value="public">Public</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Join Policy</label>
+                            <select class="form-control" id="teamJoinPolicy">
+                                <option value="invite">Invite Only</option>
+                                <option value="request">Request to Join</option>
+                                <option value="open">Open</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createTeamModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Invite Members Modal -->
+    <div id="inviteModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Invite Team Members</h2>
+                <span class="modal-close" onclick="closeModal('inviteModal')">&times;</span>
+            </div>
+            <form id="inviteForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Email Addresses</label>
+                        <input type="email" class="form-control" id="inviteEmails" placeholder="Enter email addresses separated by commas" required>
+                        <small class="form-hint">You can invite multiple members at once</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <select class="form-control" id="inviteRole">
+                            <option value="MEMBER">Member</option>
+                            <option value="MANAGER">Manager</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Personal Message (Optional)</label>
+                        <textarea class="form-control" id="inviteMessage" rows="3" placeholder="Add a personal message to the invitation"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('inviteModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Invitations</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Team Details Template -->
+    <template id="teamDetailsTemplate">
+        <div class="team-details">
+            <!-- Team Header -->
+            <div class="team-header">
+                <div class="team-logo" id="detailTeamLogo">T</div>
+                <div class="team-info">
+                    <h2 class="team-name" id="detailTeamName">Team Name</h2>
+                    <div class="team-meta">
+                        <span id="detailMemberCount">0 members</span>
+                        <span>•</span>
+                        <span id="detailTeamPlan">Free Plan</span>
+                        <span>•</span>
+                        <span class="role-badge" id="detailUserRole">Member</span>
+                    </div>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="editTeam()">
+                        <span>✏️ Edit</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="quick-action-card" onclick="showInviteModal()">
+                    <div class="quick-action-icon">✉️</div>
+                    <div>Invite Members</div>
+                </div>
+                <div class="quick-action-card" onclick="showTab('members')">
+                    <div class="quick-action-icon">👥</div>
+                    <div>View Members</div>
+                </div>
+                <div class="quick-action-card" onclick="showTab('settings')">
+                    <div class="quick-action-icon">⚙️</div>
+                    <div>Settings</div>
+                </div>
+                <div class="quick-action-card" onclick="showTab('metrics')">
+                    <div class="quick-action-icon">📊</div>
+                    <div>Metrics</div>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="tabs-nav">
+                <button class="tab-button active" onclick="showTab('overview')">Overview</button>
+                <button class="tab-button" onclick="showTab('members')">Members</button>
+                <button class="tab-button" onclick="showTab('invitations')">Invitations</button>
+                <button class="tab-button" onclick="showTab('hierarchy')">Hierarchy</button>
+                <button class="tab-button" onclick="showTab('settings')">Settings</button>
+                <button class="tab-button" onclick="showTab('metrics')">Metrics</button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div id="overviewTab" class="tab-content active">
+                <!-- Team Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="metricMembers">0</div>
+                        <div class="metric-label">Team Members</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="metricProjects">0</div>
+                        <div class="metric-label">Active Projects</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="metricTasks">0</div>
+                        <div class="metric-label">Open Tasks</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="metricLeads">0</div>
+                        <div class="metric-label">Active Leads</div>
+                    </div>
+                </div>
+
+                <!-- Team Description -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>About This Team</h3>
+                    </div>
+                    <div class="card-body">
+                        <p id="teamDescriptionText">No description available</p>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card" style="margin-top: var(--spacing-lg);">
+                    <div class="card-header">
+                        <h3>Recent Activity</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentActivity">
+                            <div class="empty-state">
+                                <p>No recent activity</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="membersTab" class="tab-content">
+                <div class="form-row" style="margin-bottom: var(--spacing-lg);">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="🔍 Search members..." onkeyup="searchMembers(this.value)">
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" onchange="filterMembersByRole(this.value)">
+                            <option value="">All Roles</option>
+                            <option value="OWNER">Owners</option>
+                            <option value="ADMIN">Admins</option>
+                            <option value="MANAGER">Managers</option>
+                            <option value="MEMBER">Members</option>
+                            <option value="VIEWER">Viewers</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="members-grid" id="membersGrid">
+                    <!-- Members will be loaded here -->
+                </div>
+            </div>
+
+            <div id="invitationsTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Pending Invitations</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="invitationsList">
+                            <!-- Invitations will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="hierarchyTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Team Hierarchy</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="hierarchy-tree" id="hierarchyTree">
+                            <!-- Hierarchy will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settingsTab" class="tab-content">
+                <div class="settings-grid">
+                    <div class="setting-group">
+                        <h3>General Settings</h3>
+                        <div class="form-group">
+                            <label class="form-label">Team Name</label>
+                            <input type="text" class="form-control" id="settingTeamName">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="settingDescription" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Industry</label>
+                            <select class="form-control" id="settingIndustry">
+                                <option value="technology">Technology</option>
+                                <option value="finance">Finance</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="retail">Retail</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Privacy & Access</h3>
+                        <div class="form-group">
+                            <label class="form-label">Visibility</label>
+                            <select class="form-control" id="settingVisibility">
+                                <option value="private">Private</option>
+                                <option value="public">Public</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Join Policy</label>
+                            <select class="form-control" id="settingJoinPolicy">
+                                <option value="invite">Invite Only</option>
+                                <option value="request">Request to Join</option>
+                                <option value="open">Open</option>
+                            </select>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="allowGuests" class="form-check-input">
+                            <label for="allowGuests" class="form-check-label">Allow Guest Users</label>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Notifications</h3>
+                        <div class="form-check">
+                            <input type="checkbox" id="notifyEmail" class="form-check-input" checked>
+                            <label for="notifyEmail" class="form-check-label">Email Notifications</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="notifySlack" class="form-check-input">
+                            <label for="notifySlack" class="form-check-label">Slack Notifications</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="notifyTeams" class="form-check-input">
+                            <label for="notifyTeams" class="form-check-label">Microsoft Teams</label>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Features</h3>
+                        <div class="form-check">
+                            <input type="checkbox" id="featureCampaigns" class="form-check-input" checked>
+                            <label for="featureCampaigns" class="form-check-label">Campaigns</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="featureAnalytics" class="form-check-input" checked>
+                            <label for="featureAnalytics" class="form-check-label">Analytics</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="featureReports" class="form-check-input" checked>
+                            <label for="featureReports" class="form-check-label">Reports</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: var(--spacing-lg);">
+                    <button class="btn btn-primary" onclick="saveTeamSettings()">Save Settings</button>
+                </div>
+            </div>
+
+            <div id="metricsTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Team Performance Metrics</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="tasksCompleted">0</div>
+                                <div class="metric-label">Tasks Completed</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="leadsConverted">0</div>
+                                <div class="metric-label">Leads Converted</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="campaignsSent">0</div>
+                                <div class="metric-label">Campaigns Sent</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="responseTime">0h</div>
+                                <div class="metric-label">Avg Response Time</div>
+                            </div>
+                        </div>
+
+                        <canvas id="performanceChart" style="margin-top: var(--spacing-lg);"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        // API Configuration
+        const API_BASE = 'http://localhost:3001/api';
+        let currentTeam = null;
+        let teams = [];
+        let currentMembers = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTeams();
+            setupEventListeners();
+        });
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Create team form
+            document.getElementById('createTeamForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await createTeam();
+            });
+
+            // Invite form
+            document.getElementById('inviteForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await sendInvitations();
+            });
+
+            // Team search
+            document.getElementById('teamSearch').addEventListener('input', (e) => {
+                filterTeams(e.target.value);
+            });
+        }
+
+        // Load teams
+        async function loadTeams() {
+            try {
+                const response = await fetch(`${API_BASE}/teams`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    teams = result.data;
+                    displayTeams(teams);
+                }
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                showNotification('Failed to load teams', 'error');
+            }
+        }
+
+        // Display teams in sidebar
+        function displayTeams(teamsList) {
+            const container = document.getElementById('teamsList');
+
+            if (teamsList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>No teams yet</p>
+                        <button class="btn btn-primary btn-sm" onclick="showCreateTeamModal()">Create Your First Team</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = teamsList.map(team => `
+                <div class="team-card ${currentTeam?.id === team.id ? 'active' : ''}" onclick="selectTeam('${team.id}')">
+                    <div class="team-header">
+                        <div class="team-logo">${team.name.charAt(0).toUpperCase()}</div>
+                        <div class="team-info">
+                            <div class="team-name">${team.name}</div>
+                            <div class="team-meta">
+                                <span>${team.metadata.memberCount} members</span>
+                                <span>•</span>
+                                <span class="role-badge role-${team.userRole.toLowerCase()}">${team.userRole}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter teams
+        function filterTeams(searchTerm) {
+            const filtered = teams.filter(team =>
+                team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                team.description.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            displayTeams(filtered);
+        }
+
+        // Select team
+        async function selectTeam(teamId) {
+            try {
+                const response = await fetch(`${API_BASE}/teams/${teamId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentTeam = result.data;
+                    displayTeamDetails(result.data, result.userRole);
+
+                    // Update active state in sidebar
+                    document.querySelectorAll('.team-card').forEach(card => {
+                        card.classList.remove('active');
+                    });
+                    event.currentTarget.classList.add('active');
+
+                    // Load additional data
+                    loadTeamMembers();
+                    loadTeamInvitations();
+                    loadTeamMetrics();
+                }
+            } catch (error) {
+                console.error('Error loading team details:', error);
+                showNotification('Failed to load team details', 'error');
+            }
+        }
+
+        // Display team details
+        function displayTeamDetails(team, userRole) {
+            const template = document.getElementById('teamDetailsTemplate');
+            const clone = template.content.cloneNode(true);
+
+            // Update team info
+            clone.getElementById('detailTeamLogo').textContent = team.name.charAt(0).toUpperCase();
+            clone.getElementById('detailTeamName').textContent = team.name;
+            clone.getElementById('detailMemberCount').textContent = `${team.metadata.memberCount} members`;
+            clone.getElementById('detailTeamPlan').textContent = `${capitalizeFirst(team.subscription.plan)} Plan`;
+            clone.getElementById('detailUserRole').textContent = capitalizeFirst(userRole.role);
+            clone.getElementById('detailUserRole').className = `role-badge role-${userRole.role.toLowerCase()}`;
+            clone.getElementById('teamDescriptionText').textContent = team.description || 'No description available';
+
+            // Update metrics
+            clone.getElementById('metricMembers').textContent = team.metadata.memberCount;
+            clone.getElementById('metricProjects').textContent = team.metrics?.resources?.activeProjects || 0;
+            clone.getElementById('metricTasks').textContent = team.metrics?.resources?.openTasks || 0;
+            clone.getElementById('metricLeads').textContent = team.metrics?.resources?.activeLeads || 0;
+
+            // Clear main content and append new content
+            document.getElementById('teamsMain').innerHTML = '';
+            document.getElementById('teamsMain').appendChild(clone);
+
+            // Load settings if in settings tab
+            if (document.getElementById('settingsTab').classList.contains('active')) {
+                loadTeamSettings(team);
+            }
+        }
+
+        // Load team members
+        async function loadTeamMembers() {
+            if (!currentTeam) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/teams/${currentTeam.id}/members`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentMembers = result.data;
+                    displayMembers(result.data);
+                }
+            } catch (error) {
+                console.error('Error loading team members:', error);
+            }
+        }
+
+        // Display members
+        function displayMembers(members) {
+            const container = document.getElementById('membersGrid');
+
+            if (!container) return;
+
+            if (members.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <p>No members found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = members.map(member => `
+                <div class="member-card">
+                    <div class="member-header">
+                        <div class="member-avatar">${member.userId.charAt(0).toUpperCase()}</div>
+                        <div class="member-info" style="flex: 1;">
+                            <div style="font-weight: 600;">User ${member.userId.slice(-4)}</div>
+                            <div style="color: var(--text-secondary); font-size: 12px;">${member.title || 'Team Member'}</div>
+                        </div>
+                        <span class="role-badge role-${member.role.toLowerCase()}">${member.role}</span>
+                    </div>
+                    ${member.department ? `<div style="margin-top: var(--spacing-sm); color: var(--text-secondary); font-size: 12px;">📁 ${member.department}</div>` : ''}
+                    <div style="margin-top: var(--spacing-sm); color: var(--text-secondary); font-size: 12px;">
+                        Joined ${new Date(member.joinedAt).toLocaleDateString()}
+                    </div>
+                    ${member.role !== 'OWNER' && hasPermission('manage_members') ? `
+                        <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-sm);">
+                            <button class="btn btn-sm btn-secondary" onclick="editMember('${member.id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="removeMember('${member.id}')">Remove</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Search members
+        function searchMembers(searchTerm) {
+            const filtered = currentMembers.filter(member =>
+                member.userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                member.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                member.department?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            displayMembers(filtered);
+        }
+
+        // Filter members by role
+        function filterMembersByRole(role) {
+            const filtered = role ? currentMembers.filter(m => m.role === role) : currentMembers;
+            displayMembers(filtered);
+        }
+
+        // Load team invitations
+        async function loadTeamInvitations() {
+            if (!currentTeam) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/teams/${currentTeam.id}/invitations?status=pending`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayInvitations(result.data);
+                }
+            } catch (error) {
+                console.error('Error loading invitations:', error);
+            }
+        }
+
+        // Display invitations
+        function displayInvitations(invitations) {
+            const container = document.getElementById('invitationsList');
+
+            if (!container) return;
+
+            if (invitations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No pending invitations</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = invitations.map(invitation => `
+                <div class="invitation-card">
+                    <div>
+                        <div style="font-weight: 600;">${invitation.email}</div>
+                        <div style="color: var(--text-secondary); font-size: 12px;">
+                            Invited ${new Date(invitation.createdAt).toLocaleDateString()} • Role: ${invitation.role}
+                        </div>
+                    </div>
+                    <span class="invitation-status status-${invitation.status}">${invitation.status}</span>
+                </div>
+            `).join('');
+        }
+
+        // Load team metrics
+        async function loadTeamMetrics() {
+            if (!currentTeam) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/teams/${currentTeam.id}/metrics`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayMetrics(result.data);
+                }
+            } catch (error) {
+                console.error('Error loading team metrics:', error);
+            }
+        }
+
+        // Display metrics
+        function displayMetrics(metrics) {
+            if (!metrics) return;
+
+            // Update performance metrics
+            updateElementText('tasksCompleted', metrics.performance?.tasksCompleted || 0);
+            updateElementText('leadsConverted', metrics.performance?.leadsConverted || 0);
+            updateElementText('campaignsSent', metrics.performance?.campaignsSent || 0);
+            updateElementText('responseTime', `${metrics.performance?.averageResponseTime || 0}h`);
+        }
+
+        // Create team
+        async function createTeam() {
+            const teamData = {
+                name: document.getElementById('teamName').value,
+                description: document.getElementById('teamDescription').value,
+                industry: document.getElementById('teamIndustry').value,
+                size: document.getElementById('teamSize').value,
+                timezone: document.getElementById('teamTimezone').value,
+                visibility: document.getElementById('teamVisibility').value,
+                joinPolicy: document.getElementById('teamJoinPolicy').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/teams`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(teamData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('Team created successfully', 'success');
+                    closeModal('createTeamModal');
+                    loadTeams();
+                    selectTeam(result.data.id);
+                } else {
+                    showNotification(result.error || 'Failed to create team', 'error');
+                }
+            } catch (error) {
+                console.error('Error creating team:', error);
+                showNotification('Failed to create team', 'error');
+            }
+        }
+
+        // Send invitations
+        async function sendInvitations() {
+            if (!currentTeam) {
+                showNotification('Please select a team first', 'warning');
+                return;
+            }
+
+            const emails = document.getElementById('inviteEmails').value.split(',').map(e => e.trim());
+            const role = document.getElementById('inviteRole').value;
+            const message = document.getElementById('inviteMessage').value;
+
+            const invitations = emails.map(email => ({
+                email,
+                role,
+                message
+            }));
+
+            try {
+                const response = await fetch(`${API_BASE}/teams/${currentTeam.id}/invitations/bulk`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ invitations })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification(`${result.data.created.length} invitations sent successfully`, 'success');
+                    closeModal('inviteModal');
+                    loadTeamInvitations();
+
+                    // Clear form
+                    document.getElementById('inviteForm').reset();
+                } else {
+                    showNotification(result.error || 'Failed to send invitations', 'error');
+                }
+            } catch (error) {
+                console.error('Error sending invitations:', error);
+                showNotification('Failed to send invitations', 'error');
+            }
+        }
+
+        // Save team settings
+        async function saveTeamSettings() {
+            if (!currentTeam) return;
+
+            const settings = {
+                name: document.getElementById('settingTeamName').value,
+                description: document.getElementById('settingDescription').value,
+                industry: document.getElementById('settingIndustry').value,
+                settings: {
+                    visibility: document.getElementById('settingVisibility').value,
+                    joinPolicy: document.getElementById('settingJoinPolicy').value,
+                    allowGuests: document.getElementById('allowGuests').checked,
+                    notifications: {
+                        email: document.getElementById('notifyEmail').checked,
+                        slack: document.getElementById('notifySlack').checked,
+                        teams: document.getElementById('notifyTeams').checked
+                    },
+                    features: {
+                        campaigns: document.getElementById('featureCampaigns').checked,
+                        analytics: document.getElementById('featureAnalytics').checked,
+                        reports: document.getElementById('featureReports').checked
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/teams/${currentTeam.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('Settings saved successfully', 'success');
+                    currentTeam = result.data;
+                    loadTeams();
+                } else {
+                    showNotification(result.error || 'Failed to save settings', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showNotification('Failed to save settings', 'error');
+            }
+        }
+
+        // Load team settings into form
+        function loadTeamSettings(team) {
+            document.getElementById('settingTeamName').value = team.name;
+            document.getElementById('settingDescription').value = team.description;
+            document.getElementById('settingIndustry').value = team.industry;
+            document.getElementById('settingVisibility').value = team.settings.visibility;
+            document.getElementById('settingJoinPolicy').value = team.settings.joinPolicy;
+            document.getElementById('allowGuests').checked = team.settings.allowGuests;
+            document.getElementById('notifyEmail').checked = team.settings.notifications.email;
+            document.getElementById('notifySlack').checked = team.settings.notifications.slack;
+            document.getElementById('notifyTeams').checked = team.settings.notifications.teams;
+            document.getElementById('featureCampaigns').checked = team.settings.features.campaigns;
+            document.getElementById('featureAnalytics').checked = team.settings.features.analytics;
+            document.getElementById('featureReports').checked = team.settings.features.reports;
+        }
+
+        // Show tab
+        function showTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+
+            // Load specific data for tab
+            if (tabName === 'members') {
+                loadTeamMembers();
+            } else if (tabName === 'invitations') {
+                loadTeamInvitations();
+            } else if (tabName === 'metrics') {
+                loadTeamMetrics();
+            } else if (tabName === 'settings' && currentTeam) {
+                loadTeamSettings(currentTeam);
+            }
+        }
+
+        // Check permission
+        function hasPermission(permission) {
+            // This would check against actual user permissions
+            return true; // Simplified for demo
+        }
+
+        // Modal functions
+        function showCreateTeamModal() {
+            document.getElementById('createTeamModal').style.display = 'block';
+        }
+
+        function showInviteModal() {
+            if (!currentTeam) {
+                showNotification('Please select a team first', 'warning');
+                return;
+            }
+            document.getElementById('inviteModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Utility functions
+        function capitalizeFirst(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        }
+
+        function updateElementText(id, text) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = text;
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '10000';
+            notification.style.minWidth = '300px';
+
+            document.body.appendChild(notification);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

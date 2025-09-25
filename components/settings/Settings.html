@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Settings - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <style>
+        /* Settings-specific styles */
+        .settings-container {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: var(--spacing-lg);
+            min-height: calc(100vh - 140px);
+        }
+
+        .settings-sidebar {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            height: fit-content;
+            position: sticky;
+            top: var(--spacing-lg);
+        }
+
+        .settings-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .settings-menu-item {
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .settings-menu-link {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
+
+        .settings-menu-link:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .settings-menu-link.active {
+            background: var(--primary-50);
+            color: var(--primary-600);
+            font-weight: 500;
+        }
+
+        .settings-content {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+        }
+
+        .settings-header {
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-lg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .settings-section {
+            display: none;
+        }
+
+        .settings-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .setting-group {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .setting-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .setting-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            padding: var(--spacing-lg);
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+        }
+
+        .setting-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .setting-description {
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-end;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: var(--gray-300);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background var(--transition-base);
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        .toggle-switch .slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform var(--transition-base);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toggle-switch input:checked + .slider {
+            transform: translateX(24px);
+        }
+
+        .toggle-switch.checked {
+            background: var(--success-500);
+        }
+
+        .custom-field-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .custom-field-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-md);
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .custom-field-info {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .field-type-badge {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--primary-50);
+            color: var(--primary-600);
+            border-radius: var(--radius-sm);
+            font-size: var(--text-xs);
+            font-weight: 500;
+        }
+
+        .role-card {
+            padding: var(--spacing-lg);
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+            border: 1px solid var(--border);
+        }
+
+        .role-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .role-permissions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+
+        .permission-chip {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--gray-100);
+            color: var(--gray-700);
+            border-radius: var(--radius-sm);
+            font-size: var(--text-xs);
+        }
+
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .integration-card {
+            padding: var(--spacing-lg);
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            transition: all var(--transition-base);
+        }
+
+        .integration-card:hover {
+            border-color: var(--primary-300);
+            box-shadow: var(--shadow-md);
+        }
+
+        .integration-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .integration-logo {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gray-100);
+            border-radius: var(--radius-sm);
+            font-size: 18px;
+        }
+
+        .integration-status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: var(--text-sm);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gray-400);
+        }
+
+        .status-indicator.active {
+            background: var(--success-500);
+        }
+
+        .backup-history-table {
+            width: 100%;
+            margin-top: var(--spacing-lg);
+        }
+
+        .backup-history-table th {
+            text-align: left;
+            padding: var(--spacing-md);
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: var(--text-sm);
+        }
+
+        .backup-history-table td {
+            padding: var(--spacing-md);
+            border-top: 1px solid var(--border);
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: var(--spacing-md);
+        }
+
+        .theme-option {
+            flex: 1;
+            padding: var(--spacing-lg);
+            background: var(--bg-surface);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .theme-option:hover {
+            border-color: var(--primary-300);
+        }
+
+        .theme-option.selected {
+            border-color: var(--primary-500);
+            background: var(--primary-50);
+        }
+
+        .theme-preview {
+            width: 60px;
+            height: 40px;
+            margin: 0 auto var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .theme-preview.light {
+            background: white;
+        }
+
+        .theme-preview.dark {
+            background: #1a1a1a;
+        }
+
+        .theme-preview.auto {
+            background: linear-gradient(90deg, white 50%, #1a1a1a 50%);
+        }
+
+        @media (max-width: 768px) {
+            .settings-container {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-sidebar {
+                position: static;
+                margin-bottom: var(--spacing-lg);
+            }
+
+            .setting-item {
+                grid-template-columns: 1fr;
+            }
+
+            .setting-control {
+                justify-content: flex-start;
+                margin-top: var(--spacing-md);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav-primary">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="../dashboard/Dashboard.html" class="nav-brand">
+                    <span class="brand-icon">◆</span> CAOS CRM
+                </a>
+            </div>
+            <div class="nav-center">
+                <a href="../dashboard/Dashboard.html" class="nav-link">Dashboard</a>
+                <a href="../leads/LeadsList.html" class="nav-link">Leads</a>
+                <a href="../campaigns/CampaignsList.html" class="nav-link">Campaigns</a>
+                <a href="../products/ProductCatalog.html" class="nav-link">Products</a>
+                <a href="Settings.html" class="nav-link nav-active">Settings</a>
+            </div>
+            <div class="nav-right">
+                <button class="btn-icon" title="Notifications">
+                    <span>🔔</span>
+                </button>
+                <button class="btn-icon" title="User Menu">
+                    <span>👤</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Settings</h1>
+                <p class="page-subtitle">Manage your CRM configuration and preferences</p>
+            </div>
+
+            <div class="settings-container">
+                <!-- Sidebar -->
+                <aside class="settings-sidebar">
+                    <ul class="settings-menu">
+                        <li class="settings-menu-item">
+                            <a href="#profile" class="settings-menu-link active" data-section="profile">
+                                <span>👤</span>
+                                <span>My Profile</span>
+                            </a>
+                        </li>
+                        <li class="settings-menu-item">
+                            <a href="#preferences" class="settings-menu-link" data-section="preferences">
+                                <span>⚙️</span>
+                                <span>Preferences</span>
+                            </a>
+                        </li>
+                        <li class="settings-menu-item">
+                            <a href="#company" class="settings-menu-link" data-section="company">
+                                <span>🏢</span>
+                                <span>Company Info</span>
+                            </a>
+                        </li>
+                        <li class="settings-menu-item">
+                            <a href="#email" class="settings-menu-link" data-section="email">
+                                <span>📧</span>
+                                <span>Email Settings</span>
+                            </a>
+                        </li>
+                        <li class="settings-menu-item">
+                            <a href="#custom-fields" class="settings-menu-link" data-section="custom-fields">
+                                <span>📝</span>
+                                <span>Custom Fields</span>
+                            </a>
+                        </li>
+                        <li class="settings-menu-item">
+                            <a href="#roles" class="settings-menu-link" data-section="roles">
+                                <span>👥</span>
+                                <span>Roles & Permissions</span>
+                            </a>
+                        </li>
+                        <li class="settings-menu-item">
+                            <a href="#integrations" class="settings-menu-link" data-section="integrations">
+                                <span>🔗</span>
+                                <span>Integrations</span>
+                            </a>
+                        </li>
+                        <li class="settings-menu-item">
+                            <a href="#notifications" class="settings-menu-link" data-section="notifications">
+                                <span>🔔</span>
+                                <span>Notifications</span>
+                            </a>
+                        </li>
+                        <li class="settings-menu-item">
+                            <a href="#backup" class="settings-menu-link" data-section="backup">
+                                <span>💾</span>
+                                <span>Backup & Export</span>
+                            </a>
+                        </li>
+                        <li class="settings-menu-item">
+                            <a href="#advanced" class="settings-menu-link" data-section="advanced">
+                                <span>🛠️</span>
+                                <span>Advanced</span>
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <!-- Content -->
+                <div class="settings-content">
+                    <!-- My Profile Section -->
+                    <section id="profile" class="settings-section active">
+                        <div class="settings-header">
+                            <h2>My Profile</h2>
+                            <p class="text-secondary">Manage your personal information and account settings</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <form id="profileForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>First Name</label>
+                                        <input type="text" class="form-input" id="firstName" value="John" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Last Name</label>
+                                        <input type="text" class="form-input" id="lastName" value="Doe" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Email</label>
+                                        <input type="email" class="form-input" id="email" value="john.doe@caos.com" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Phone</label>
+                                        <input type="tel" class="form-input" id="phone" value="+1 (555) 123-4567">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Title</label>
+                                    <input type="text" class="form-input" id="title" value="Sales Manager">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Bio</label>
+                                    <textarea class="form-textarea" id="bio" rows="4">Experienced sales professional with a passion for customer success.</textarea>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Profile</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Security</h3>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Change Password</div>
+                                    <div class="setting-description">Update your account password regularly for security</div>
+                                </div>
+                                <div class="setting-control">
+                                    <button class="btn btn-secondary" onclick="showPasswordModal()">Change Password</button>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Two-Factor Authentication</div>
+                                    <div class="setting-description">Add an extra layer of security to your account</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="twoFactorAuth">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Preferences Section -->
+                    <section id="preferences" class="settings-section">
+                        <div class="settings-header">
+                            <h2>Preferences</h2>
+                            <p class="text-secondary">Customize your experience and display settings</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Appearance</h3>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Theme</div>
+                                    <div class="setting-description">Choose your preferred color scheme</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="theme-selector">
+                                        <div class="theme-option selected" data-theme="light">
+                                            <div class="theme-preview light"></div>
+                                            <span>Light</span>
+                                        </div>
+                                        <div class="theme-option" data-theme="dark">
+                                            <div class="theme-preview dark"></div>
+                                            <span>Dark</span>
+                                        </div>
+                                        <div class="theme-option" data-theme="auto">
+                                            <div class="theme-preview auto"></div>
+                                            <span>Auto</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Compact Mode</div>
+                                    <div class="setting-description">Display more information with reduced spacing</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="compactMode">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Regional Settings</h3>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Language</label>
+                                    <select class="form-select">
+                                        <option value="en" selected>English</option>
+                                        <option value="es">Spanish</option>
+                                        <option value="fr">French</option>
+                                        <option value="de">German</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Timezone</label>
+                                    <select class="form-select">
+                                        <option value="UTC" selected>UTC</option>
+                                        <option value="EST">Eastern Time</option>
+                                        <option value="PST">Pacific Time</option>
+                                        <option value="CST">Central Time</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Date Format</label>
+                                    <select class="form-select">
+                                        <option value="MM/DD/YYYY" selected>MM/DD/YYYY</option>
+                                        <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                        <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Time Format</label>
+                                    <select class="form-select">
+                                        <option value="12h" selected>12 Hour</option>
+                                        <option value="24h">24 Hour</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Currency</label>
+                                <select class="form-select">
+                                    <option value="USD" selected>USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="JPY">JPY (¥)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Company Info Section -->
+                    <section id="company" class="settings-section">
+                        <div class="settings-header">
+                            <h2>Company Information</h2>
+                            <p class="text-secondary">Manage your organization's details and branding</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <form id="companyForm">
+                                <div class="form-group">
+                                    <label>Company Name</label>
+                                    <input type="text" class="form-input" value="CAOS Corporation" required>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Email</label>
+                                        <input type="email" class="form-input" value="info@caos.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Phone</label>
+                                        <input type="tel" class="form-input" value="+1 (555) 000-0000">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Address</label>
+                                    <input type="text" class="form-input" placeholder="123 Business St, Suite 100">
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>City</label>
+                                        <input type="text" class="form-input" placeholder="New York">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>State/Province</label>
+                                        <input type="text" class="form-input" placeholder="NY">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Postal Code</label>
+                                        <input type="text" class="form-input" placeholder="10001">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Website</label>
+                                    <input type="url" class="form-input" value="https://www.caos.com">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Company Logo</label>
+                                    <div class="file-upload">
+                                        <input type="file" id="logoUpload" accept="image/*">
+                                        <label for="logoUpload" class="btn btn-secondary">Choose File</label>
+                                        <span class="file-name">No file chosen</span>
+                                    </div>
+                                    <small class="text-secondary">Recommended size: 200x50px, Max size: 2MB</small>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Company Info</button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <!-- Email Settings Section -->
+                    <section id="email" class="settings-section">
+                        <div class="settings-header">
+                            <h2>Email Settings</h2>
+                            <p class="text-secondary">Configure email server and template settings</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Email Server Configuration</h3>
+                            </div>
+
+                            <form id="emailServerForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>SMTP Host</label>
+                                        <input type="text" class="form-input" placeholder="smtp.gmail.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Port</label>
+                                        <input type="number" class="form-input" value="587">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Username</label>
+                                        <input type="text" class="form-input" placeholder="your-email@gmail.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Password</label>
+                                        <input type="password" class="form-input" placeholder="••••••••">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>From Name</label>
+                                        <input type="text" class="form-input" value="CAOS CRM">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>From Email</label>
+                                        <input type="email" class="form-input" value="noreply@caos.com">
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary" onclick="testEmailConnection()">Test Connection</button>
+                                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Email Templates</h3>
+                                <button class="btn btn-secondary btn-sm">Add Template</button>
+                            </div>
+
+                            <div class="template-list">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4>Welcome Email</h4>
+                                        <button class="btn btn-secondary btn-sm">Edit</button>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-secondary">Sent to new users when they join the CRM</p>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4>Password Reset</h4>
+                                        <button class="btn btn-secondary btn-sm">Edit</button>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-secondary">Sent when users request a password reset</p>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4>Lead Assignment</h4>
+                                        <button class="btn btn-secondary btn-sm">Edit</button>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-secondary">Sent when a new lead is assigned to a user</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Custom Fields Section -->
+                    <section id="custom-fields" class="settings-section">
+                        <div class="settings-header">
+                            <h2>Custom Fields</h2>
+                            <p class="text-secondary">Add custom fields to capture additional information</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="tabs">
+                                <button class="tab-button active" data-entity="leads">Leads</button>
+                                <button class="tab-button" data-entity="contacts">Contacts</button>
+                                <button class="tab-button" data-entity="deals">Deals</button>
+                                <button class="tab-button" data-entity="accounts">Accounts</button>
+                            </div>
+
+                            <div class="tab-content active" id="leads-fields">
+                                <div class="setting-group-header">
+                                    <h3>Lead Custom Fields</h3>
+                                    <button class="btn btn-primary btn-sm" onclick="showAddFieldModal('leads')">Add Field</button>
+                                </div>
+
+                                <ul class="custom-field-list">
+                                    <li class="custom-field-item">
+                                        <div class="custom-field-info">
+                                            <span class="field-type-badge">TEXT</span>
+                                            <div>
+                                                <strong>Industry</strong>
+                                                <span class="text-secondary">• industry</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-secondary btn-sm">Edit</button>
+                                            <button class="btn btn-danger btn-sm">Delete</button>
+                                        </div>
+                                    </li>
+                                    <li class="custom-field-item">
+                                        <div class="custom-field-info">
+                                            <span class="field-type-badge">SELECT</span>
+                                            <div>
+                                                <strong>Lead Source</strong>
+                                                <span class="text-secondary">• lead_source</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-secondary btn-sm">Edit</button>
+                                            <button class="btn btn-danger btn-sm">Delete</button>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Roles & Permissions Section -->
+                    <section id="roles" class="settings-section">
+                        <div class="settings-header">
+                            <h2>Roles & Permissions</h2>
+                            <p class="text-secondary">Manage user roles and access permissions</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>System Roles</h3>
+                                <button class="btn btn-primary btn-sm">Add Role</button>
+                            </div>
+
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <div>
+                                        <h4>Administrator</h4>
+                                        <p class="text-secondary">Full system access</p>
+                                    </div>
+                                    <span class="badge badge-primary">System Role</span>
+                                </div>
+                                <div class="role-permissions">
+                                    <span class="permission-chip">All Permissions</span>
+                                </div>
+                            </div>
+
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <div>
+                                        <h4>Sales Manager</h4>
+                                        <p class="text-secondary">Manage sales team and pipeline</p>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-secondary btn-sm">Edit</button>
+                                    </div>
+                                </div>
+                                <div class="role-permissions">
+                                    <span class="permission-chip">Leads</span>
+                                    <span class="permission-chip">Deals</span>
+                                    <span class="permission-chip">Contacts</span>
+                                    <span class="permission-chip">Reports</span>
+                                    <span class="permission-chip">Team Management</span>
+                                </div>
+                            </div>
+
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <div>
+                                        <h4>Sales Representative</h4>
+                                        <p class="text-secondary">Manage own leads and deals</p>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-secondary btn-sm">Edit</button>
+                                    </div>
+                                </div>
+                                <div class="role-permissions">
+                                    <span class="permission-chip">View Leads</span>
+                                    <span class="permission-chip">Create Leads</span>
+                                    <span class="permission-chip">Edit Own Leads</span>
+                                    <span class="permission-chip">View Deals</span>
+                                    <span class="permission-chip">Create Deals</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Integrations Section -->
+                    <section id="integrations" class="settings-section">
+                        <div class="settings-header">
+                            <h2>Integrations</h2>
+                            <p class="text-secondary">Connect your CRM with third-party services</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="integration-grid">
+                                <div class="integration-card">
+                                    <div class="integration-header">
+                                        <div class="integration-logo">📧</div>
+                                        <div>
+                                            <h4>Google Workspace</h4>
+                                            <div class="integration-status">
+                                                <span class="status-indicator"></span>
+                                                <span>Not Connected</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-secondary">Sync contacts, calendar, and emails</p>
+                                    <button class="btn btn-primary btn-sm">Connect</button>
+                                </div>
+
+                                <div class="integration-card">
+                                    <div class="integration-header">
+                                        <div class="integration-logo">📊</div>
+                                        <div>
+                                            <h4>Microsoft 365</h4>
+                                            <div class="integration-status">
+                                                <span class="status-indicator"></span>
+                                                <span>Not Connected</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-secondary">Integrate with Outlook and Teams</p>
+                                    <button class="btn btn-primary btn-sm">Connect</button>
+                                </div>
+
+                                <div class="integration-card">
+                                    <div class="integration-header">
+                                        <div class="integration-logo">💬</div>
+                                        <div>
+                                            <h4>Slack</h4>
+                                            <div class="integration-status">
+                                                <span class="status-indicator active"></span>
+                                                <span>Connected</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-secondary">Send notifications to Slack channels</p>
+                                    <button class="btn btn-secondary btn-sm">Configure</button>
+                                </div>
+
+                                <div class="integration-card">
+                                    <div class="integration-header">
+                                        <div class="integration-logo">⚡</div>
+                                        <div>
+                                            <h4>Zapier</h4>
+                                            <div class="integration-status">
+                                                <span class="status-indicator"></span>
+                                                <span>Not Connected</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-secondary">Connect to 5,000+ apps</p>
+                                    <button class="btn btn-primary btn-sm">Connect</button>
+                                </div>
+
+                                <div class="integration-card">
+                                    <div class="integration-header">
+                                        <div class="integration-logo">📨</div>
+                                        <div>
+                                            <h4>Mailchimp</h4>
+                                            <div class="integration-status">
+                                                <span class="status-indicator"></span>
+                                                <span>Not Connected</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-secondary">Sync contacts and campaigns</p>
+                                    <button class="btn btn-primary btn-sm">Connect</button>
+                                </div>
+
+                                <div class="integration-card">
+                                    <div class="integration-header">
+                                        <div class="integration-logo">🔧</div>
+                                        <div>
+                                            <h4>API Access</h4>
+                                            <div class="integration-status">
+                                                <span class="status-indicator active"></span>
+                                                <span>Enabled</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-secondary">Use REST API for custom integrations</p>
+                                    <button class="btn btn-secondary btn-sm">Manage Keys</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Notifications Section -->
+                    <section id="notifications" class="settings-section">
+                        <div class="settings-header">
+                            <h2>Notifications</h2>
+                            <p class="text-secondary">Control how and when you receive notifications</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Email Notifications</h3>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Lead Assignment</div>
+                                    <div class="setting-description">Receive email when a lead is assigned to you</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch checked">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Task Due Date</div>
+                                    <div class="setting-description">Get reminders for upcoming tasks</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch checked">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Deal Won</div>
+                                    <div class="setting-description">Celebrate when deals are closed</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Mentions</div>
+                                    <div class="setting-description">Get notified when someone mentions you</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch checked">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>In-App Notifications</h3>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Enable Desktop Notifications</div>
+                                    <div class="setting-description">Show browser notifications for important events</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Notification Sound</div>
+                                    <div class="setting-description">Play a sound for new notifications</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch checked">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Backup & Export Section -->
+                    <section id="backup" class="settings-section">
+                        <div class="settings-header">
+                            <h2>Backup & Export</h2>
+                            <p class="text-secondary">Manage data backups and exports</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Manual Backup</h3>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-body">
+                                    <p>Create a backup of all your CRM data including settings, custom fields, and configurations.</p>
+                                    <div class="form-actions">
+                                        <button class="btn btn-primary" onclick="createBackup()">Create Backup Now</button>
+                                        <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Automatic Backup</h3>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Enable Auto Backup</div>
+                                    <div class="setting-description">Automatically backup your data on schedule</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="autoBackup">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Backup Frequency</label>
+                                    <select class="form-select">
+                                        <option value="daily" selected>Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Backup Time</label>
+                                    <input type="time" class="form-input" value="02:00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Backup History</h3>
+                            </div>
+
+                            <table class="backup-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Size</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Dec 20, 2024 2:00 AM</td>
+                                        <td><span class="badge badge-info">Auto</span></td>
+                                        <td>15.2 MB</td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm">Download</button>
+                                            <button class="btn btn-danger btn-sm">Restore</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dec 19, 2024 2:00 AM</td>
+                                        <td><span class="badge badge-info">Auto</span></td>
+                                        <td>15.1 MB</td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm">Download</button>
+                                            <button class="btn btn-danger btn-sm">Restore</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dec 15, 2024 3:45 PM</td>
+                                        <td><span class="badge badge-success">Manual</span></td>
+                                        <td>14.8 MB</td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm">Download</button>
+                                            <button class="btn btn-danger btn-sm">Restore</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Advanced Section -->
+                    <section id="advanced" class="settings-section">
+                        <div class="settings-header">
+                            <h2>Advanced Settings</h2>
+                            <p class="text-secondary">Advanced configuration and system settings</p>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Features</h3>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Lead Scoring</div>
+                                    <div class="setting-description">Automatically score leads based on engagement</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch checked">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">Workflow Automation</div>
+                                    <div class="setting-description">Enable automated workflows and rules</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch checked">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-label">API Access</div>
+                                    <div class="setting-description">Allow external applications to access CRM data</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch checked">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>Data Management</h3>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Deleted Items Retention</label>
+                                    <select class="form-select">
+                                        <option value="30" selected>30 days</option>
+                                        <option value="60">60 days</option>
+                                        <option value="90">90 days</option>
+                                        <option value="365">1 year</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Activity Log Retention</label>
+                                    <select class="form-select">
+                                        <option value="365" selected>1 year</option>
+                                        <option value="730">2 years</option>
+                                        <option value="1095">3 years</option>
+                                        <option value="0">Forever</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <div class="setting-group-header">
+                                <h3>System Information</h3>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="info-row">
+                                        <span class="text-secondary">Version:</span>
+                                        <span>1.0.0</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="text-secondary">Environment:</span>
+                                        <span>Production</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="text-secondary">API Endpoint:</span>
+                                        <span>https://api.caos-crm.com</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="text-secondary">Last Updated:</span>
+                                        <span>December 20, 2024</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Settings management
+        const settingsManager = {
+            // Initialize
+            init() {
+                this.setupNavigation();
+                this.setupToggles();
+                this.setupForms();
+                this.loadUserPreferences();
+                this.setupThemeSelector();
+            },
+
+            // Navigation setup
+            setupNavigation() {
+                const menuLinks = document.querySelectorAll('.settings-menu-link');
+                const sections = document.querySelectorAll('.settings-section');
+
+                menuLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetSection = link.dataset.section;
+
+                        // Update active states
+                        menuLinks.forEach(l => l.classList.remove('active'));
+                        sections.forEach(s => s.classList.remove('active'));
+
+                        link.classList.add('active');
+                        document.getElementById(targetSection).classList.add('active');
+
+                        // Update URL hash
+                        window.location.hash = targetSection;
+                    });
+                });
+
+                // Handle direct links
+                if (window.location.hash) {
+                    const targetLink = document.querySelector(`[data-section="${window.location.hash.substring(1)}"]`);
+                    if (targetLink) {
+                        targetLink.click();
+                    }
+                }
+            },
+
+            // Toggle switches setup
+            setupToggles() {
+                const toggles = document.querySelectorAll('.toggle-switch input');
+
+                toggles.forEach(toggle => {
+                    toggle.addEventListener('change', function() {
+                        const parent = this.closest('.toggle-switch');
+                        if (this.checked) {
+                            parent.classList.add('checked');
+                        } else {
+                            parent.classList.remove('checked');
+                        }
+
+                        // Save preference
+                        settingsManager.saveToggleState(this.id, this.checked);
+                    });
+
+                    // Set initial state
+                    if (toggle.checked) {
+                        toggle.closest('.toggle-switch').classList.add('checked');
+                    }
+                });
+            },
+
+            // Forms setup
+            setupForms() {
+                // Profile form
+                const profileForm = document.getElementById('profileForm');
+                if (profileForm) {
+                    profileForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.saveProfile();
+                    });
+                }
+
+                // Company form
+                const companyForm = document.getElementById('companyForm');
+                if (companyForm) {
+                    companyForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.saveCompanyInfo();
+                    });
+                }
+
+                // Email server form
+                const emailServerForm = document.getElementById('emailServerForm');
+                if (emailServerForm) {
+                    emailServerForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.saveEmailSettings();
+                    });
+                }
+            },
+
+            // Theme selector setup
+            setupThemeSelector() {
+                const themeOptions = document.querySelectorAll('.theme-option');
+
+                themeOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        themeOptions.forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+
+                        const theme = option.dataset.theme;
+                        this.applyTheme(theme);
+                        this.savePreference('theme', theme);
+                    });
+                });
+            },
+
+            // Apply theme
+            applyTheme(theme) {
+                document.body.setAttribute('data-theme', theme);
+
+                // Show notification
+                this.showNotification(`Theme changed to ${theme}`, 'success');
+            },
+
+            // Load user preferences
+            async loadUserPreferences() {
+                try {
+                    const token = localStorage.getItem('accessToken');
+                    if (!token) return;
+
+                    const response = await fetch('http://localhost:3001/api/settings/preferences', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const preferences = await response.json();
+                        this.applyPreferences(preferences);
+                    }
+                } catch (error) {
+                    console.error('Failed to load preferences:', error);
+                }
+            },
+
+            // Apply preferences
+            applyPreferences(preferences) {
+                // Apply theme
+                if (preferences.theme) {
+                    const themeOption = document.querySelector(`[data-theme="${preferences.theme}"]`);
+                    if (themeOption) {
+                        themeOption.click();
+                    }
+                }
+
+                // Apply other settings
+                if (preferences.display) {
+                    document.getElementById('compactMode').checked = preferences.display.compactMode;
+                }
+            },
+
+            // Save profile
+            async saveProfile() {
+                const formData = {
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    title: document.getElementById('title').value,
+                    bio: document.getElementById('bio').value
+                };
+
+                // Simulate API call
+                await this.simulateApiCall();
+                this.showNotification('Profile updated successfully', 'success');
+            },
+
+            // Save company info
+            async saveCompanyInfo() {
+                // Simulate API call
+                await this.simulateApiCall();
+                this.showNotification('Company information updated', 'success');
+            },
+
+            // Save email settings
+            async saveEmailSettings() {
+                // Simulate API call
+                await this.simulateApiCall();
+                this.showNotification('Email settings saved', 'success');
+            },
+
+            // Save toggle state
+            async saveToggleState(settingId, value) {
+                try {
+                    const token = localStorage.getItem('accessToken');
+                    if (!token) return;
+
+                    // Map toggle ID to preference path
+                    const preferenceMap = {
+                        'twoFactorAuth': 'security.twoFactorAuth',
+                        'compactMode': 'display.compactMode',
+                        'autoBackup': 'backup.autoBackup.enabled'
+                    };
+
+                    const preferencePath = preferenceMap[settingId];
+                    if (!preferencePath) return;
+
+                    // Save to API
+                    await fetch('http://localhost:3001/api/settings/preferences', {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            [preferencePath]: value
+                        })
+                    });
+
+                    this.showNotification('Setting updated', 'success');
+                } catch (error) {
+                    console.error('Failed to save setting:', error);
+                    this.showNotification('Failed to save setting', 'error');
+                }
+            },
+
+            // Save preference
+            async savePreference(key, value) {
+                try {
+                    const token = localStorage.getItem('accessToken');
+                    if (!token) return;
+
+                    await fetch('http://localhost:3001/api/settings/preferences', {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            [key]: value
+                        })
+                    });
+                } catch (error) {
+                    console.error('Failed to save preference:', error);
+                }
+            },
+
+            // Simulate API call
+            simulateApiCall() {
+                return new Promise(resolve => setTimeout(resolve, 500));
+            },
+
+            // Show notification
+            showNotification(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                notification.textContent = message;
+
+                document.body.appendChild(notification);
+
+                // Animate in
+                setTimeout(() => notification.classList.add('show'), 10);
+
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+        };
+
+        // Helper functions
+        function showPasswordModal() {
+            alert('Password change modal would open here');
+        }
+
+        function testEmailConnection() {
+            settingsManager.showNotification('Testing email connection...', 'info');
+            setTimeout(() => {
+                settingsManager.showNotification('Email connection successful!', 'success');
+            }, 2000);
+        }
+
+        function showAddFieldModal(entity) {
+            alert(`Add custom field modal for ${entity} would open here`);
+        }
+
+        function createBackup() {
+            settingsManager.showNotification('Creating backup...', 'info');
+            setTimeout(() => {
+                settingsManager.showNotification('Backup created successfully!', 'success');
+            }, 2000);
+        }
+
+        function exportData() {
+            settingsManager.showNotification('Preparing data export...', 'info');
+            setTimeout(() => {
+                settingsManager.showNotification('Data export ready for download', 'success');
+            }, 2000);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            settingsManager.init();
+        });
+    </script>
+
+    <style>
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-success {
+            border-left: 4px solid var(--success-500);
+        }
+
+        .notification-error {
+            border-left: 4px solid var(--danger-500);
+        }
+
+        .notification-info {
+            border-left: 4px solid var(--info-500);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+</body>
+</html>

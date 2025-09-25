@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - SnowUI Auth</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center py-12 px-4">
+        <div class="max-w-lg w-full">
+            <!-- Registration Card -->
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2 class="card-title text-2xl">Create Account</h2>
+                    <p class="card-subtitle">Join us! Create your account to get started.</p>
+                </div>
+
+                <div class="card-body">
+                    <form id="registerForm" class="form" novalidate>
+                        <!-- Personal Information Section -->
+                        <div class="form-section">
+                            <h3 class="form-section-title">Personal Information</h3>
+
+                            <!-- Name Fields Row -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label required" for="firstName">First Name</label>
+                                    <input
+                                        type="text"
+                                        id="firstName"
+                                        name="firstName"
+                                        class="form-input"
+                                        placeholder="Enter your first name"
+                                        required
+                                        autocomplete="given-name"
+                                    >
+                                    <div class="form-error" id="firstNameError" style="display: none;"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required" for="lastName">Last Name</label>
+                                    <input
+                                        type="text"
+                                        id="lastName"
+                                        name="lastName"
+                                        class="form-input"
+                                        placeholder="Enter your last name"
+                                        required
+                                        autocomplete="family-name"
+                                    >
+                                    <div class="form-error" id="lastNameError" style="display: none;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Email Field -->
+                            <div class="form-group">
+                                <label class="form-label required" for="email">Email Address</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    class="form-input"
+                                    placeholder="Enter your email address"
+                                    required
+                                    autocomplete="email"
+                                >
+                                <div class="form-help">We'll never share your email with anyone else.</div>
+                                <div class="form-error" id="emailError" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Account Security Section -->
+                        <div class="form-section">
+                            <h3 class="form-section-title">Account Security</h3>
+
+                            <!-- Password Field -->
+                            <div class="form-group">
+                                <label class="form-label required" for="password">Password</label>
+                                <div class="form-input-group">
+                                    <input
+                                        type="password"
+                                        id="password"
+                                        name="password"
+                                        class="form-input"
+                                        placeholder="Create a strong password"
+                                        required
+                                        autocomplete="new-password"
+                                    >
+                                    <button
+                                        type="button"
+                                        class="form-input-addon btn-ghost"
+                                        onclick="togglePasswordVisibility('password')"
+                                        aria-label="Toggle password visibility"
+                                    >
+                                        👁
+                                    </button>
+                                </div>
+                                <div class="form-help">
+                                    Password must be at least 8 characters with uppercase, lowercase, and number.
+                                </div>
+                                <div class="form-error" id="passwordError" style="display: none;"></div>
+
+                                <!-- Password Strength Indicator -->
+                                <div class="mt-2">
+                                    <div class="text-xs text-gray-600 mb-1">Password strength:</div>
+                                    <div class="flex gap-1">
+                                        <div class="h-1 flex-1 bg-gray-200 rounded" id="strength1"></div>
+                                        <div class="h-1 flex-1 bg-gray-200 rounded" id="strength2"></div>
+                                        <div class="h-1 flex-1 bg-gray-200 rounded" id="strength3"></div>
+                                        <div class="h-1 flex-1 bg-gray-200 rounded" id="strength4"></div>
+                                    </div>
+                                    <div class="text-xs mt-1" id="strengthText">Enter password</div>
+                                </div>
+                            </div>
+
+                            <!-- Confirm Password Field -->
+                            <div class="form-group">
+                                <label class="form-label required" for="confirmPassword">Confirm Password</label>
+                                <div class="form-input-group">
+                                    <input
+                                        type="password"
+                                        id="confirmPassword"
+                                        name="confirmPassword"
+                                        class="form-input"
+                                        placeholder="Confirm your password"
+                                        required
+                                        autocomplete="new-password"
+                                    >
+                                    <button
+                                        type="button"
+                                        class="form-input-addon btn-ghost"
+                                        onclick="togglePasswordVisibility('confirmPassword')"
+                                        aria-label="Toggle confirm password visibility"
+                                    >
+                                        👁
+                                    </button>
+                                </div>
+                                <div class="form-error" id="confirmPasswordError" style="display: none;"></div>
+                            </div>
+
+                            <!-- Role Selection -->
+                            <div class="form-group">
+                                <label class="form-label" for="role">Role</label>
+                                <select id="role" name="role" class="form-select">
+                                    <option value="user">Regular User</option>
+                                    <option value="manager">Manager</option>
+                                    <option value="admin">Administrator</option>
+                                </select>
+                                <div class="form-help">Select your role in the organization.</div>
+                            </div>
+                        </div>
+
+                        <!-- Agreements Section -->
+                        <div class="form-section">
+                            <h3 class="form-section-title">Terms & Privacy</h3>
+
+                            <div class="form-group">
+                                <div class="form-check-group">
+                                    <input type="checkbox" id="agreeTerms" name="agreeTerms" class="form-checkbox" required>
+                                    <label class="form-check-label" for="agreeTerms">
+                                        I agree to the <a href="#" class="text-primary hover:underline">Terms of Service</a>
+                                        and <a href="#" class="text-primary hover:underline">Privacy Policy</a>
+                                    </label>
+                                </div>
+                                <div class="form-error" id="agreeTermsError" style="display: none;"></div>
+
+                                <div class="form-check-group mt-3">
+                                    <input type="checkbox" id="marketingEmails" name="marketingEmails" class="form-checkbox">
+                                    <label class="form-check-label" for="marketingEmails">
+                                        Send me product updates and marketing emails
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary w-full" id="registerButton">
+                                Create Account
+                            </button>
+                        </div>
+
+                        <!-- General Error Display -->
+                        <div id="generalError" class="form-error" style="display: none;">
+                            <span id="generalErrorMessage"></span>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer text-center">
+                    <p class="text-sm text-gray-600">
+                        Already have an account?
+                        <a href="./LoginForm.html" class="text-primary hover:underline font-medium">
+                            Sign in
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password strength checking
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strength = calculatePasswordStrength(password);
+            updatePasswordStrengthDisplay(strength);
+        });
+
+        // Form validation and submission
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Get form data
+            const formData = {
+                firstName: document.getElementById('firstName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value,
+                confirmPassword: document.getElementById('confirmPassword').value,
+                role: document.getElementById('role').value,
+                agreeTerms: document.getElementById('agreeTerms').checked,
+                marketingEmails: document.getElementById('marketingEmails').checked
+            };
+
+            // Clear previous errors
+            clearErrors();
+
+            // Validate form
+            if (!validateRegistrationForm(formData)) {
+                return;
+            }
+
+            // Show loading state
+            const registerButton = document.getElementById('registerButton');
+            registerButton.classList.add('loading');
+            registerButton.disabled = true;
+
+            try {
+                // Mock API call
+                const response = await mockRegister(formData);
+
+                if (response.success) {
+                    showSuccess('Account created successfully! Please check your email to verify your account.');
+
+                    // Redirect to login after success
+                    setTimeout(() => {
+                        window.location.href = './LoginForm.html';
+                    }, 3000);
+                } else {
+                    showError('generalError', 'generalErrorMessage', response.message);
+                }
+            } catch (error) {
+                showError('generalError', 'generalErrorMessage', 'Network error. Please try again.');
+            } finally {
+                registerButton.classList.remove('loading');
+                registerButton.disabled = false;
+            }
+        });
+
+        function validateRegistrationForm(data) {
+            let isValid = true;
+
+            // First Name validation
+            if (!data.firstName) {
+                showError('firstNameError', null, 'First name is required');
+                document.getElementById('firstName').classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('firstName').classList.remove('error');
+            }
+
+            // Last Name validation
+            if (!data.lastName) {
+                showError('lastNameError', null, 'Last name is required');
+                document.getElementById('lastName').classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('lastName').classList.remove('error');
+            }
+
+            // Email validation
+            if (!data.email) {
+                showError('emailError', null, 'Email address is required');
+                document.getElementById('email').classList.add('error');
+                isValid = false;
+            } else if (!isValidEmail(data.email)) {
+                showError('emailError', null, 'Please enter a valid email address');
+                document.getElementById('email').classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('email').classList.add('success');
+            }
+
+            // Password validation
+            const passwordStrength = calculatePasswordStrength(data.password);
+            if (!data.password) {
+                showError('passwordError', null, 'Password is required');
+                document.getElementById('password').classList.add('error');
+                isValid = false;
+            } else if (passwordStrength < 3) {
+                showError('passwordError', null, 'Password is too weak. Please use at least 8 characters with uppercase, lowercase, and numbers.');
+                document.getElementById('password').classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('password').classList.add('success');
+            }
+
+            // Confirm Password validation
+            if (!data.confirmPassword) {
+                showError('confirmPasswordError', null, 'Please confirm your password');
+                document.getElementById('confirmPassword').classList.add('error');
+                isValid = false;
+            } else if (data.password !== data.confirmPassword) {
+                showError('confirmPasswordError', null, 'Passwords do not match');
+                document.getElementById('confirmPassword').classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('confirmPassword').classList.add('success');
+            }
+
+            // Terms agreement validation
+            if (!data.agreeTerms) {
+                showError('agreeTermsError', null, 'You must agree to the Terms of Service and Privacy Policy');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function calculatePasswordStrength(password) {
+            let strength = 0;
+
+            if (password.length >= 8) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+            return Math.min(strength, 4);
+        }
+
+        function updatePasswordStrengthDisplay(strength) {
+            const indicators = ['strength1', 'strength2', 'strength3', 'strength4'];
+            const colors = ['bg-error', 'bg-warning', 'bg-primary', 'bg-success'];
+            const texts = ['Very weak', 'Weak', 'Good', 'Strong', 'Very strong'];
+
+            // Reset all indicators
+            indicators.forEach(id => {
+                const element = document.getElementById(id);
+                element.className = 'h-1 flex-1 bg-gray-200 rounded';
+            });
+
+            // Fill indicators based on strength
+            for (let i = 0; i < strength; i++) {
+                const element = document.getElementById(indicators[i]);
+                element.className = `h-1 flex-1 rounded ${colors[Math.min(i, colors.length - 1)]}`;
+            }
+
+            // Update text
+            const strengthText = document.getElementById('strengthText');
+            strengthText.textContent = texts[strength] || 'Enter password';
+            strengthText.className = `text-xs mt-1 ${strength >= 3 ? 'text-success' : strength >= 2 ? 'text-warning' : 'text-error'}`;
+        }
+
+        function togglePasswordVisibility(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const toggleButton = passwordInput.nextElementSibling;
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.textContent = '🙈';
+                toggleButton.setAttribute('aria-label', 'Hide password');
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.textContent = '👁';
+                toggleButton.setAttribute('aria-label', 'Show password');
+            }
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function showError(elementId, messageElementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (messageElementId) {
+                document.getElementById(messageElementId).textContent = message;
+            } else {
+                errorElement.textContent = message;
+            }
+            errorElement.style.display = 'flex';
+        }
+
+        function clearErrors() {
+            const errors = document.querySelectorAll('.form-error');
+            errors.forEach(error => {
+                error.style.display = 'none';
+                error.textContent = '';
+            });
+
+            const inputs = document.querySelectorAll('.form-input, .form-select');
+            inputs.forEach(input => {
+                input.classList.remove('error', 'success');
+            });
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'form-success';
+            successDiv.textContent = message;
+
+            const form = document.getElementById('registerForm');
+            form.appendChild(successDiv);
+
+            setTimeout(() => {
+                successDiv.remove();
+            }, 8000);
+        }
+
+        // Mock API function
+        async function mockRegister(data) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Check for existing email (mock)
+            if (data.email === 'existing@example.com') {
+                return {
+                    success: false,
+                    message: 'An account with this email address already exists'
+                };
+            }
+
+            return {
+                success: true,
+                message: 'Account created successfully',
+                user: {
+                    id: Date.now(),
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    email: data.email,
+                    role: data.role
+                }
+            };
+        }
+    </script>
+</body>
+</html>

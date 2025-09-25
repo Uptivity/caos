@@ -1,0 +1,279 @@
+/* SnowUI Modal System - Law of Focus + Accessibility */
+/* Based on design/snowui-lawsofux-design-system.md */
+
+/* MODAL BACKDROP */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-modal-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 200ms ease;
+}
+
+.modal-backdrop.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* MODAL CONTAINER */
+.modal {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  max-width: 500px;
+  width: calc(100% - var(--space-8));
+  max-height: calc(100vh - var(--space-8));
+  overflow: hidden;
+  transform: scale(0.95) translateY(20px);
+  transition: all 200ms ease;
+  position: relative;
+}
+
+.modal-backdrop.show .modal {
+  transform: scale(1) translateY(0);
+}
+
+/* MODAL SECTIONS */
+.modal-header {
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--snow-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--snow-gray-900);
+  margin: 0;
+}
+
+.modal-close {
+  min-height: 32px;
+  width: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--snow-gray-500);
+  transition: all 150ms ease;
+}
+
+.modal-close:hover {
+  background: var(--snow-gray-100);
+  color: var(--snow-gray-700);
+}
+
+.modal-close:focus-visible {
+  outline: 2px solid var(--snow-primary);
+  outline-offset: 2px;
+}
+
+.modal-body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.modal-footer {
+  padding: var(--space-6);
+  border-top: 1px solid var(--snow-gray-200);
+  background: var(--snow-gray-50);
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+/* MODAL SIZES */
+.modal-sm {
+  max-width: 400px;
+}
+
+.modal-md {
+  max-width: 500px;
+}
+
+.modal-lg {
+  max-width: 800px;
+}
+
+.modal-xl {
+  max-width: 1200px;
+}
+
+.modal-fullscreen {
+  max-width: calc(100vw - var(--space-8));
+  max-height: calc(100vh - var(--space-8));
+}
+
+/* MODAL VARIANTS */
+.modal-danger .modal-header {
+  background: var(--snow-error-light);
+  border-color: var(--snow-error);
+}
+
+.modal-warning .modal-header {
+  background: var(--snow-warning-light);
+  border-color: var(--snow-warning);
+}
+
+.modal-success .modal-header {
+  background: var(--snow-success-light);
+  border-color: var(--snow-success);
+}
+
+/* CONFIRMATION MODAL LAYOUT */
+.modal-confirmation {
+  text-align: center;
+}
+
+.modal-confirmation .modal-body {
+  padding: var(--space-8);
+}
+
+.modal-confirmation .modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xl);
+  margin: 0 auto var(--space-4);
+}
+
+.modal-confirmation.modal-danger .modal-icon {
+  background: var(--snow-error-light);
+  color: var(--snow-error);
+}
+
+.modal-confirmation.modal-warning .modal-icon {
+  background: var(--snow-warning-light);
+  color: var(--snow-warning);
+}
+
+.modal-confirmation.modal-success .modal-icon {
+  background: var(--snow-success-light);
+  color: var(--snow-success);
+}
+
+/* LOADING MODAL */
+.modal-loading {
+  pointer-events: none;
+}
+
+.modal-loading .modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+}
+
+.modal-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--snow-gray-200);
+  border-top: 3px solid var(--snow-primary);
+  border-radius: 50%;
+  animation: modal-spin 1s linear infinite;
+}
+
+@keyframes modal-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* MOBILE MODAL OPTIMIZATION */
+@media (max-width: 640px) {
+  .modal {
+    width: calc(100% - var(--space-4));
+    max-height: calc(100vh - var(--space-4));
+    border-radius: var(--radius-lg);
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: var(--space-4);
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+
+  .modal-fullscreen {
+    width: 100%;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+/* ACCESSIBILITY & FOCUS MANAGEMENT */
+.modal-backdrop[aria-hidden="true"] {
+  pointer-events: none;
+}
+
+.modal-backdrop[aria-hidden="false"] {
+  /* Focus trap implementation handled by JavaScript */
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* DARK THEME SUPPORT */
+@media (prefers-color-scheme: dark) {
+  .modal {
+    background: var(--snow-dark-surface);
+    border: 1px solid var(--snow-dark-border);
+  }
+
+  .modal-header {
+    border-color: var(--snow-dark-border);
+  }
+
+  .modal-footer {
+    background: var(--snow-dark-elevated);
+    border-color: var(--snow-dark-border);
+  }
+
+  .modal-title {
+    color: var(--snow-dark-text-primary);
+  }
+
+  .modal-close {
+    color: var(--snow-dark-text-secondary);
+  }
+
+  .modal-close:hover {
+    background: var(--snow-dark-elevated);
+    color: var(--snow-dark-text-primary);
+  }
+
+  .modal-spinner {
+    border-color: var(--snow-dark-border);
+    border-top-color: var(--snow-primary);
+  }
+}

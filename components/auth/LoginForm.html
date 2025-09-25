@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - CAOS CRM</title>
+    <meta name="description" content="Sign in to your CAOS CRM account to access your customer relationship management dashboard">
+    <link rel="stylesheet" href="../../styles/snowui.css">
+</head>
+<body>
+    <!-- Skip to main content link -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Screen reader announcements -->
+    <div aria-live="assertive" aria-atomic="true" class="sr-only" id="form-announcements"></div>
+    <div class="min-h-screen flex items-center justify-center py-12 px-4">
+        <div class="max-w-md w-full">
+            <!-- Login Card -->
+            <main class="card" role="main" id="main-content" aria-labelledby="login-title">
+                <div class="card-header text-center">
+                    <h1 class="card-title text-2xl" id="login-title">Sign In</h1>
+                    <p class="card-subtitle" aria-describedby="login-title">Welcome back! Please sign in to your account.</p>
+                </div>
+
+                <div class="card-body">
+                    <form id="loginForm" class="form" novalidate aria-labelledby="login-title" role="form">
+                        <!-- Email Field -->
+                        <div class="form-group">
+                            <label class="form-label required" for="email">
+                                Email Address
+                                <span aria-hidden="true">*</span>
+                                <span class="sr-only">(required)</span>
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                class="form-input focusable"
+                                placeholder="Enter your email address"
+                                required
+                                autocomplete="email"
+                                aria-describedby="emailError emailHelp"
+                                aria-invalid="false"
+                                spellcheck="false"
+                            >
+                            <div class="form-help sr-only" id="emailHelp">Please enter a valid email address like user@example.com</div>
+                            <div class="form-error" id="emailError" style="display: none;" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="form-group">
+                            <label class="form-label required" for="password">
+                                Password
+                                <span aria-hidden="true">*</span>
+                                <span class="sr-only">(required)</span>
+                            </label>
+                            <div class="form-input-group">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    class="form-input focusable"
+                                    placeholder="Enter your password"
+                                    required
+                                    autocomplete="current-password"
+                                    aria-describedby="passwordError passwordHelp"
+                                    aria-invalid="false"
+                                    minlength="6"
+                                >
+                                <button
+                                    type="button"
+                                    class="form-input-addon btn-ghost focusable"
+                                    onclick="togglePasswordVisibility()"
+                                    aria-label="Show password"
+                                    id="password-toggle"
+                                    tabindex="0"
+                                >
+                                    <span aria-hidden="true">👁</span>
+                                </button>
+                            </div>
+                            <div class="form-help sr-only" id="passwordHelp">Password must be at least 6 characters long</div>
+                            <div class="form-error" id="passwordError" style="display: none;" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <!-- Remember Me -->
+                        <div class="form-group">
+                            <div class="form-check-group">
+                                <input
+                                    type="checkbox"
+                                    id="rememberMe"
+                                    name="rememberMe"
+                                    class="form-checkbox focusable"
+                                    aria-describedby="rememberMeHelp"
+                                >
+                                <label class="form-check-label" for="rememberMe">
+                                    Remember me for 30 days
+                                </label>
+                                <div class="form-help sr-only" id="rememberMeHelp">
+                                    Keep me signed in on this device for 30 days
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="form-group">
+                            <button
+                                type="submit"
+                                class="btn btn-primary w-full focusable"
+                                id="loginButton"
+                                aria-describedby="login-submit-help"
+                            >
+                                <span id="button-text">Sign In</span>
+                                <span id="loading-text" class="sr-only" style="display: none;">Signing in, please wait</span>
+                            </button>
+                            <div class="form-help sr-only" id="login-submit-help">
+                                Press Enter or click to sign in to your account
+                            </div>
+                        </div>
+
+                        <!-- General Error Display -->
+                        <div id="generalError" class="form-error" style="display: none;" role="alert" aria-live="assertive">
+                            <strong>Error:</strong> <span id="generalErrorMessage"></span>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer text-center" role="contentinfo">
+                    <p class="text-sm text-gray-600">
+                        <a
+                            href="#"
+                            onclick="showForgotPassword()"
+                            class="text-primary hover:underline focusable"
+                            aria-describedby="forgot-password-help"
+                        >
+                            Forgot your password?
+                        </a>
+                        <span class="form-help sr-only" id="forgot-password-help">
+                            Opens password reset dialog
+                        </span>
+                    </p>
+                    <p class="text-sm text-gray-600 mt-4">
+                        Don't have an account?
+                        <a
+                            href="./RegisterForm.html"
+                            class="text-primary hover:underline font-medium focusable"
+                            aria-describedby="sign-up-help"
+                        >
+                            Sign up
+                        </a>
+                        <span class="form-help sr-only" id="sign-up-help">
+                            Navigate to account registration page
+                        </span>
+                    </p>
+                </div>
+            </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div
+        class="modal-backdrop"
+        id="forgotPasswordModal"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
+    >
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title">Reset Password</h3>
+                <button
+                    class="modal-close focusable"
+                    onclick="hideForgotPassword()"
+                    aria-label="Close password reset dialog"
+                    type="button"
+                    tabindex="0"
+                >
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="modal-description" class="text-sm text-gray-600 mb-4">
+                    Enter your email address and we'll send you instructions to reset your password.
+                </p>
+                <form id="forgotPasswordForm" class="form" role="form">
+                    <div class="form-group">
+                        <label class="form-label required" for="resetEmail">
+                            Email Address
+                            <span aria-hidden="true">*</span>
+                            <span class="sr-only">(required)</span>
+                        </label>
+                        <input
+                            type="email"
+                            id="resetEmail"
+                            name="resetEmail"
+                            class="form-input focusable"
+                            placeholder="Enter your email address"
+                            required
+                            autocomplete="email"
+                            aria-describedby="resetEmailError resetEmailHelp"
+                            aria-invalid="false"
+                            spellcheck="false"
+                        >
+                        <div class="form-help" id="resetEmailHelp">
+                            We'll send you instructions to reset your password.
+                        </div>
+                        <div class="form-error" id="resetEmailError" style="display: none;" role="alert" aria-live="polite"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button
+                    class="btn btn-secondary focusable"
+                    onclick="hideForgotPassword()"
+                    type="button"
+                    aria-label="Cancel password reset and close dialog"
+                >
+                    Cancel
+                </button>
+                <button
+                    class="btn btn-primary focusable"
+                    onclick="sendPasswordReset()"
+                    id="resetButton"
+                    type="button"
+                    aria-describedby="reset-button-help"
+                >
+                    <span id="reset-button-text">Send Reset Email</span>
+                    <span id="reset-loading-text" class="sr-only" style="display: none;">Sending reset email, please wait</span>
+                </button>
+                <div class="form-help sr-only" id="reset-button-help">
+                    Click to send password reset instructions to your email
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form validation and submission
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+
+            // Clear previous errors
+            clearErrors();
+
+            // Validate form
+            if (!validateLoginForm(email, password)) {
+                return;
+            }
+
+            // Show loading state with accessibility
+            const loginButton = document.getElementById('loginButton');
+            const buttonText = document.getElementById('button-text');
+            const loadingText = document.getElementById('loading-text');
+
+            loginButton.classList.add('loading');
+            loginButton.disabled = true;
+            loginButton.setAttribute('aria-busy', 'true');
+            buttonText.style.display = 'none';
+            loadingText.style.display = 'inline';
+            loadingText.classList.remove('sr-only');
+            announceToScreenReader('Signing in, please wait');
+
+            try {
+                // Mock API call - replace with actual API
+                const response = await mockLogin(email, password, rememberMe);
+
+                if (response.success) {
+                    // Store token and redirect
+                    localStorage.setItem('authToken', response.token);
+                    if (rememberMe) {
+                        localStorage.setItem('refreshToken', response.refreshToken);
+                    }
+
+                    // Show success and redirect
+                    showSuccess('Login successful! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    showError('generalError', 'generalErrorMessage', response.message);
+                }
+            } catch (error) {
+                showError('generalError', 'generalErrorMessage', 'Network error. Please try again.');
+            } finally {
+                // Remove loading state
+                const buttonText = document.getElementById('button-text');
+                const loadingText = document.getElementById('loading-text');
+
+                loginButton.classList.remove('loading');
+                loginButton.disabled = false;
+                loginButton.setAttribute('aria-busy', 'false');
+                buttonText.style.display = 'inline';
+                loadingText.style.display = 'none';
+                loadingText.classList.add('sr-only');
+            }
+        });
+
+        function validateLoginForm(email, password) {
+            let isValid = true;
+
+            // Email validation
+            if (!email) {
+                showError('emailError', null, 'Email address is required');
+                document.getElementById('email').classList.add('error');
+                isValid = false;
+            } else if (!isValidEmail(email)) {
+                showError('emailError', null, 'Please enter a valid email address');
+                document.getElementById('email').classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('email').classList.remove('error');
+            }
+
+            // Password validation
+            if (!password) {
+                showError('passwordError', null, 'Password is required');
+                document.getElementById('password').classList.add('error');
+                isValid = false;
+            } else if (password.length < 6) {
+                showError('passwordError', null, 'Password must be at least 6 characters');
+                document.getElementById('password').classList.add('error');
+                isValid = false;
+            } else {
+                document.getElementById('password').classList.remove('error');
+            }
+
+            return isValid;
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function showError(elementId, messageElementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (messageElementId) {
+                document.getElementById(messageElementId).textContent = message;
+            } else {
+                errorElement.textContent = message;
+            }
+            errorElement.style.display = 'flex';
+
+            // Announce to screen readers
+            announceToScreenReader(message);
+
+            // Set aria-invalid on the related input
+            if (elementId.includes('email')) {
+                document.getElementById('email').setAttribute('aria-invalid', 'true');
+            } else if (elementId.includes('password')) {
+                document.getElementById('password').setAttribute('aria-invalid', 'true');
+            }
+        }
+
+        function clearErrors() {
+            const errors = document.querySelectorAll('.form-error');
+            errors.forEach(error => {
+                error.style.display = 'none';
+                error.textContent = '';
+            });
+
+            const inputs = document.querySelectorAll('.form-input');
+            inputs.forEach(input => {
+                input.classList.remove('error', 'success');
+                input.setAttribute('aria-invalid', 'false');
+            });
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'form-success';
+            successDiv.textContent = message;
+
+            const form = document.getElementById('loginForm');
+            form.appendChild(successDiv);
+
+            setTimeout(() => {
+                successDiv.remove();
+            }, 5000);
+        }
+
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleButton = document.getElementById('password-toggle');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.innerHTML = '<span aria-hidden="true">🙈</span>';
+                toggleButton.setAttribute('aria-label', 'Hide password');
+                announceToScreenReader('Password is now visible');
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.innerHTML = '<span aria-hidden="true">👁</span>';
+                toggleButton.setAttribute('aria-label', 'Show password');
+                announceToScreenReader('Password is now hidden');
+            }
+
+            // Return focus to password input after toggle
+            passwordInput.focus();
+        }
+
+        // Forgot password modal functions
+        function showForgotPassword() {
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+
+            // Store the element that opened the modal for focus return
+            modal.dataset.returnFocus = document.activeElement.id;
+
+            // Trap focus in modal
+            trapFocus(modal);
+
+            setTimeout(() => {
+                document.getElementById('resetEmail').focus();
+                announceToScreenReader('Password reset dialog opened');
+            }, 200);
+        }
+
+        function hideForgotPassword() {
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+
+            // Return focus to the element that opened the modal
+            const returnFocusId = modal.dataset.returnFocus;
+            if (returnFocusId) {
+                const returnElement = document.getElementById(returnFocusId) || document.querySelector('[onclick*="showForgotPassword"]');
+                if (returnElement) {
+                    returnElement.focus();
+                }
+            }
+
+            // Clear form
+            document.getElementById('forgotPasswordForm').reset();
+            clearErrors();
+            announceToScreenReader('Password reset dialog closed');
+        }
+
+        async function sendPasswordReset() {
+            const email = document.getElementById('resetEmail').value;
+
+            if (!email || !isValidEmail(email)) {
+                showError('resetEmailError', null, 'Please enter a valid email address');
+                return;
+            }
+
+            const resetButton = document.getElementById('resetButton');
+            const resetButtonText = document.getElementById('reset-button-text');
+            const resetLoadingText = document.getElementById('reset-loading-text');
+
+            resetButton.classList.add('loading');
+            resetButton.disabled = true;
+            resetButton.setAttribute('aria-busy', 'true');
+            resetButtonText.style.display = 'none';
+            resetLoadingText.style.display = 'inline';
+            resetLoadingText.classList.remove('sr-only');
+            announceToScreenReader('Sending password reset email, please wait');
+
+            try {
+                // Mock API call
+                const response = await mockPasswordReset(email);
+
+                if (response.success) {
+                    alert('Password reset instructions sent to your email!');
+                    hideForgotPassword();
+                } else {
+                    showError('resetEmailError', null, response.message);
+                }
+            } catch (error) {
+                showError('resetEmailError', null, 'Network error. Please try again.');
+            } finally {
+                const resetButtonText = document.getElementById('reset-button-text');
+                const resetLoadingText = document.getElementById('reset-loading-text');
+
+                resetButton.classList.remove('loading');
+                resetButton.disabled = false;
+                resetButton.setAttribute('aria-busy', 'false');
+                resetButtonText.style.display = 'inline';
+                resetLoadingText.style.display = 'none';
+                resetLoadingText.classList.add('sr-only');
+            }
+        }
+
+        // Mock API functions - replace with actual API calls
+        async function mockLogin(email, password, rememberMe) {
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Mock successful login
+            if (email === 'user@example.com' && password === 'password') {
+                return {
+                    success: true,
+                    token: 'mock-jwt-token',
+                    refreshToken: 'mock-refresh-token',
+                    user: { id: 1, email: email, name: 'Demo User' }
+                };
+            } else {
+                return {
+                    success: false,
+                    message: 'Invalid email or password'
+                };
+            }
+        }
+
+        async function mockPasswordReset(email) {
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            return {
+                success: true,
+                message: 'Reset email sent'
+            };
+        }
+
+        // Accessibility helper functions
+        function announceToScreenReader(message) {
+            const announcements = document.getElementById('form-announcements');
+            announcements.textContent = message;
+            setTimeout(() => {
+                announcements.textContent = '';
+            }, 1000);
+        }
+
+        function trapFocus(element) {
+            const focusableElements = element.querySelectorAll(
+                'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            const firstFocusable = focusableElements[0];
+            const lastFocusable = focusableElements[focusableElements.length - 1];
+
+            element.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    if (e.shiftKey && document.activeElement === firstFocusable) {
+                        e.preventDefault();
+                        lastFocusable.focus();
+                    } else if (!e.shiftKey && document.activeElement === lastFocusable) {
+                        e.preventDefault();
+                        firstFocusable.focus();
+                    }
+                }
+            });
+        }
+
+        // Enhanced keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            // Close modal on Escape key
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('forgotPasswordModal');
+                if (modal.classList.contains('show')) {
+                    hideForgotPassword();
+                }
+            }
+
+            // Handle Enter key on password toggle button
+            if (e.key === 'Enter' && e.target.id === 'password-toggle') {
+                e.preventDefault();
+                togglePasswordVisibility();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('forgotPasswordModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideForgotPassword();
+            }
+        });
+    </script>
+</body>
+</html>

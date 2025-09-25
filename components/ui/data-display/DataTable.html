@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataTable Component - SnowUI</title>
+    <link rel="stylesheet" href="../../../styles/snowui.css">
+    <style>
+        /* DataTable Component Styles - Built on SnowUI Design System */
+        .data-table-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--snow-gray-200);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .data-table-header {
+            padding: var(--space-4) var(--space-6);
+            border-bottom: 1px solid var(--snow-gray-200);
+            background: var(--snow-gray-50);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .data-table-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--snow-gray-900);
+            margin: 0;
+        }
+
+        .data-table-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .data-table-search {
+            position: relative;
+            min-width: 250px;
+        }
+
+        .data-table-search input {
+            padding-left: var(--space-10);
+        }
+
+        .data-table-search-icon {
+            position: absolute;
+            left: var(--space-3);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--snow-gray-400);
+            pointer-events: none;
+        }
+
+        .data-table-filters {
+            padding: var(--space-4) var(--space-6);
+            border-bottom: 1px solid var(--snow-gray-200);
+            background: var(--snow-gray-25);
+            display: none;
+        }
+
+        .data-table-filters.active {
+            display: block;
+        }
+
+        .data-table-filters-row {
+            display: flex;
+            gap: var(--space-4);
+            align-items: center;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: var(--space-3) var(--space-4);
+            text-align: left;
+            border-bottom: 1px solid var(--snow-gray-200);
+        }
+
+        .data-table th {
+            background: var(--snow-gray-50);
+            font-weight: 600;
+            color: var(--snow-gray-900);
+            font-size: var(--text-sm);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table-sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color 150ms ease;
+        }
+
+        .data-table-sortable:hover {
+            background: var(--snow-gray-100);
+        }
+
+        .data-table-sort-icon {
+            margin-left: var(--space-2);
+            font-size: var(--text-xs);
+            color: var(--snow-gray-400);
+        }
+
+        .data-table-sortable.asc .data-table-sort-icon::after {
+            content: '↑';
+            color: var(--snow-primary);
+        }
+
+        .data-table-sortable.desc .data-table-sort-icon::after {
+            content: '↓';
+            color: var(--snow-primary);
+        }
+
+        .data-table-sortable:not(.asc):not(.desc) .data-table-sort-icon::after {
+            content: '↕';
+        }
+
+        .data-table td {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-700);
+        }
+
+        .data-table-row-hover:hover {
+            background: var(--snow-gray-50);
+        }
+
+        .data-table-row-selected {
+            background: var(--snow-primary-light) !important;
+        }
+
+        .data-table-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--snow-primary);
+        }
+
+        .data-table-actions-cell {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .data-table-action-btn {
+            padding: var(--space-1) var(--space-2);
+            font-size: var(--text-xs);
+            margin-left: var(--space-1);
+        }
+
+        .data-table-footer {
+            padding: var(--space-4) var(--space-6);
+            border-top: 1px solid var(--snow-gray-200);
+            background: var(--snow-gray-50);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .data-table-info {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-600);
+        }
+
+        .data-table-pagination {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .data-table-pagination select {
+            min-width: 80px;
+        }
+
+        .data-table-empty {
+            text-align: center;
+            padding: var(--space-16) var(--space-6);
+            color: var(--snow-gray-500);
+        }
+
+        .data-table-empty-icon {
+            font-size: 48px;
+            margin-bottom: var(--space-4);
+            opacity: 0.5;
+        }
+
+        .data-table-loading {
+            text-align: center;
+            padding: var(--space-8) var(--space-6);
+        }
+
+        .data-table-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--snow-gray-200);
+            border-top: 3px solid var(--snow-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--space-4);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .data-table-header {
+                flex-direction: column;
+                gap: var(--space-3);
+                align-items: stretch;
+            }
+
+            .data-table-search {
+                min-width: 100%;
+            }
+
+            .data-table-filters-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--space-2);
+            }
+
+            .data-table-container {
+                overflow-x: auto;
+            }
+
+            .data-table {
+                min-width: 600px;
+            }
+
+            .data-table-footer {
+                flex-direction: column;
+                gap: var(--space-3);
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">DataTable Component</h1>
+            <p class="text-lg text-gray-600">Advanced data table with sorting, filtering, pagination, and selection</p>
+        </header>
+
+        <!-- DataTable Component -->
+        <div class="data-table-container" id="dataTable" role="region" aria-labelledby="table-title">
+            <!-- Header -->
+            <div class="data-table-header">
+                <h1 class="data-table-title" id="table-title">Customer Records</h1>
+                <div class="data-table-actions">
+                    <div class="data-table-search">
+                        <span class="data-table-search-icon">🔍</span>
+                        <input
+                            type="text"
+                            class="form-input"
+                            placeholder="Search customers..."
+                            id="searchInput"
+                        >
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="toggleFilters()">
+                        Filters
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="addNewRecord()">
+                        Add Customer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters (Hidden by default) -->
+            <div class="data-table-filters" id="tableFilters">
+                <div class="data-table-filters-row">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="statusFilter">Status</label>
+                        <select id="statusFilter" class="form-select form-select-sm">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="dateFilter">Date Range</label>
+                        <select id="dateFilter" class="form-select form-select-sm">
+                            <option value="">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0; margin-left: auto;">
+                        <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div style="max-height: 500px; overflow-y: auto;">
+                <table class="data-table" id="mainTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" class="data-table-checkbox" id="selectAll">
+                            </th>
+                            <th class="data-table-sortable" data-column="name">
+                                Name
+                                <span class="data-table-sort-icon"></span>
+                            </th>
+                            <th class="data-table-sortable" data-column="email">
+                                Email
+                                <span class="data-table-sort-icon"></span>
+                            </th>
+                            <th class="data-table-sortable" data-column="company">
+                                Company
+                                <span class="data-table-sort-icon"></span>
+                            </th>
+                            <th class="data-table-sortable" data-column="status">
+                                Status
+                                <span class="data-table-sort-icon"></span>
+                            </th>
+                            <th class="data-table-sortable" data-column="date">
+                                Created
+                                <span class="data-table-sort-icon"></span>
+                            </th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Loading state initially -->
+                        <tr>
+                            <td colspan="7" class="data-table-loading">
+                                <div class="data-table-spinner"></div>
+                                <div>Loading customer data...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer with Pagination -->
+            <div class="data-table-footer">
+                <div class="data-table-info" id="tableInfo">
+                    Loading...
+                </div>
+                <div class="data-table-pagination">
+                    <span class="text-sm text-gray-600 mr-2">Rows per page:</span>
+                    <select class="form-select form-select-sm" id="pageSize">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <button class="btn btn-ghost btn-sm" id="prevPage" disabled>
+                        ← Previous
+                    </button>
+                    <span class="text-sm text-gray-600" id="pageInfo">Page 1 of 1</span>
+                    <button class="btn btn-ghost btn-sm" id="nextPage">
+                        Next →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for demonstration
+        const mockData = [
+            { id: 1, name: 'Alice Johnson', email: 'alice@company.com', company: 'Tech Corp', status: 'active', date: '2024-01-15' },
+            { id: 2, name: 'Bob Smith', email: 'bob@startup.io', company: 'Startup Inc', status: 'pending', date: '2024-02-03' },
+            { id: 3, name: 'Carol White', email: 'carol@enterprise.com', company: 'Enterprise Ltd', status: 'active', date: '2024-01-28' },
+            { id: 4, name: 'David Brown', email: 'david@freelance.com', company: 'Freelance', status: 'inactive', date: '2024-01-10' },
+            { id: 5, name: 'Eve Davis', email: 'eve@agency.com', company: 'Creative Agency', status: 'active', date: '2024-02-14' },
+            { id: 6, name: 'Frank Miller', email: 'frank@consulting.com', company: 'Miller Consulting', status: 'active', date: '2024-01-22' },
+            { id: 7, name: 'Grace Lee', email: 'grace@design.com', company: 'Design Studio', status: 'pending', date: '2024-02-01' },
+            { id: 8, name: 'Henry Wilson', email: 'henry@tech.com', company: 'Wilson Tech', status: 'active', date: '2024-01-30' },
+            { id: 9, name: 'Ivy Taylor', email: 'ivy@marketing.com', company: 'Marketing Pro', status: 'inactive', date: '2024-01-18' },
+            { id: 10, name: 'Jack Anderson', email: 'jack@solutions.com', company: 'Anderson Solutions', status: 'active', date: '2024-02-05' },
+        ];
+
+        // DataTable state
+        let currentData = [...mockData];
+        let filteredData = [...mockData];
+        let currentPage = 1;
+        let pageSize = 25;
+        let sortColumn = '';
+        let sortDirection = '';
+        let selectedRows = new Set();
+
+        // Initialize table
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                renderTable();
+                setupEventListeners();
+            }, 1000); // Simulate loading
+        });
+
+        function setupEventListeners() {
+            // Search
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+
+            // Sorting
+            document.querySelectorAll('.data-table-sortable').forEach(header => {
+                header.addEventListener('click', () => handleSort(header.dataset.column));
+            });
+
+            // Select all
+            document.getElementById('selectAll').addEventListener('change', handleSelectAll);
+
+            // Pagination
+            document.getElementById('pageSize').addEventListener('change', handlePageSizeChange);
+            document.getElementById('prevPage').addEventListener('click', () => changePage(currentPage - 1));
+            document.getElementById('nextPage').addEventListener('click', () => changePage(currentPage + 1));
+
+            // Filters
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            document.getElementById('dateFilter').addEventListener('change', applyFilters);
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="data-table-empty">
+                            <div class="data-table-empty-icon">📊</div>
+                            <div>No customers found</div>
+                            <div class="text-sm text-gray-500 mt-2">Try adjusting your search or filters</div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = pageData.map(row => `
+                    <tr class="data-table-row-hover ${selectedRows.has(row.id) ? 'data-table-row-selected' : ''}">
+                        <td>
+                            <input type="checkbox" class="data-table-checkbox row-select"
+                                   data-id="${row.id}" ${selectedRows.has(row.id) ? 'checked' : ''}>
+                        </td>
+                        <td class="font-medium text-gray-900">${row.name}</td>
+                        <td>${row.email}</td>
+                        <td>${row.company}</td>
+                        <td>
+                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
+                                ${getStatusClass(row.status)}">
+                                ${row.status.charAt(0).toUpperCase() + row.status.slice(1)}
+                            </span>
+                        </td>
+                        <td>${formatDate(row.date)}</td>
+                        <td class="data-table-actions-cell">
+                            <button class="btn btn-ghost data-table-action-btn" onclick="editRow(${row.id})">
+                                Edit
+                            </button>
+                            <button class="btn btn-ghost data-table-action-btn text-error" onclick="deleteRow(${row.id})">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Add row selection listeners
+                document.querySelectorAll('.row-select').forEach(checkbox => {
+                    checkbox.addEventListener('change', handleRowSelect);
+                });
+            }
+
+            updateTableInfo();
+            updatePagination();
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'active': return 'bg-success-light text-success';
+                case 'pending': return 'bg-warning-light text-warning';
+                case 'inactive': return 'bg-gray-100 text-gray-600';
+                default: return 'bg-gray-100 text-gray-600';
+            }
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function handleSearch(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            filteredData = currentData.filter(row =>
+                row.name.toLowerCase().includes(searchTerm) ||
+                row.email.toLowerCase().includes(searchTerm) ||
+                row.company.toLowerCase().includes(searchTerm)
+            );
+            currentPage = 1;
+            renderTable();
+        }
+
+        function handleSort(column) {
+            const header = document.querySelector(`[data-column="${column}"]`);
+
+            // Clear other sort indicators
+            document.querySelectorAll('.data-table-sortable').forEach(h => {
+                if (h !== header) {
+                    h.classList.remove('asc', 'desc');
+                }
+            });
+
+            // Toggle sort direction
+            if (sortColumn === column && sortDirection === 'asc') {
+                sortDirection = 'desc';
+                header.classList.remove('asc');
+                header.classList.add('desc');
+            } else {
+                sortDirection = 'asc';
+                header.classList.remove('desc');
+                header.classList.add('asc');
+            }
+
+            sortColumn = column;
+
+            // Sort the data
+            filteredData.sort((a, b) => {
+                let aValue = a[column];
+                let bValue = b[column];
+
+                if (typeof aValue === 'string') {
+                    aValue = aValue.toLowerCase();
+                    bValue = bValue.toLowerCase();
+                }
+
+                if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function handleSelectAll(e) {
+            const checkboxes = document.querySelectorAll('.row-select');
+            const isChecked = e.target.checked;
+
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+                const rowId = parseInt(checkbox.dataset.id);
+                if (isChecked) {
+                    selectedRows.add(rowId);
+                } else {
+                    selectedRows.delete(rowId);
+                }
+            });
+
+            renderTable();
+        }
+
+        function handleRowSelect(e) {
+            const rowId = parseInt(e.target.dataset.id);
+            if (e.target.checked) {
+                selectedRows.add(rowId);
+            } else {
+                selectedRows.delete(rowId);
+                document.getElementById('selectAll').checked = false;
+            }
+            renderTable();
+        }
+
+        function updateTableInfo() {
+            const info = document.getElementById('tableInfo');
+            const total = filteredData.length;
+            const startIndex = (currentPage - 1) * pageSize + 1;
+            const endIndex = Math.min(startIndex + pageSize - 1, total);
+
+            info.textContent = total > 0
+                ? `Showing ${startIndex} to ${endIndex} of ${total} entries`
+                : 'No entries found';
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+            const pageInfo = document.getElementById('pageInfo');
+
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        }
+
+        function changePage(newPage) {
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                renderTable();
+            }
+        }
+
+        function handlePageSizeChange(e) {
+            pageSize = parseInt(e.target.value);
+            currentPage = 1;
+            renderTable();
+        }
+
+        function toggleFilters() {
+            const filters = document.getElementById('tableFilters');
+            filters.classList.toggle('active');
+        }
+
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+
+            filteredData = currentData.filter(row => {
+                let matchesStatus = !statusFilter || row.status === statusFilter;
+                let matchesDate = true;
+
+                if (dateFilter) {
+                    const rowDate = new Date(row.date);
+                    const today = new Date();
+
+                    switch(dateFilter) {
+                        case 'today':
+                            matchesDate = rowDate.toDateString() === today.toDateString();
+                            break;
+                        case 'week':
+                            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            matchesDate = rowDate >= weekAgo;
+                            break;
+                        case 'month':
+                            const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+                            matchesDate = rowDate >= monthAgo;
+                            break;
+                    }
+                }
+
+                return matchesStatus && matchesDate;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            filteredData = [...currentData];
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Action handlers
+        function editRow(id) {
+            const row = currentData.find(r => r.id === id);
+            alert(`Edit customer: ${row.name}`);
+        }
+
+        function deleteRow(id) {
+            if (confirm('Are you sure you want to delete this customer?')) {
+                currentData = currentData.filter(r => r.id !== id);
+                filteredData = filteredData.filter(r => r.id !== id);
+                selectedRows.delete(id);
+                renderTable();
+            }
+        }
+
+        function addNewRecord() {
+            alert('Open add customer modal');
+        }
+    </script>
+</body>
+</html>

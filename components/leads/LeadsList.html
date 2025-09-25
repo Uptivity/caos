@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leads Management - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <style>
+        /* Leads List Component - Module 06 */
+
+        /* Page Layout */
+        .leads-container {
+            min-height: 100vh;
+            background: var(--snow-gray-50);
+        }
+
+        .leads-header {
+            background: var(--snow-white);
+            border-bottom: 1px solid var(--snow-gray-200);
+            padding: var(--space-4) var(--space-6);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .page-title h1 {
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            color: var(--snow-gray-900);
+            margin: 0;
+        }
+
+        .lead-count {
+            background: var(--snow-primary-light);
+            color: var(--snow-primary);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-full);
+            font-size: var(--text-sm);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: var(--space-3);
+        }
+
+        /* Search and Filter Bar */
+        .search-filter-bar {
+            display: flex;
+            gap: var(--space-3);
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: var(--space-2) var(--space-4);
+            padding-left: var(--space-10);
+            border: 1px solid var(--snow-gray-300);
+            border-radius: var(--radius-lg);
+            font-size: var(--text-sm);
+            background: var(--snow-white);
+            transition: all 150ms ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--snow-primary);
+            box-shadow: 0 0 0 3px var(--snow-primary-light);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: var(--space-3);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--snow-gray-400);
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: var(--space-2);
+            align-items: center;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-1) var(--space-3);
+            background: var(--snow-white);
+            border: 1px solid var(--snow-gray-300);
+            border-radius: var(--radius-full);
+            font-size: var(--text-sm);
+            cursor: pointer;
+            transition: all 150ms ease;
+        }
+
+        .filter-chip:hover {
+            background: var(--snow-gray-50);
+            border-color: var(--snow-gray-400);
+        }
+
+        .filter-chip.active {
+            background: var(--snow-primary);
+            color: var(--snow-white);
+            border-color: var(--snow-primary);
+        }
+
+        /* Main Content Area */
+        .leads-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-6);
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+
+        .stat-card {
+            background: var(--snow-white);
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--snow-gray-200);
+        }
+
+        .stat-label {
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--snow-gray-500);
+            margin-bottom: var(--space-1);
+        }
+
+        .stat-value {
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            color: var(--snow-gray-900);
+        }
+
+        .stat-change {
+            font-size: var(--text-sm);
+            margin-top: var(--space-1);
+        }
+
+        .stat-change.positive {
+            color: var(--snow-green-600);
+        }
+
+        .stat-change.negative {
+            color: var(--snow-red-600);
+        }
+
+        /* Leads Table */
+        .leads-table-container {
+            background: var(--snow-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--snow-gray-200);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: var(--space-4) var(--space-6);
+            border-bottom: 1px solid var(--snow-gray-200);
+            background: var(--snow-gray-25);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--snow-gray-900);
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .leads-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leads-table thead {
+            background: var(--snow-gray-50);
+            border-bottom: 1px solid var(--snow-gray-200);
+        }
+
+        .leads-table th {
+            padding: var(--space-3) var(--space-4);
+            text-align: left;
+            font-size: var(--text-xs);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--snow-gray-600);
+        }
+
+        .leads-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .leads-table th.sortable:hover {
+            color: var(--snow-gray-900);
+        }
+
+        .sort-icon {
+            display: inline-block;
+            margin-left: var(--space-1);
+            opacity: 0.5;
+        }
+
+        .leads-table tbody tr {
+            border-bottom: 1px solid var(--snow-gray-100);
+            transition: background 150ms ease;
+        }
+
+        .leads-table tbody tr:hover {
+            background: var(--snow-gray-25);
+        }
+
+        .leads-table td {
+            padding: var(--space-4);
+            font-size: var(--text-sm);
+        }
+
+        .lead-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--snow-primary);
+        }
+
+        .lead-name {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+        }
+
+        .lead-primary {
+            font-weight: 600;
+            color: var(--snow-gray-900);
+            cursor: pointer;
+        }
+
+        .lead-primary:hover {
+            color: var(--snow-primary);
+            text-decoration: underline;
+        }
+
+        .lead-secondary {
+            font-size: var(--text-xs);
+            color: var(--snow-gray-500);
+        }
+
+        .lead-status {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-full);
+            font-size: var(--text-xs);
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .lead-status.new {
+            background: var(--snow-blue-light);
+            color: var(--snow-blue-700);
+        }
+
+        .lead-status.contacted {
+            background: var(--snow-yellow-light);
+            color: var(--snow-yellow-700);
+        }
+
+        .lead-status.qualified {
+            background: var(--snow-purple-light);
+            color: var(--snow-purple-700);
+        }
+
+        .lead-status.proposal {
+            background: var(--snow-orange-light);
+            color: var(--snow-orange-700);
+        }
+
+        .lead-status.converted {
+            background: var(--snow-green-light);
+            color: var(--snow-green-700);
+        }
+
+        .lead-status.lost {
+            background: var(--snow-red-light);
+            color: var(--snow-red-700);
+        }
+
+        .lead-status.nurturing {
+            background: var(--snow-gray-100);
+            color: var(--snow-gray-700);
+        }
+
+        .lead-score {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            font-weight: 700;
+            font-size: var(--text-sm);
+        }
+
+        .lead-score.high {
+            background: var(--snow-green-light);
+            color: var(--snow-green-700);
+        }
+
+        .lead-score.medium {
+            background: var(--snow-yellow-light);
+            color: var(--snow-yellow-700);
+        }
+
+        .lead-score.low {
+            background: var(--snow-gray-100);
+            color: var(--snow-gray-600);
+        }
+
+        .lead-assignee {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .assignee-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            background: var(--snow-primary);
+            color: var(--snow-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-xs);
+            font-weight: 600;
+        }
+
+        .lead-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .action-btn {
+            padding: var(--space-1) var(--space-2);
+            background: transparent;
+            border: 1px solid var(--snow-gray-300);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: var(--text-sm);
+            transition: all 150ms ease;
+        }
+
+        .action-btn:hover {
+            background: var(--snow-gray-50);
+            border-color: var(--snow-gray-400);
+        }
+
+        /* Pagination */
+        .table-footer {
+            padding: var(--space-4) var(--space-6);
+            border-top: 1px solid var(--snow-gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pagination-info {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-600);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: var(--space-2);
+            align-items: center;
+        }
+
+        .page-btn {
+            padding: var(--space-2) var(--space-3);
+            background: var(--snow-white);
+            border: 1px solid var(--snow-gray-300);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: var(--text-sm);
+            transition: all 150ms ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--snow-gray-50);
+            border-color: var(--snow-gray-400);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-btn.active {
+            background: var(--snow-primary);
+            color: var(--snow-white);
+            border-color: var(--snow-primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: var(--space-12);
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: var(--space-4);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--snow-gray-900);
+            margin-bottom: var(--space-2);
+        }
+
+        .empty-description {
+            font-size: var(--text-sm);
+            color: var(--snow-gray-600);
+            margin-bottom: var(--space-6);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .leads-main {
+                padding: var(--space-4);
+            }
+
+            .search-filter-bar {
+                flex-wrap: wrap;
+            }
+
+            .search-box {
+                width: 100%;
+                max-width: none;
+            }
+
+            .filter-chips {
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            .leads-table {
+                font-size: var(--text-xs);
+            }
+
+            .leads-table th,
+            .leads-table td {
+                padding: var(--space-2);
+            }
+
+            .lead-actions {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-top {
+                flex-direction: column;
+                gap: var(--space-3);
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-actions button {
+                flex: 1;
+            }
+
+            .quick-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+            }
+
+            .leads-table {
+                min-width: 800px;
+            }
+
+            .table-footer {
+                flex-direction: column;
+                gap: var(--space-3);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="leads-container">
+        <!-- Header -->
+        <header class="leads-header">
+            <div class="header-content">
+                <div class="header-top">
+                    <div class="page-title">
+                        <h1>Leads Management</h1>
+                        <span class="lead-count">248 leads</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-ghost" onclick="exportLeads()">
+                            📥 Export
+                        </button>
+                        <button class="btn btn-secondary" onclick="showImportModal()">
+                            📤 Import
+                        </button>
+                        <button class="btn btn-primary" onclick="showCreateLeadModal()">
+                            ➕ Add Lead
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-input" placeholder="Search leads by name, email, or company..." id="searchInput">
+                    </div>
+                    <div class="filter-chips">
+                        <button class="filter-chip active" data-status="all">
+                            All Leads
+                        </button>
+                        <button class="filter-chip" data-status="new">
+                            New
+                        </button>
+                        <button class="filter-chip" data-status="qualified">
+                            Qualified
+                        </button>
+                        <button class="filter-chip" data-status="proposal">
+                            Proposal
+                        </button>
+                        <button class="filter-chip" data-status="converted">
+                            Converted
+                        </button>
+                        <button class="filter-chip" onclick="showAdvancedFilters()">
+                            ⚙️ More Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="leads-main">
+            <!-- Quick Stats -->
+            <section class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-label">New This Week</div>
+                    <div class="stat-value">67</div>
+                    <div class="stat-change positive">↗ +12% from last week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Qualified Leads</div>
+                    <div class="stat-value">156</div>
+                    <div class="stat-change positive">↗ +8% from last month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Conversion Rate</div>
+                    <div class="stat-value">24.5%</div>
+                    <div class="stat-change negative">↘ -2% from target</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pipeline Value</div>
+                    <div class="stat-value">$2.4M</div>
+                    <div class="stat-change positive">↗ +15% this quarter</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Lead Score</div>
+                    <div class="stat-value">67.5</div>
+                    <div class="stat-change positive">↗ +5 points</div>
+                </div>
+            </section>
+
+            <!-- Leads Table -->
+            <section class="leads-table-container">
+                <div class="table-header">
+                    <h2 class="table-title">All Leads</h2>
+                    <div class="bulk-actions">
+                        <button class="btn btn-ghost btn-sm" onclick="bulkAssign()">
+                            Bulk Assign
+                        </button>
+                        <button class="btn btn-ghost btn-sm" onclick="bulkUpdateStatus()">
+                            Update Status
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="leads-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" class="lead-checkbox" id="selectAll">
+                                </th>
+                                <th class="sortable">
+                                    Name
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th>Company</th>
+                                <th class="sortable">
+                                    Status
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th class="sortable">
+                                    Score
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th>Source</th>
+                                <th>Assigned To</th>
+                                <th class="sortable">
+                                    Created
+                                    <span class="sort-icon">↕</span>
+                                </th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leadsTableBody">
+                            <!-- Sample lead rows -->
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="lead-checkbox">
+                                </td>
+                                <td>
+                                    <div class="lead-name">
+                                        <span class="lead-primary" onclick="viewLeadDetails('lead-1')">John Smith</span>
+                                        <span class="lead-secondary">john.smith@techcorp.com</span>
+                                    </div>
+                                </td>
+                                <td>TechCorp Solutions</td>
+                                <td>
+                                    <span class="lead-status qualified">Qualified</span>
+                                </td>
+                                <td>
+                                    <span class="lead-score high">85</span>
+                                </td>
+                                <td>Website</td>
+                                <td>
+                                    <div class="lead-assignee">
+                                        <span class="assignee-avatar">SJ</span>
+                                        <span>Sarah Johnson</span>
+                                    </div>
+                                </td>
+                                <td>Dec 15, 2024</td>
+                                <td>
+                                    <div class="lead-actions">
+                                        <button class="action-btn" onclick="editLead('lead-1')" title="Edit">
+                                            ✏️
+                                        </button>
+                                        <button class="action-btn" onclick="logActivity('lead-1')" title="Log Activity">
+                                            📝
+                                        </button>
+                                        <button class="action-btn" onclick="viewLeadDetails('lead-1')" title="View Details">
+                                            👁️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="lead-checkbox">
+                                </td>
+                                <td>
+                                    <div class="lead-name">
+                                        <span class="lead-primary" onclick="viewLeadDetails('lead-2')">Emily Rodriguez</span>
+                                        <span class="lead-secondary">emily@innovate.io</span>
+                                    </div>
+                                </td>
+                                <td>Innovate.io</td>
+                                <td>
+                                    <span class="lead-status proposal">Proposal</span>
+                                </td>
+                                <td>
+                                    <span class="lead-score high">92</span>
+                                </td>
+                                <td>Referral</td>
+                                <td>
+                                    <div class="lead-assignee">
+                                        <span class="assignee-avatar">MT</span>
+                                        <span>Mike Thompson</span>
+                                    </div>
+                                </td>
+                                <td>Dec 14, 2024</td>
+                                <td>
+                                    <div class="lead-actions">
+                                        <button class="action-btn" onclick="editLead('lead-2')" title="Edit">
+                                            ✏️
+                                        </button>
+                                        <button class="action-btn" onclick="logActivity('lead-2')" title="Log Activity">
+                                            📝
+                                        </button>
+                                        <button class="action-btn" onclick="viewLeadDetails('lead-2')" title="View Details">
+                                            👁️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="lead-checkbox">
+                                </td>
+                                <td>
+                                    <div class="lead-name">
+                                        <span class="lead-primary" onclick="viewLeadDetails('lead-3')">David Chen</span>
+                                        <span class="lead-secondary">dchen@globalfinance.com</span>
+                                    </div>
+                                </td>
+                                <td>Global Finance Ltd</td>
+                                <td>
+                                    <span class="lead-status new">New</span>
+                                </td>
+                                <td>
+                                    <span class="lead-score medium">65</span>
+                                </td>
+                                <td>Campaign</td>
+                                <td>
+                                    <div class="lead-assignee">
+                                        <span class="assignee-avatar">AL</span>
+                                        <span>Anna Lee</span>
+                                    </div>
+                                </td>
+                                <td>Dec 20, 2024</td>
+                                <td>
+                                    <div class="lead-actions">
+                                        <button class="action-btn" onclick="editLead('lead-3')" title="Edit">
+                                            ✏️
+                                        </button>
+                                        <button class="action-btn" onclick="logActivity('lead-3')" title="Log Activity">
+                                            📝
+                                        </button>
+                                        <button class="action-btn" onclick="viewLeadDetails('lead-3')" title="View Details">
+                                            👁️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="lead-checkbox">
+                                </td>
+                                <td>
+                                    <div class="lead-name">
+                                        <span class="lead-primary" onclick="viewLeadDetails('lead-4')">Lisa Martinez</span>
+                                        <span class="lead-secondary">lisa.m@healthtech.org</span>
+                                    </div>
+                                </td>
+                                <td>HealthTech Solutions</td>
+                                <td>
+                                    <span class="lead-status contacted">Contacted</span>
+                                </td>
+                                <td>
+                                    <span class="lead-score medium">72</span>
+                                </td>
+                                <td>Trade Show</td>
+                                <td>
+                                    <div class="lead-assignee">
+                                        <span class="assignee-avatar">SJ</span>
+                                        <span>Sarah Johnson</span>
+                                    </div>
+                                </td>
+                                <td>Dec 18, 2024</td>
+                                <td>
+                                    <div class="lead-actions">
+                                        <button class="action-btn" onclick="editLead('lead-4')" title="Edit">
+                                            ✏️
+                                        </button>
+                                        <button class="action-btn" onclick="logActivity('lead-4')" title="Log Activity">
+                                            📝
+                                        </button>
+                                        <button class="action-btn" onclick="viewLeadDetails('lead-4')" title="View Details">
+                                            👁️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="lead-checkbox">
+                                </td>
+                                <td>
+                                    <div class="lead-name">
+                                        <span class="lead-primary" onclick="viewLeadDetails('lead-5')">Robert Wilson</span>
+                                        <span class="lead-secondary">rwilson@manufacturing.com</span>
+                                    </div>
+                                </td>
+                                <td>Advanced Manufacturing Inc</td>
+                                <td>
+                                    <span class="lead-status converted">Converted</span>
+                                </td>
+                                <td>
+                                    <span class="lead-score high">95</span>
+                                </td>
+                                <td>Referral</td>
+                                <td>
+                                    <div class="lead-assignee">
+                                        <span class="assignee-avatar">MT</span>
+                                        <span>Mike Thompson</span>
+                                    </div>
+                                </td>
+                                <td>Dec 10, 2024</td>
+                                <td>
+                                    <div class="lead-actions">
+                                        <button class="action-btn" onclick="editLead('lead-5')" title="Edit">
+                                            ✏️
+                                        </button>
+                                        <button class="action-btn" onclick="logActivity('lead-5')" title="Log Activity">
+                                            📝
+                                        </button>
+                                        <button class="action-btn" onclick="viewLeadDetails('lead-5')" title="View Details">
+                                            👁️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <div class="pagination-info">
+                        Showing 1-5 of 248 leads
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" disabled>Previous</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <span>...</span>
+                        <button class="page-btn">50</button>
+                        <button class="page-btn">Next</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Lead Management JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize lead management
+            initializeLeadManagement();
+        });
+
+        function initializeLeadManagement() {
+            // Setup search functionality
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', debounce(searchLeads, 300));
+
+            // Setup filter chips
+            const filterChips = document.querySelectorAll('.filter-chip[data-status]');
+            filterChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    filterChips.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    filterLeadsByStatus(this.dataset.status);
+                });
+            });
+
+            // Setup select all checkbox
+            const selectAllCheckbox = document.getElementById('selectAll');
+            selectAllCheckbox.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('tbody .lead-checkbox');
+                checkboxes.forEach(cb => cb.checked = this.checked);
+            });
+
+            // Setup sorting
+            const sortableHeaders = document.querySelectorAll('.sortable');
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const column = this.textContent.trim();
+                    sortTable(column);
+                });
+            });
+
+            // Load initial data
+            loadLeads();
+        }
+
+        function loadLeads() {
+            // In production, this would fetch from the API
+            console.log('Loading leads...');
+        }
+
+        function searchLeads() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            console.log('Searching for:', searchTerm);
+            // Implement search logic
+        }
+
+        function filterLeadsByStatus(status) {
+            console.log('Filtering by status:', status);
+            // Implement filter logic
+        }
+
+        function sortTable(column) {
+            console.log('Sorting by:', column);
+            // Implement sort logic
+        }
+
+        function showCreateLeadModal() {
+            alert('Create Lead modal would open here');
+            // In production, would open a modal with lead creation form
+        }
+
+        function showImportModal() {
+            alert('Import leads modal would open here');
+            // In production, would open import wizard
+        }
+
+        function exportLeads() {
+            alert('Export functionality would trigger here');
+            // In production, would export to CSV/Excel
+        }
+
+        function viewLeadDetails(leadId) {
+            console.log('Viewing lead:', leadId);
+            // In production, would navigate to lead detail page
+            window.location.href = `LeadDetail.html?id=${leadId}`;
+        }
+
+        function editLead(leadId) {
+            console.log('Editing lead:', leadId);
+            // In production, would open edit modal
+        }
+
+        function logActivity(leadId) {
+            console.log('Logging activity for lead:', leadId);
+            // In production, would open activity logging modal
+        }
+
+        function bulkAssign() {
+            const selectedLeads = document.querySelectorAll('tbody .lead-checkbox:checked');
+            if (selectedLeads.length === 0) {
+                alert('Please select leads to assign');
+                return;
+            }
+            console.log(`Assigning ${selectedLeads.length} leads`);
+            // In production, would open assignment modal
+        }
+
+        function bulkUpdateStatus() {
+            const selectedLeads = document.querySelectorAll('tbody .lead-checkbox:checked');
+            if (selectedLeads.length === 0) {
+                alert('Please select leads to update');
+                return;
+            }
+            console.log(`Updating status for ${selectedLeads.length} leads`);
+            // In production, would open status update modal
+        }
+
+        function showAdvancedFilters() {
+            alert('Advanced filters panel would open here');
+            // In production, would show advanced filter sidebar/modal
+        }
+
+        // Utility function for debouncing
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>

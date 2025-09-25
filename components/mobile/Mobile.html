@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CAOS CRM">
+    <title>CAOS CRM Mobile</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles/snowui.css">
+
+    <!-- Mobile-specific styles -->
+    <style>
+        /* Mobile-first responsive design */
+        :root {
+            --mobile-header-height: 60px;
+            --mobile-navbar-height: 70px;
+            --mobile-safe-area-top: env(safe-area-inset-top, 0px);
+            --mobile-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--snow-surface);
+            color: var(--snow-text);
+            overflow-x: hidden;
+            padding-top: var(--mobile-safe-area-top);
+            padding-bottom: var(--mobile-safe-area-bottom);
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        .mobile-app {
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - var(--mobile-safe-area-top) - var(--mobile-safe-area-bottom));
+            min-height: calc(100dvh - var(--mobile-safe-area-top) - var(--mobile-safe-area-bottom));
+        }
+
+        /* Mobile Header */
+        .mobile-header {
+            background: var(--snow-primary);
+            color: white;
+            height: var(--mobile-header-height);
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            padding: 0 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .mobile-header h1 {
+            margin: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .header-btn:hover, .header-btn:active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Main Content Area */
+        .mobile-content {
+            flex: 1;
+            padding: 1rem;
+            padding-bottom: calc(1rem + var(--mobile-navbar-height));
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Mobile Navigation */
+        .mobile-navbar {
+            position: fixed;
+            bottom: var(--mobile-safe-area-bottom);
+            left: 0;
+            right: 0;
+            height: var(--mobile-navbar-height);
+            background: white;
+            border-top: 1px solid var(--snow-border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        }
+
+        .navbar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--snow-text-muted);
+            font-size: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            min-width: 60px;
+        }
+
+        .navbar-item.active {
+            color: var(--snow-primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .navbar-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Pull to Refresh */
+        .pull-to-refresh {
+            text-align: center;
+            padding: 1rem;
+            color: var(--snow-text-muted);
+            transform: translateY(-100px);
+            transition: transform 0.3s;
+        }
+
+        .pull-to-refresh.active {
+            transform: translateY(0);
+        }
+
+        /* Mobile Cards */
+        .mobile-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--snow-border);
+        }
+
+        .mobile-card:active {
+            transform: scale(0.98);
+            transition: transform 0.1s;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quick-action {
+            background: white;
+            border: 1px solid var(--snow-border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+            text-decoration: none;
+            color: var(--snow-text);
+            transition: all 0.2s;
+        }
+
+        .quick-action:active {
+            transform: scale(0.95);
+            background: var(--snow-surface-hover);
+        }
+
+        .quick-action-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--snow-primary);
+        }
+
+        .quick-action-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Loading states */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--snow-text-muted);
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid var(--snow-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Offline indicator */
+        .offline-banner {
+            background: #f59e0b;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+            position: sticky;
+            top: var(--mobile-header-height);
+            z-index: 99;
+        }
+
+        /* Touch feedback */
+        .touch-feedback {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .touch-feedback::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(37, 99, 235, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .touch-feedback:active::after {
+            width: 200px;
+            height: 200px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 375px) {
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quick-action {
+                padding: 0.75rem;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .mobile-content {
+                max-width: 480px;
+                margin: 0 auto;
+            }
+        }
+
+        /* iOS specific styles */
+        @supports (-webkit-touch-callout: none) {
+            .mobile-app {
+                min-height: -webkit-fill-available;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-app">
+        <!-- Mobile Header -->
+        <header class="mobile-header">
+            <h1 id="page-title">CAOS CRM</h1>
+            <div class="header-actions">
+                <button class="header-btn touch-feedback" id="search-btn" title="Search">
+                    🔍
+                </button>
+                <button class="header-btn touch-feedback" id="menu-btn" title="Menu">
+                    ☰
+                </button>
+            </div>
+        </header>
+
+        <!-- Offline Banner (hidden by default) -->
+        <div class="offline-banner" id="offline-banner" style="display: none;">
+            📱 You're offline - some features may be limited
+        </div>
+
+        <!-- Pull to Refresh -->
+        <div class="pull-to-refresh" id="pull-refresh">
+            <div>🔄 Pull to refresh</div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="mobile-content" id="main-content">
+            <!-- Dashboard View (Default) -->
+            <div id="dashboard-view" class="view active">
+                <div class="loading" id="dashboard-loading">
+                    Loading dashboard...
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions" id="quick-actions" style="display: none;">
+                    <a href="#leads/new" class="quick-action touch-feedback">
+                        <div class="quick-action-icon">👤</div>
+                        <div class="quick-action-label">Add Lead</div>
+                    </a>
+                    <a href="#tasks/new" class="quick-action touch-feedback">
+                        <div class="quick-action-icon">✅</div>
+                        <div class="quick-action-label">New Task</div>
+                    </a>
+                    <a href="#calendar/schedule" class="quick-action touch-feedback">
+                        <div class="quick-action-icon">📅</div>
+                        <div class="quick-action-label">Schedule</div>
+                    </a>
+                    <a href="#scan" class="quick-action touch-feedback">
+                        <div class="quick-action-icon">📷</div>
+                        <div class="quick-action-label">Scan Card</div>
+                    </a>
+                </div>
+
+                <!-- Dashboard Stats -->
+                <div id="dashboard-stats" style="display: none;">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+
+                <!-- Recent Activity -->
+                <div id="recent-activity" style="display: none;">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+
+                <!-- Upcoming Tasks -->
+                <div id="upcoming-tasks" style="display: none;">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Leads View -->
+            <div id="leads-view" class="view" style="display: none;">
+                <div class="loading">Loading leads...</div>
+                <div id="leads-content"></div>
+            </div>
+
+            <!-- Tasks View -->
+            <div id="tasks-view" class="view" style="display: none;">
+                <div class="loading">Loading tasks...</div>
+                <div id="tasks-content"></div>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="calendar-view" class="view" style="display: none;">
+                <div class="loading">Loading calendar...</div>
+                <div id="calendar-content"></div>
+            </div>
+
+            <!-- More View -->
+            <div id="more-view" class="view" style="display: none;">
+                <div class="mobile-card">
+                    <h3>Settings</h3>
+                    <p>App preferences and configuration</p>
+                </div>
+
+                <div class="mobile-card">
+                    <h3>Sync Status</h3>
+                    <p id="sync-status">Checking sync status...</p>
+                </div>
+
+                <div class="mobile-card">
+                    <h3>About</h3>
+                    <p>CAOS CRM Mobile v1.0.0</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mobile Navigation -->
+        <nav class="mobile-navbar">
+            <a href="#dashboard" class="navbar-item active touch-feedback" data-view="dashboard">
+                <div class="navbar-icon">🏠</div>
+                <div>Home</div>
+            </a>
+            <a href="#leads" class="navbar-item touch-feedback" data-view="leads">
+                <div class="navbar-icon">👥</div>
+                <div>Leads</div>
+            </a>
+            <a href="#tasks" class="navbar-item touch-feedback" data-view="tasks">
+                <div class="navbar-icon">✅</div>
+                <div>Tasks</div>
+            </a>
+            <a href="#calendar" class="navbar-item touch-feedback" data-view="calendar">
+                <div class="navbar-icon">📅</div>
+                <div>Calendar</div>
+            </a>
+            <a href="#more" class="navbar-item touch-feedback" data-view="more">
+                <div class="navbar-icon">⋯</div>
+                <div>More</div>
+            </a>
+        </nav>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile CRM App Controller
+        class MobileCRM {
+            constructor() {
+                this.currentView = 'dashboard';
+                this.isOnline = navigator.onLine;
+                this.deviceId = this.generateDeviceId();
+                this.apiBase = `${window.location.protocol}//${window.location.hostname}:3014/api`;
+
+                this.init();
+            }
+
+            init() {
+                this.setupServiceWorker();
+                this.setupNavigation();
+                this.setupPullToRefresh();
+                this.setupNetworkDetection();
+                this.setupDeviceSession();
+                this.loadDashboard();
+            }
+
+            // Service Worker Setup
+            async setupServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    try {
+                        const registration = await navigator.serviceWorker.register('./service-worker.js');
+                        console.log('Service Worker registered:', registration);
+                    } catch (error) {
+                        console.error('Service Worker registration failed:', error);
+                    }
+                }
+            }
+
+            // Navigation Setup
+            setupNavigation() {
+                const navItems = document.querySelectorAll('.navbar-item');
+
+                navItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const view = item.dataset.view;
+                        this.navigateToView(view);
+                    });
+                });
+
+                // Handle hash changes
+                window.addEventListener('hashchange', () => {
+                    const hash = window.location.hash.slice(1) || 'dashboard';
+                    this.navigateToView(hash);
+                });
+
+                // Handle back button
+                window.addEventListener('popstate', () => {
+                    const hash = window.location.hash.slice(1) || 'dashboard';
+                    this.navigateToView(hash);
+                });
+            }
+
+            // Navigate to different views
+            navigateToView(viewName) {
+                // Hide all views
+                document.querySelectorAll('.view').forEach(view => {
+                    view.style.display = 'none';
+                });
+
+                // Remove active class from nav items
+                document.querySelectorAll('.navbar-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+
+                // Show target view
+                const targetView = document.getElementById(`${viewName}-view`);
+                if (targetView) {
+                    targetView.style.display = 'block';
+                    this.currentView = viewName;
+
+                    // Update page title
+                    const titles = {
+                        dashboard: 'CAOS CRM',
+                        leads: 'Leads',
+                        tasks: 'Tasks',
+                        calendar: 'Calendar',
+                        more: 'More'
+                    };
+                    document.getElementById('page-title').textContent = titles[viewName] || 'CAOS CRM';
+
+                    // Add active class to current nav item
+                    const activeNavItem = document.querySelector(`[data-view="${viewName}"]`);
+                    if (activeNavItem) {
+                        activeNavItem.classList.add('active');
+                    }
+
+                    // Load view content
+                    this.loadViewContent(viewName);
+                }
+            }
+
+            // Load content for specific views
+            async loadViewContent(viewName) {
+                switch (viewName) {
+                    case 'dashboard':
+                        await this.loadDashboard();
+                        break;
+                    case 'leads':
+                        await this.loadLeads();
+                        break;
+                    case 'tasks':
+                        await this.loadTasks();
+                        break;
+                    case 'calendar':
+                        await this.loadCalendar();
+                        break;
+                    case 'more':
+                        await this.loadMore();
+                        break;
+                }
+            }
+
+            // Dashboard Loading
+            async loadDashboard() {
+                try {
+                    const response = await this.apiRequest('/mobile/dashboard');
+
+                    if (response.success) {
+                        this.renderDashboard(response.data);
+                    } else {
+                        this.showError('Failed to load dashboard');
+                    }
+                } catch (error) {
+                    console.error('Dashboard load error:', error);
+                    this.showOfflineDashboard();
+                }
+            }
+
+            renderDashboard(data) {
+                const loading = document.getElementById('dashboard-loading');
+                loading.style.display = 'none';
+
+                // Show quick actions
+                document.getElementById('quick-actions').style.display = 'grid';
+
+                // Render stats
+                this.renderDashboardStats(data.summary);
+                document.getElementById('dashboard-stats').style.display = 'block';
+
+                // Render recent activity
+                this.renderRecentActivity(data.recentActivity);
+                document.getElementById('recent-activity').style.display = 'block';
+
+                // Render upcoming tasks
+                this.renderUpcomingTasks(data.upcomingTasks);
+                document.getElementById('upcoming-tasks').style.display = 'block';
+            }
+
+            renderDashboardStats(summary) {
+                const statsHtml = `
+                    <div class="mobile-card">
+                        <h3>Summary</h3>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; font-weight: bold; color: var(--snow-primary);">${summary.totalLeads || 0}</div>
+                                <div style="font-size: 0.875rem; color: var(--snow-text-muted);">Total Leads</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; font-weight: bold; color: var(--snow-success);">${summary.activeLeads || 0}</div>
+                                <div style="font-size: 0.875rem; color: var(--snow-text-muted);">Active</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; font-weight: bold; color: var(--snow-warning);">${summary.tasksToday || 0}</div>
+                                <div style="font-size: 0.875rem; color: var(--snow-text-muted);">Tasks Today</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; font-weight: bold; color: var(--snow-info);">${summary.upcomingMeetings || 0}</div>
+                                <div style="font-size: 0.875rem; color: var(--snow-text-muted);">Meetings</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('dashboard-stats').innerHTML = statsHtml;
+            }
+
+            renderRecentActivity(activities) {
+                if (!activities || activities.length === 0) return;
+
+                const activityHtml = `
+                    <div class="mobile-card">
+                        <h3>Recent Activity</h3>
+                        <div style="margin-top: 1rem;">
+                            ${activities.map(activity => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--snow-border);">
+                                    <div>
+                                        <div style="font-weight: 500;">${activity.title}</div>
+                                        <div style="font-size: 0.75rem; color: var(--snow-text-muted);">${this.formatTime(activity.time)}</div>
+                                    </div>
+                                    <div style="font-size: 1.2rem;">${this.getActivityIcon(activity.type)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                document.getElementById('recent-activity').innerHTML = activityHtml;
+            }
+
+            renderUpcomingTasks(tasks) {
+                if (!tasks || tasks.length === 0) return;
+
+                const tasksHtml = `
+                    <div class="mobile-card">
+                        <h3>Upcoming Tasks</h3>
+                        <div style="margin-top: 1rem;">
+                            ${tasks.map(task => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 500;">${task.title}</div>
+                                        <div style="font-size: 0.75rem; color: var(--snow-text-muted);">${this.formatDate(task.dueDate)}</div>
+                                    </div>
+                                    <div style="padding: 0.25rem 0.5rem; background: ${this.getPriorityColor(task.priority)}; color: white; border-radius: 0.25rem; font-size: 0.75rem;">
+                                        ${task.priority}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                document.getElementById('upcoming-tasks').innerHTML = tasksHtml;
+            }
+
+            // Leads Loading
+            async loadLeads() {
+                const content = document.getElementById('leads-content');
+                content.innerHTML = '<div class="loading">Loading leads...</div>';
+
+                try {
+                    const response = await this.apiRequest('/mobile/leads');
+
+                    if (response.success) {
+                        this.renderLeads(response.data);
+                    } else {
+                        content.innerHTML = '<div class="mobile-card">Failed to load leads</div>';
+                    }
+                } catch (error) {
+                    content.innerHTML = '<div class="mobile-card">📱 Offline - leads not available</div>';
+                }
+            }
+
+            renderLeads(leads) {
+                const content = document.getElementById('leads-content');
+
+                if (leads.length === 0) {
+                    content.innerHTML = '<div class="mobile-card">No leads found</div>';
+                    return;
+                }
+
+                const leadsHtml = leads.map(lead => `
+                    <div class="mobile-card touch-feedback">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 1.1rem;">${lead.name}</div>
+                                <div style="color: var(--snow-text-muted); margin: 0.25rem 0;">${lead.company || 'No company'}</div>
+                                <div style="font-size: 0.875rem; color: var(--snow-text-muted);">
+                                    📧 ${lead.email || 'No email'} • 📱 ${lead.phone || 'No phone'}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="padding: 0.25rem 0.5rem; background: ${this.getStatusColor(lead.status)}; color: white; border-radius: 0.25rem; font-size: 0.75rem; margin-bottom: 0.5rem;">
+                                    ${lead.status}
+                                </div>
+                                <div style="font-weight: 600; color: var(--snow-success);">
+                                    $${lead.value || 0}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                content.innerHTML = leadsHtml;
+            }
+
+            // Tasks Loading
+            async loadTasks() {
+                const content = document.getElementById('tasks-content');
+                content.innerHTML = '<div class="loading">Loading tasks...</div>';
+
+                try {
+                    const response = await this.apiRequest('/mobile/tasks');
+
+                    if (response.success) {
+                        this.renderTasks(response.data);
+                    } else {
+                        content.innerHTML = '<div class="mobile-card">Failed to load tasks</div>';
+                    }
+                } catch (error) {
+                    content.innerHTML = '<div class="mobile-card">📱 Offline - tasks not available</div>';
+                }
+            }
+
+            renderTasks(tasks) {
+                const content = document.getElementById('tasks-content');
+
+                if (tasks.length === 0) {
+                    content.innerHTML = '<div class="mobile-card">No tasks found</div>';
+                    return;
+                }
+
+                const tasksHtml = tasks.map(task => `
+                    <div class="mobile-card touch-feedback">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">${task.title}</div>
+                                <div style="color: var(--snow-text-muted); margin: 0.25rem 0;">Due: ${this.formatDate(task.dueDate)}</div>
+                                <div style="font-size: 0.875rem; color: var(--snow-text-muted);">
+                                    Assigned to: ${task.assignedTo || 'Unassigned'}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="padding: 0.25rem 0.5rem; background: ${this.getPriorityColor(task.priority)}; color: white; border-radius: 0.25rem; font-size: 0.75rem;">
+                                    ${task.priority}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                content.innerHTML = tasksHtml;
+            }
+
+            // Calendar Loading
+            async loadCalendar() {
+                const content = document.getElementById('calendar-content');
+                content.innerHTML = '<div class="loading">Loading calendar...</div>';
+
+                const startDate = new Date();
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() + 7);
+
+                try {
+                    const response = await this.apiRequest(`/mobile/calendar/events?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
+
+                    if (response.success) {
+                        this.renderCalendar(response.data);
+                    } else {
+                        content.innerHTML = '<div class="mobile-card">Failed to load calendar</div>';
+                    }
+                } catch (error) {
+                    content.innerHTML = '<div class="mobile-card">📱 Offline - calendar not available</div>';
+                }
+            }
+
+            renderCalendar(events) {
+                const content = document.getElementById('calendar-content');
+
+                if (events.length === 0) {
+                    content.innerHTML = '<div class="mobile-card">No upcoming events</div>';
+                    return;
+                }
+
+                const eventsHtml = events.map(event => `
+                    <div class="mobile-card touch-feedback">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">${event.title}</div>
+                        <div style="color: var(--snow-text-muted); font-size: 0.875rem;">
+                            📅 ${this.formatDateTime(event.start)}<br>
+                            📍 ${event.location || 'No location'}<br>
+                            👥 ${event.attendees || 0} attendees
+                        </div>
+                    </div>
+                `).join('');
+
+                content.innerHTML = eventsHtml;
+            }
+
+            // More section
+            async loadMore() {
+                try {
+                    const response = await this.apiRequest('/mobile/sync/status');
+                    if (response.success) {
+                        const statusElement = document.getElementById('sync-status');
+                        statusElement.textContent = `Status: ${response.data.status} • Last sync: ${this.formatTime(response.data.lastSync)}`;
+                    }
+                } catch (error) {
+                    document.getElementById('sync-status').textContent = 'Sync status unavailable';
+                }
+            }
+
+            // Pull to Refresh
+            setupPullToRefresh() {
+                let startY = 0;
+                let pullDistance = 0;
+                const pullThreshold = 80;
+                const content = document.getElementById('main-content');
+                const pullRefresh = document.getElementById('pull-refresh');
+
+                content.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                }, { passive: true });
+
+                content.addEventListener('touchmove', (e) => {
+                    const currentY = e.touches[0].clientY;
+                    pullDistance = currentY - startY;
+
+                    if (pullDistance > 0 && content.scrollTop === 0) {
+                        pullRefresh.style.transform = `translateY(${Math.min(pullDistance - 100, 0)}px)`;
+
+                        if (pullDistance > pullThreshold) {
+                            pullRefresh.classList.add('active');
+                            pullRefresh.textContent = '🔄 Release to refresh';
+                        } else {
+                            pullRefresh.classList.remove('active');
+                            pullRefresh.textContent = '🔄 Pull to refresh';
+                        }
+                    }
+                }, { passive: true });
+
+                content.addEventListener('touchend', () => {
+                    if (pullDistance > pullThreshold && content.scrollTop === 0) {
+                        this.refreshCurrentView();
+                    }
+
+                    pullRefresh.style.transform = 'translateY(-100px)';
+                    pullRefresh.classList.remove('active');
+                    pullDistance = 0;
+                }, { passive: true });
+            }
+
+            async refreshCurrentView() {
+                await this.loadViewContent(this.currentView);
+            }
+
+            // Network Detection
+            setupNetworkDetection() {
+                const updateOnlineStatus = () => {
+                    this.isOnline = navigator.onLine;
+                    const offlineBanner = document.getElementById('offline-banner');
+
+                    if (this.isOnline) {
+                        offlineBanner.style.display = 'none';
+                    } else {
+                        offlineBanner.style.display = 'block';
+                    }
+                };
+
+                window.addEventListener('online', updateOnlineStatus);
+                window.addEventListener('offline', updateOnlineStatus);
+                updateOnlineStatus();
+            }
+
+            // Device Session Setup
+            async setupDeviceSession() {
+                try {
+                    const sessionData = {
+                        capabilities: {
+                            location: 'geolocation' in navigator,
+                            camera: 'mediaDevices' in navigator,
+                            pushNotifications: 'Notification' in window
+                        },
+                        preferences: {
+                            dataSaver: false,
+                            syncFrequency: 'real-time'
+                        }
+                    };
+
+                    await this.apiRequest('/mobile/session', {
+                        method: 'POST',
+                        headers: {
+                            'X-Device-ID': this.deviceId,
+                            'X-Platform': navigator.platform
+                        },
+                        body: JSON.stringify(sessionData)
+                    });
+                } catch (error) {
+                    console.error('Failed to setup device session:', error);
+                }
+            }
+
+            // API Request Helper
+            async apiRequest(endpoint, options = {}) {
+                const url = `${this.apiBase}${endpoint}`;
+                const defaultOptions = {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Device-ID': this.deviceId,
+                        'X-Platform': navigator.platform,
+                        'X-Network-Type': this.getNetworkType()
+                    }
+                };
+
+                const config = { ...defaultOptions, ...options };
+
+                // Add auth token if available
+                const token = localStorage.getItem('authToken');
+                if (token) {
+                    config.headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(url, config);
+                return await response.json();
+            }
+
+            // Utility methods
+            generateDeviceId() {
+                const stored = localStorage.getItem('deviceId');
+                if (stored) return stored;
+
+                const deviceId = Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('deviceId', deviceId);
+                return deviceId;
+            }
+
+            getNetworkType() {
+                const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                return connection ? connection.effectiveType : 'wifi';
+            }
+
+            formatTime(dateString) {
+                if (!dateString) return 'Unknown';
+                return new Date(dateString).toLocaleString();
+            }
+
+            formatDate(dateString) {
+                if (!dateString) return 'No date';
+                return new Date(dateString).toLocaleDateString();
+            }
+
+            formatDateTime(dateString) {
+                if (!dateString) return 'No date';
+                return new Date(dateString).toLocaleString();
+            }
+
+            getActivityIcon(type) {
+                const icons = {
+                    lead: '👤',
+                    task: '✅',
+                    meeting: '📅',
+                    call: '📞',
+                    email: '📧'
+                };
+                return icons[type] || '📋';
+            }
+
+            getStatusColor(status) {
+                const colors = {
+                    active: '#10b981',
+                    inactive: '#6b7280',
+                    converted: '#2563eb',
+                    lost: '#ef4444'
+                };
+                return colors[status] || '#6b7280';
+            }
+
+            getPriorityColor(priority) {
+                const colors = {
+                    low: '#6b7280',
+                    medium: '#f59e0b',
+                    high: '#ef4444',
+                    urgent: '#dc2626'
+                };
+                return colors[priority] || '#6b7280';
+            }
+
+            showError(message) {
+                console.error(message);
+                // Could show a toast notification here
+            }
+
+            showOfflineDashboard() {
+                const loading = document.getElementById('dashboard-loading');
+                loading.style.display = 'none';
+
+                document.getElementById('quick-actions').style.display = 'grid';
+
+                const offlineHtml = `
+                    <div class="mobile-card">
+                        <h3>📱 Offline Mode</h3>
+                        <p>You're currently offline. Limited functionality is available.</p>
+                    </div>
+                `;
+
+                document.getElementById('dashboard-stats').innerHTML = offlineHtml;
+                document.getElementById('dashboard-stats').style.display = 'block';
+            }
+        }
+
+        // Initialize the mobile CRM app
+        const mobileCRM = new MobileCRM();
+
+        // Handle initial route
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.slice(1) || 'dashboard';
+            mobileCRM.navigateToView(hash);
+        });
+    </script>
+</body>
+</html>

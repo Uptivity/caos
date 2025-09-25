@@ -1,0 +1,135 @@
+/* SnowUI Responsive System */
+/* Mobile-first approach - CRITICAL for 2025 */
+
+/* Base styles are mobile-first (default) */
+
+/* Large mobile */
+@media (min-width: 641px) and (max-width: 768px) {
+  .container {
+    padding: 0 var(--space-6);
+  }
+
+  /* Larger touch targets on large mobile */
+  .btn {
+    min-height: 48px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    padding: 0 var(--space-8);
+    max-width: 768px;
+    margin: 0 auto;
+  }
+
+  /* Adjust typography for tablet */
+  h1 { font-size: 3rem; }
+  h2 { font-size: 2.25rem; }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+  .container {
+    padding: 0 var(--space-12);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Desktop typography */
+  body {
+    font-size: var(--text-lg);
+  }
+
+  /* Hover states only on desktop */
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* Wide screens */
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+/* Utility classes for responsive display */
+.mobile-only {
+  display: block;
+}
+
+.tablet-up {
+  display: none;
+}
+
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none;
+  }
+
+  .tablet-up {
+    display: block;
+  }
+}
+
+@media (min-width: 1025px) {
+  .desktop-only {
+    display: block;
+  }
+}
+
+/* Container utility */
+.container {
+  width: 100%;
+  padding: 0 var(--space-4);
+  margin: 0 auto;
+}
+
+/* Responsive grid system */
+.grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 641px) {
+  .grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 769px) {
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Flexbox utilities */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}

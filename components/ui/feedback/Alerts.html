@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts & Toast Component - SnowUI</title>
+    <link rel="stylesheet" href="../../../styles/snowui.css">
+    <style>
+        /* Alert Components - Built on SnowUI Design System */
+        .alert {
+            padding: var(--space-4);
+            border-radius: var(--radius);
+            border: 1px solid transparent;
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+            font-size: var(--text-sm);
+            margin-bottom: var(--space-4);
+        }
+
+        .alert-icon {
+            font-size: var(--text-lg);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .alert-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin: 0 0 var(--space-1) 0;
+            line-height: 1.4;
+        }
+
+        .alert-description {
+            margin: 0;
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: var(--space-2);
+            margin-top: var(--space-3);
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: var(--space-1);
+            border-radius: var(--radius-sm);
+            opacity: 0.7;
+            transition: opacity 150ms ease;
+            flex-shrink: 0;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+        }
+
+        .alert-close:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
+        }
+
+        /* Alert variants */
+        .alert-info {
+            background: var(--snow-primary-light);
+            color: var(--snow-primary-dark);
+            border-color: var(--snow-primary);
+        }
+
+        .alert-success {
+            background: var(--snow-success-light);
+            color: #065f46;
+            border-color: var(--snow-success);
+        }
+
+        .alert-warning {
+            background: var(--snow-warning-light);
+            color: #92400e;
+            border-color: var(--snow-warning);
+        }
+
+        .alert-error {
+            background: var(--snow-error-light);
+            color: #991b1b;
+            border-color: var(--snow-error);
+        }
+
+        /* Toast Notification System */
+        .toast-container {
+            position: fixed;
+            top: var(--space-4);
+            right: var(--space-4);
+            z-index: var(--z-tooltip);
+            pointer-events: none;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .toast {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--snow-gray-200);
+            padding: var(--space-4);
+            margin-bottom: var(--space-3);
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-3);
+            pointer-events: all;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            font-size: var(--text-lg);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .toast-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin: 0 0 var(--space-1) 0;
+            font-size: var(--text-sm);
+        }
+
+        .toast-description {
+            font-size: var(--text-xs);
+            color: var(--snow-gray-600);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: var(--space-1);
+            border-radius: var(--radius-sm);
+            color: var(--snow-gray-400);
+            transition: color 150ms ease;
+            flex-shrink: 0;
+        }
+
+        .toast-close:hover {
+            color: var(--snow-gray-600);
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            background: currentColor;
+            border-radius: 0 0 var(--radius) var(--radius);
+            opacity: 0.3;
+            transition: width linear;
+        }
+
+        /* Toast variants */
+        .toast-success {
+            border-left: 4px solid var(--snow-success);
+        }
+
+        .toast-success .toast-icon {
+            color: var(--snow-success);
+        }
+
+        .toast-warning {
+            border-left: 4px solid var(--snow-warning);
+        }
+
+        .toast-warning .toast-icon {
+            color: var(--snow-warning);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--snow-error);
+        }
+
+        .toast-error .toast-icon {
+            color: var(--snow-error);
+        }
+
+        .toast-info {
+            border-left: 4px solid var(--snow-primary);
+        }
+
+        .toast-info .toast-icon {
+            color: var(--snow-primary);
+        }
+
+        /* Progress Indicators */
+        .progress {
+            width: 100%;
+            height: 8px;
+            background: var(--snow-gray-200);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--snow-primary);
+            border-radius: var(--radius-full);
+            transition: width 300ms ease;
+        }
+
+        .progress-success .progress-bar {
+            background: var(--snow-success);
+        }
+
+        .progress-warning .progress-bar {
+            background: var(--snow-warning);
+        }
+
+        .progress-error .progress-bar {
+            background: var(--snow-error);
+        }
+
+        .progress-striped .progress-bar {
+            background-image: linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.15) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.15) 50%,
+                rgba(255, 255, 255, 0.15) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 16px 16px;
+            animation: progress-striped 1s linear infinite;
+        }
+
+        @keyframes progress-striped {
+            0% {
+                background-position: 16px 0;
+            }
+            100% {
+                background-position: 0 0;
+            }
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-2);
+            font-size: var(--text-sm);
+        }
+
+        /* Circular Progress */
+        .progress-circle {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-circle-bg {
+            fill: none;
+            stroke: var(--snow-gray-200);
+            stroke-width: 8;
+        }
+
+        .progress-circle-bar {
+            fill: none;
+            stroke: var(--snow-primary);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dasharray 300ms ease;
+        }
+
+        .progress-circle-text {
+            position: absolute;
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--snow-gray-700);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 640px) {
+            .toast-container {
+                top: var(--space-2);
+                right: var(--space-2);
+                left: var(--space-2);
+                max-width: none;
+            }
+
+            .alert {
+                padding: var(--space-3);
+            }
+
+            .alert-actions {
+                flex-direction: column;
+            }
+
+            .alert-actions .btn {
+                width: 100%;
+            }
+        }
+
+        /* Dark theme */
+        @media (prefers-color-scheme: dark) {
+            .toast {
+                background: var(--snow-dark-surface);
+                border-color: var(--snow-dark-border);
+            }
+
+            .toast-title {
+                color: var(--snow-dark-text-primary);
+            }
+
+            .toast-description {
+                color: var(--snow-dark-text-secondary);
+            }
+
+            .progress {
+                background: var(--snow-dark-border);
+            }
+
+            .progress-circle-bg {
+                stroke: var(--snow-dark-border);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Alerts & Feedback Components</h1>
+            <p class="text-lg text-gray-600">Alert messages, toast notifications, and progress indicators</p>
+        </header>
+
+        <!-- Alert Examples -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-6">Alert Messages</h2>
+
+            <!-- Info Alert -->
+            <div class="alert alert-info">
+                <div class="alert-icon">ℹ️</div>
+                <div class="alert-content">
+                    <div class="alert-title">New Feature Available</div>
+                    <div class="alert-description">
+                        We've added a new dashboard widget to help you track your performance metrics more effectively.
+                    </div>
+                    <div class="alert-actions">
+                        <button class="btn btn-primary btn-sm">Learn More</button>
+                        <button class="btn btn-ghost btn-sm">Dismiss</button>
+                    </div>
+                </div>
+                <button class="alert-close" onclick="closeAlert(this)" aria-label="Close alert">×</button>
+            </div>
+
+            <!-- Success Alert -->
+            <div class="alert alert-success">
+                <div class="alert-icon">✅</div>
+                <div class="alert-content">
+                    <div class="alert-title">Profile Updated Successfully</div>
+                    <div class="alert-description">
+                        Your profile changes have been saved and will be reflected across the application.
+                    </div>
+                </div>
+                <button class="alert-close" onclick="closeAlert(this)" aria-label="Close alert">×</button>
+            </div>
+
+            <!-- Warning Alert -->
+            <div class="alert alert-warning">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <div class="alert-title">Storage Almost Full</div>
+                    <div class="alert-description">
+                        You're using 89% of your available storage space. Consider upgrading your plan or removing unused files.
+                    </div>
+                    <div class="alert-actions">
+                        <button class="btn btn-warning btn-sm">Upgrade Plan</button>
+                        <button class="btn btn-ghost btn-sm">Manage Files</button>
+                    </div>
+                </div>
+                <button class="alert-close" onclick="closeAlert(this)" aria-label="Close alert">×</button>
+            </div>
+
+            <!-- Error Alert -->
+            <div class="alert alert-error">
+                <div class="alert-icon">❌</div>
+                <div class="alert-content">
+                    <div class="alert-title">Failed to Save Changes</div>
+                    <div class="alert-description">
+                        We couldn't save your changes due to a network error. Please check your connection and try again.
+                    </div>
+                    <div class="alert-actions">
+                        <button class="btn btn-danger btn-sm">Retry</button>
+                        <button class="btn btn-ghost btn-sm">Cancel</button>
+                    </div>
+                </div>
+                <button class="alert-close" onclick="closeAlert(this)" aria-label="Close alert">×</button>
+            </div>
+        </section>
+
+        <!-- Toast Notifications -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-6">Toast Notifications</h2>
+            <div class="card">
+                <div class="card-body">
+                    <p class="mb-4">Click the buttons below to see different toast notification styles:</p>
+                    <div class="flex gap-3 flex-wrap">
+                        <button class="btn btn-primary btn-sm" onclick="showToast('success')">Success Toast</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showToast('info')">Info Toast</button>
+                        <button class="btn btn-ghost btn-sm" onclick="showToast('warning')">Warning Toast</button>
+                        <button class="btn btn-danger btn-sm" onclick="showToast('error')">Error Toast</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progress Indicators -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-6">Progress Indicators</h2>
+
+            <div class="grid gap-6">
+                <!-- Linear Progress -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Linear Progress Bars</h3>
+                    </div>
+                    <div class="card-body space-y-6">
+                        <!-- Basic Progress -->
+                        <div>
+                            <div class="progress-label">
+                                <span>Upload Progress</span>
+                                <span>65%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 65%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Success Progress -->
+                        <div>
+                            <div class="progress-label">
+                                <span>Installation Complete</span>
+                                <span>100%</span>
+                            </div>
+                            <div class="progress progress-success">
+                                <div class="progress-bar" style="width: 100%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Warning Progress -->
+                        <div>
+                            <div class="progress-label">
+                                <span>Storage Usage</span>
+                                <span>89%</span>
+                            </div>
+                            <div class="progress progress-warning">
+                                <div class="progress-bar" style="width: 89%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Error Progress -->
+                        <div>
+                            <div class="progress-label">
+                                <span>Failed Upload</span>
+                                <span>23%</span>
+                            </div>
+                            <div class="progress progress-error">
+                                <div class="progress-bar" style="width: 23%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Striped Progress -->
+                        <div>
+                            <div class="progress-label">
+                                <span>Processing...</span>
+                                <span>45%</span>
+                            </div>
+                            <div class="progress progress-striped">
+                                <div class="progress-bar" style="width: 45%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Circular Progress -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Circular Progress</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex gap-8 items-center justify-center flex-wrap">
+                            <div class="text-center">
+                                <div class="progress-circle" data-progress="75">
+                                    <svg width="80" height="80" viewBox="0 0 80 80">
+                                        <circle class="progress-circle-bg" cx="40" cy="40" r="32"></circle>
+                                        <circle class="progress-circle-bar" cx="40" cy="40" r="32" stroke-dasharray="201.06 201.06" stroke-dashoffset="50.27"></circle>
+                                    </svg>
+                                    <div class="progress-circle-text">75%</div>
+                                </div>
+                                <div class="text-sm text-gray-600 mt-2">Completed</div>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="progress-circle" data-progress="30">
+                                    <svg width="60" height="60" viewBox="0 0 60 60">
+                                        <circle class="progress-circle-bg" cx="30" cy="30" r="24" stroke-width="6"></circle>
+                                        <circle class="progress-circle-bar" cx="30" cy="30" r="24" stroke-width="6" stroke-dasharray="150.79 150.79" stroke-dashoffset="105.55"></circle>
+                                    </svg>
+                                    <div class="progress-circle-text" style="font-size: var(--text-xs);">30%</div>
+                                </div>
+                                <div class="text-sm text-gray-600 mt-2">In Progress</div>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="progress-circle" data-progress="100">
+                                    <svg width="50" height="50" viewBox="0 0 50 50">
+                                        <circle class="progress-circle-bg" cx="25" cy="25" r="20" stroke-width="4"></circle>
+                                        <circle class="progress-circle-bar" cx="25" cy="25" r="20" stroke-width="4" stroke-dasharray="125.66 125.66" stroke-dashoffset="0" stroke="var(--snow-success)"></circle>
+                                    </svg>
+                                    <div class="progress-circle-text" style="font-size: 10px;">✓</div>
+                                </div>
+                                <div class="text-sm text-gray-600 mt-2">Done</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 text-center">
+                            <button class="btn btn-primary btn-sm" onclick="animateProgress()">Animate Progress</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Demo -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-6">Interactive Demo</h2>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">File Upload Simulation</h3>
+                    <p class="card-subtitle">Demonstrates progress indicators with toast notifications</p>
+                </div>
+                <div class="card-body">
+                    <div class="space-y-4">
+                        <div>
+                            <div class="progress-label">
+                                <span>Upload: document.pdf</span>
+                                <span id="uploadProgress">0%</span>
+                            </div>
+                            <div class="progress" id="uploadProgressBar">
+                                <div class="progress-bar" style="width: 0%" id="uploadBar"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button class="btn btn-primary btn-sm" onclick="startUpload()" id="startUploadBtn">
+                                Start Upload
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="pauseUpload()" id="pauseUploadBtn" disabled>
+                                Pause
+                            </button>
+                            <button class="btn btn-ghost btn-sm" onclick="resetUpload()" id="resetUploadBtn">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // Alert functionality
+        function closeAlert(button) {
+            const alert = button.closest('.alert');
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                alert.remove();
+            }, 150);
+        }
+
+        // Toast notification system
+        let toastCounter = 0;
+
+        function showToast(type) {
+            toastCounter++;
+            const toastId = `toast-${toastCounter}`;
+
+            const toastConfig = {
+                success: {
+                    icon: '✅',
+                    title: 'Success!',
+                    description: 'Your action was completed successfully.'
+                },
+                info: {
+                    icon: 'ℹ️',
+                    title: 'Information',
+                    description: 'Here\'s some useful information for you.'
+                },
+                warning: {
+                    icon: '⚠️',
+                    title: 'Warning',
+                    description: 'Please review this important information.'
+                },
+                error: {
+                    icon: '❌',
+                    title: 'Error',
+                    description: 'Something went wrong. Please try again.'
+                }
+            };
+
+            const config = toastConfig[type];
+            const container = document.getElementById('toastContainer');
+
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">${config.icon}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${config.title}</div>
+                    <div class="toast-description">${config.description}</div>
+                </div>
+                <button class="toast-close" onclick="closeToast('${toastId}')" aria-label="Close notification">×</button>
+                <div class="toast-progress" style="width: 100%;"></div>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // Auto dismiss after 5 seconds
+            const progress = toast.querySelector('.toast-progress');
+            progress.style.transition = 'width 5s linear';
+            setTimeout(() => {
+                progress.style.width = '0%';
+            }, 50);
+
+            setTimeout(() => {
+                closeToast(toastId);
+            }, 5000);
+        }
+
+        function closeToast(toastId) {
+            const toast = document.getElementById(toastId);
+            if (toast) {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }
+        }
+
+        // Upload simulation
+        let uploadInterval;
+        let currentProgress = 0;
+        let isPaused = false;
+
+        function startUpload() {
+            const startBtn = document.getElementById('startUploadBtn');
+            const pauseBtn = document.getElementById('pauseUploadBtn');
+            const resetBtn = document.getElementById('resetUploadBtn');
+            const progressBar = document.getElementById('uploadBar');
+            const progressText = document.getElementById('uploadProgress');
+            const progressContainer = document.getElementById('uploadProgressBar');
+
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            isPaused = false;
+
+            // Add striped animation
+            progressContainer.classList.add('progress-striped');
+
+            uploadInterval = setInterval(() => {
+                if (!isPaused) {
+                    currentProgress += Math.random() * 5;
+                    currentProgress = Math.min(currentProgress, 100);
+
+                    progressBar.style.width = currentProgress + '%';
+                    progressText.textContent = Math.round(currentProgress) + '%';
+
+                    if (currentProgress >= 100) {
+                        clearInterval(uploadInterval);
+                        progressContainer.classList.remove('progress-striped');
+                        progressContainer.classList.add('progress-success');
+
+                        startBtn.disabled = false;
+                        pauseBtn.disabled = true;
+
+                        showToast('success');
+
+                        // Reset after a delay
+                        setTimeout(() => {
+                            resetUpload();
+                        }, 2000);
+                    }
+                }
+            }, 200);
+        }
+
+        function pauseUpload() {
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pauseUploadBtn');
+            const progressContainer = document.getElementById('uploadProgressBar');
+
+            if (isPaused) {
+                pauseBtn.textContent = 'Resume';
+                progressContainer.classList.remove('progress-striped');
+            } else {
+                pauseBtn.textContent = 'Pause';
+                progressContainer.classList.add('progress-striped');
+            }
+        }
+
+        function resetUpload() {
+            clearInterval(uploadInterval);
+            currentProgress = 0;
+            isPaused = false;
+
+            const startBtn = document.getElementById('startUploadBtn');
+            const pauseBtn = document.getElementById('pauseUploadBtn');
+            const progressBar = document.getElementById('uploadBar');
+            const progressText = document.getElementById('uploadProgress');
+            const progressContainer = document.getElementById('uploadProgressBar');
+
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            pauseBtn.textContent = 'Pause';
+
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+            progressContainer.classList.remove('progress-striped', 'progress-success');
+        }
+
+        function animateProgress() {
+            const circles = document.querySelectorAll('.progress-circle');
+
+            circles.forEach((circle, index) => {
+                const progressValue = [25, 60, 100][index];
+                const circumference = 2 * Math.PI * (circle.querySelector('.progress-circle-bar').getAttribute('r'));
+                const offset = circumference - (progressValue / 100) * circumference;
+
+                const bar = circle.querySelector('.progress-circle-bar');
+                const text = circle.querySelector('.progress-circle-text');
+
+                // Animate the stroke
+                bar.style.transition = 'stroke-dashoffset 1s ease-out';
+                bar.style.strokeDashoffset = offset;
+
+                // Animate the text
+                let currentValue = 0;
+                const increment = progressValue / 50;
+                const textInterval = setInterval(() => {
+                    currentValue += increment;
+                    if (currentValue >= progressValue) {
+                        currentValue = progressValue;
+                        clearInterval(textInterval);
+                        if (progressValue === 100) {
+                            text.textContent = '✓';
+                        }
+                    }
+                    if (progressValue < 100) {
+                        text.textContent = Math.round(currentValue) + '%';
+                    }
+                }, 20);
+            });
+        }
+
+        // Accessibility: Announce toast messages to screen readers
+        function announceToScreenReader(message) {
+            const announcement = document.createElement('div');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.setAttribute('aria-atomic', 'true');
+            announcement.className = 'sr-only';
+            announcement.textContent = message;
+
+            document.body.appendChild(announcement);
+
+            setTimeout(() => {
+                document.body.removeChild(announcement);
+            }, 1000);
+        }
+
+        // Update showToast to include announcements
+        const originalShowToast = showToast;
+        showToast = function(type) {
+            originalShowToast(type);
+
+            const messages = {
+                success: 'Success notification',
+                info: 'Information notification',
+                warning: 'Warning notification',
+                error: 'Error notification'
+            };
+
+            announceToScreenReader(messages[type]);
+        };
+    </script>
+</body>
+</html>

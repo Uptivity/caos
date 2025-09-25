@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabs Component - SnowUI</title>
+    <link rel="stylesheet" href="../../../styles/snowui.css">
+    <style>
+        /* Tabs Component - Built on SnowUI Design System */
+        .tabs-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--snow-gray-200);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .tabs-list {
+            display: flex;
+            background: var(--snow-gray-50);
+            border-bottom: 1px solid var(--snow-gray-200);
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tabs-list::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: var(--space-4) var(--space-6);
+            font-size: var(--text-sm);
+            font-weight: 500;
+            color: var(--snow-gray-600);
+            cursor: pointer;
+            transition: all 150ms ease;
+            white-space: nowrap;
+            position: relative;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .tab-button:hover:not([disabled]) {
+            color: var(--snow-gray-900);
+            background: var(--snow-gray-100);
+        }
+
+        .tab-button:focus-visible {
+            outline: 2px solid var(--snow-primary);
+            outline-offset: -2px;
+            z-index: 1;
+        }
+
+        .tab-button[aria-selected="true"] {
+            color: var(--snow-primary);
+            background: white;
+            border-bottom: 2px solid var(--snow-primary);
+        }
+
+        .tab-button[disabled] {
+            color: var(--snow-gray-400);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .tab-icon {
+            font-size: var(--text-base);
+        }
+
+        .tab-badge {
+            background: var(--snow-error);
+            color: white;
+            font-size: var(--text-xs);
+            padding: 2px 6px;
+            border-radius: var(--radius-full);
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: var(--space-1);
+        }
+
+        .tab-content {
+            padding: var(--space-6);
+            min-height: 200px;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .tab-panel:focus {
+            outline: none;
+        }
+
+        /* Vertical tabs */
+        .tabs-vertical {
+            display: flex;
+        }
+
+        .tabs-vertical .tabs-list {
+            flex-direction: column;
+            width: 200px;
+            border-bottom: none;
+            border-right: 1px solid var(--snow-gray-200);
+            background: var(--snow-gray-50);
+        }
+
+        .tabs-vertical .tab-button {
+            justify-content: flex-start;
+            text-align: left;
+            border-bottom: none;
+            border-right: 2px solid transparent;
+        }
+
+        .tabs-vertical .tab-button[aria-selected="true"] {
+            border-bottom: none;
+            border-right: 2px solid var(--snow-primary);
+        }
+
+        .tabs-vertical .tab-content {
+            flex: 1;
+        }
+
+        /* Pill tabs */
+        .tabs-pills .tabs-list {
+            background: none;
+            border-bottom: none;
+            padding: var(--space-2);
+            gap: var(--space-1);
+        }
+
+        .tabs-pills .tab-button {
+            border-radius: var(--radius);
+            border-bottom: none;
+        }
+
+        .tabs-pills .tab-button[aria-selected="true"] {
+            background: var(--snow-primary);
+            color: white;
+            border-bottom: none;
+        }
+
+        .tabs-pills .tab-button[aria-selected="true"]:hover {
+            background: var(--snow-primary-hover);
+        }
+
+        /* Bordered tabs */
+        .tabs-bordered .tab-content {
+            border: 1px solid var(--snow-gray-200);
+            border-top: none;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 640px) {
+            .tabs-list {
+                justify-content: flex-start;
+            }
+
+            .tab-button {
+                padding: var(--space-3) var(--space-4);
+                font-size: var(--text-xs);
+                min-width: fit-content;
+            }
+
+            .tab-content {
+                padding: var(--space-4);
+            }
+
+            .tabs-vertical {
+                flex-direction: column;
+            }
+
+            .tabs-vertical .tabs-list {
+                width: 100%;
+                flex-direction: row;
+                border-right: none;
+                border-bottom: 1px solid var(--snow-gray-200);
+            }
+
+            .tabs-vertical .tab-button {
+                border-right: none;
+                border-bottom: 2px solid transparent;
+            }
+
+            .tabs-vertical .tab-button[aria-selected="true"] {
+                border-right: none;
+                border-bottom: 2px solid var(--snow-primary);
+            }
+        }
+
+        /* Loading state */
+        .tab-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            color: var(--snow-gray-500);
+        }
+
+        .tab-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--snow-gray-200);
+            border-top: 2px solid var(--snow-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: var(--space-2);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Dark theme */
+        @media (prefers-color-scheme: dark) {
+            .tabs-container {
+                background: var(--snow-dark-surface);
+                border-color: var(--snow-dark-border);
+            }
+
+            .tabs-list {
+                background: var(--snow-dark-elevated);
+                border-color: var(--snow-dark-border);
+            }
+
+            .tab-button {
+                color: var(--snow-dark-text-secondary);
+            }
+
+            .tab-button:hover:not([disabled]) {
+                color: var(--snow-dark-text-primary);
+                background: var(--snow-dark-surface);
+            }
+
+            .tab-button[aria-selected="true"] {
+                background: var(--snow-dark-surface);
+                color: var(--snow-primary);
+            }
+
+            .tab-content {
+                color: var(--snow-dark-text-primary);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Tabs Component</h1>
+            <p class="text-lg text-gray-600">Accessible tab components with multiple styles and orientations</p>
+        </header>
+
+        <!-- Basic Tabs -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-4">Basic Tabs</h2>
+            <div class="tabs-container">
+                <div class="tabs-list" role="tablist" aria-label="Basic navigation tabs">
+                    <button class="tab-button" role="tab" aria-selected="true" aria-controls="tab1" id="tab-btn-1" onclick="switchTab(1)">
+                        <span class="tab-icon">📊</span>
+                        Overview
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="tab2" id="tab-btn-2" onclick="switchTab(2)">
+                        <span class="tab-icon">📈</span>
+                        Analytics
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="tab3" id="tab-btn-3" onclick="switchTab(3)">
+                        <span class="tab-icon">⚙️</span>
+                        Settings
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" aria-controls="tab4" id="tab-btn-4" onclick="switchTab(4)" disabled>
+                        <span class="tab-icon">🔒</span>
+                        Premium
+                    </button>
+                </div>
+
+                <div class="tab-content">
+                    <div class="tab-panel active" role="tabpanel" id="tab1" aria-labelledby="tab-btn-1" tabindex="0">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Dashboard Overview</h3>
+                        <p class="text-gray-600 mb-4">Welcome to your dashboard overview. Here you can see a summary of all your key metrics and recent activity.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <div class="text-2xl font-bold text-primary">1,234</div>
+                                    <div class="text-sm text-gray-600">Total Users</div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <div class="text-2xl font-bold text-success">$12,456</div>
+                                    <div class="text-sm text-gray-600">Revenue</div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <div class="text-2xl font-bold text-warning">87%</div>
+                                    <div class="text-sm text-gray-600">Conversion</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-panel" role="tabpanel" id="tab2" aria-labelledby="tab-btn-2" tabindex="0">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Analytics Dashboard</h3>
+                        <p class="text-gray-600 mb-4">Detailed analytics and performance metrics for your application.</p>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Performance Metrics</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center">
+                                        <span>Page Load Time</span>
+                                        <span class="font-semibold">2.3s</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span>Bounce Rate</span>
+                                        <span class="font-semibold text-success">12%</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span>User Engagement</span>
+                                        <span class="font-semibold text-primary">89%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-panel" role="tabpanel" id="tab3" aria-labelledby="tab-btn-3" tabindex="0">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Application Settings</h3>
+                        <p class="text-gray-600 mb-4">Configure your application preferences and account settings.</p>
+                        <form class="form max-w-md">
+                            <div class="form-group">
+                                <label class="form-label" for="appName">Application Name</label>
+                                <input type="text" id="appName" class="form-input" value="My CRM App">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="timezone">Timezone</label>
+                                <select id="timezone" class="form-select">
+                                    <option>UTC-8 (Pacific Time)</option>
+                                    <option>UTC-5 (Eastern Time)</option>
+                                    <option>UTC+0 (Greenwich Mean Time)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-check-group">
+                                    <input type="checkbox" id="notifications" class="form-checkbox" checked>
+                                    <label class="form-check-label" for="notifications">Enable email notifications</label>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary">Save Settings</button>
+                        </form>
+                    </div>
+
+                    <div class="tab-panel" role="tabpanel" id="tab4" aria-labelledby="tab-btn-4" tabindex="0">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Premium Features</h3>
+                        <p class="text-gray-600">This content requires a premium subscription.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs with Badges -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-4">Tabs with Badges</h2>
+            <div class="tabs-container">
+                <div class="tabs-list" role="tablist" aria-label="Notification tabs">
+                    <button class="tab-button" role="tab" aria-selected="true" onclick="switchBadgeTab(1)">
+                        Inbox
+                        <span class="tab-badge">3</span>
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" onclick="switchBadgeTab(2)">
+                        Drafts
+                        <span class="tab-badge" style="background: var(--snow-warning);">12</span>
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" onclick="switchBadgeTab(3)">
+                        Sent
+                    </button>
+                </div>
+                <div class="tab-content">
+                    <div class="badge-tab-panel" id="badge-tab-1">
+                        <h3 class="text-lg font-semibold mb-4">Inbox Messages</h3>
+                        <p>You have 3 new messages in your inbox.</p>
+                    </div>
+                    <div class="badge-tab-panel hidden" id="badge-tab-2">
+                        <h3 class="text-lg font-semibold mb-4">Draft Messages</h3>
+                        <p>You have 12 draft messages waiting to be sent.</p>
+                    </div>
+                    <div class="badge-tab-panel hidden" id="badge-tab-3">
+                        <h3 class="text-lg font-semibold mb-4">Sent Messages</h3>
+                        <p>View your sent message history.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pill Style Tabs -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-4">Pill Style Tabs</h2>
+            <div class="tabs-container tabs-pills">
+                <div class="tabs-list" role="tablist" aria-label="Pill style tabs">
+                    <button class="tab-button" role="tab" aria-selected="true" onclick="switchPillTab(1)">
+                        Dashboard
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" onclick="switchPillTab(2)">
+                        Reports
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" onclick="switchPillTab(3)">
+                        Team
+                    </button>
+                </div>
+                <div class="tab-content">
+                    <div class="pill-tab-panel" id="pill-tab-1">
+                        <h3 class="text-lg font-semibold mb-4">Dashboard Content</h3>
+                        <p>This is the dashboard content with a pill-style tab interface.</p>
+                    </div>
+                    <div class="pill-tab-panel hidden" id="pill-tab-2">
+                        <h3 class="text-lg font-semibold mb-4">Reports Content</h3>
+                        <p>Generate and view detailed reports here.</p>
+                    </div>
+                    <div class="pill-tab-panel hidden" id="pill-tab-3">
+                        <h3 class="text-lg font-semibold mb-4">Team Management</h3>
+                        <p>Manage your team members and permissions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Vertical Tabs -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-4">Vertical Tabs</h2>
+            <div class="tabs-container tabs-vertical">
+                <div class="tabs-list" role="tablist" aria-label="Vertical navigation tabs">
+                    <button class="tab-button" role="tab" aria-selected="true" onclick="switchVerticalTab(1)">
+                        <span class="tab-icon">👤</span>
+                        Profile
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" onclick="switchVerticalTab(2)">
+                        <span class="tab-icon">🔔</span>
+                        Notifications
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" onclick="switchVerticalTab(3)">
+                        <span class="tab-icon">🔒</span>
+                        Security
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" onclick="switchVerticalTab(4)">
+                        <span class="tab-icon">💳</span>
+                        Billing
+                    </button>
+                </div>
+                <div class="tab-content">
+                    <div class="vertical-tab-panel" id="vertical-tab-1">
+                        <h3 class="text-lg font-semibold mb-4">Profile Settings</h3>
+                        <p class="mb-4">Manage your personal profile information.</p>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center text-2xl">
+                                        👤
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold">John Doe</h4>
+                                        <p class="text-sm text-gray-600">john.doe@example.com</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="vertical-tab-panel hidden" id="vertical-tab-2">
+                        <h3 class="text-lg font-semibold mb-4">Notification Preferences</h3>
+                        <p>Configure how you receive notifications.</p>
+                    </div>
+                    <div class="vertical-tab-panel hidden" id="vertical-tab-3">
+                        <h3 class="text-lg font-semibold mb-4">Security Settings</h3>
+                        <p>Manage your account security and privacy settings.</p>
+                    </div>
+                    <div class="vertical-tab-panel hidden" id="vertical-tab-4">
+                        <h3 class="text-lg font-semibold mb-4">Billing Information</h3>
+                        <p>View and manage your billing details and subscription.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Async Loading Tabs -->
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold mb-4">Async Loading Tabs</h2>
+            <div class="tabs-container">
+                <div class="tabs-list" role="tablist" aria-label="Async loading tabs">
+                    <button class="tab-button" role="tab" aria-selected="true" onclick="switchAsyncTab(1)">
+                        Instant
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" onclick="switchAsyncTab(2)">
+                        Slow Load
+                    </button>
+                    <button class="tab-button" role="tab" aria-selected="false" onclick="switchAsyncTab(3)">
+                        Very Slow
+                    </button>
+                </div>
+                <div class="tab-content">
+                    <div class="async-tab-panel" id="async-tab-1">
+                        <h3 class="text-lg font-semibold mb-4">Instant Content</h3>
+                        <p>This content loads immediately without any delay.</p>
+                    </div>
+                    <div class="async-tab-panel hidden" id="async-tab-2">
+                        <!-- Content loaded dynamically -->
+                    </div>
+                    <div class="async-tab-panel hidden" id="async-tab-3">
+                        <!-- Content loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Basic tabs functionality
+        function switchTab(tabNumber) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach((btn, index) => {
+                btn.setAttribute('aria-selected', index + 1 === tabNumber ? 'true' : 'false');
+            });
+
+            // Update tab panels
+            document.querySelectorAll('.tab-panel').forEach((panel, index) => {
+                if (index + 1 === tabNumber) {
+                    panel.classList.add('active');
+                    panel.focus();
+                } else {
+                    panel.classList.remove('active');
+                }
+            });
+        }
+
+        // Badge tabs
+        function switchBadgeTab(tabNumber) {
+            const buttons = document.querySelectorAll('[onclick^="switchBadgeTab"]');
+            buttons.forEach((btn, index) => {
+                btn.setAttribute('aria-selected', index + 1 === tabNumber ? 'true' : 'false');
+            });
+
+            document.querySelectorAll('.badge-tab-panel').forEach((panel, index) => {
+                if (index + 1 === tabNumber) {
+                    panel.classList.remove('hidden');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            });
+        }
+
+        // Pill tabs
+        function switchPillTab(tabNumber) {
+            const buttons = document.querySelectorAll('[onclick^="switchPillTab"]');
+            buttons.forEach((btn, index) => {
+                btn.setAttribute('aria-selected', index + 1 === tabNumber ? 'true' : 'false');
+            });
+
+            document.querySelectorAll('.pill-tab-panel').forEach((panel, index) => {
+                if (index + 1 === tabNumber) {
+                    panel.classList.remove('hidden');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            });
+        }
+
+        // Vertical tabs
+        function switchVerticalTab(tabNumber) {
+            const buttons = document.querySelectorAll('[onclick^="switchVerticalTab"]');
+            buttons.forEach((btn, index) => {
+                btn.setAttribute('aria-selected', index + 1 === tabNumber ? 'true' : 'false');
+            });
+
+            document.querySelectorAll('.vertical-tab-panel').forEach((panel, index) => {
+                if (index + 1 === tabNumber) {
+                    panel.classList.remove('hidden');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            });
+        }
+
+        // Async loading tabs
+        function switchAsyncTab(tabNumber) {
+            const buttons = document.querySelectorAll('[onclick^="switchAsyncTab"]');
+            buttons.forEach((btn, index) => {
+                btn.setAttribute('aria-selected', index + 1 === tabNumber ? 'true' : 'false');
+            });
+
+            document.querySelectorAll('.async-tab-panel').forEach((panel, index) => {
+                if (index + 1 === tabNumber) {
+                    panel.classList.remove('hidden');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            });
+
+            // Load content for async tabs
+            if (tabNumber === 2 || tabNumber === 3) {
+                loadAsyncContent(tabNumber);
+            }
+        }
+
+        function loadAsyncContent(tabNumber) {
+            const panel = document.getElementById(`async-tab-${tabNumber}`);
+            const delay = tabNumber === 2 ? 1500 : 3000;
+
+            // Show loading state
+            panel.innerHTML = `
+                <div class="tab-loading">
+                    <div class="tab-spinner"></div>
+                    Loading content...
+                </div>
+            `;
+
+            // Simulate async loading
+            setTimeout(() => {
+                panel.innerHTML = `
+                    <h3 class="text-lg font-semibold mb-4">Async Content ${tabNumber}</h3>
+                    <p>This content was loaded asynchronously after ${delay}ms delay.</p>
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <p>Dynamic content can include any HTML structure, data from APIs, or user-specific information.</p>
+                        </div>
+                    </div>
+                `;
+            }, delay);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.target.role === 'tab') {
+                let tabIndex = Array.from(e.target.parentNode.children).indexOf(e.target);
+                const tabs = e.target.parentNode.children;
+
+                switch(e.key) {
+                    case 'ArrowLeft':
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        tabIndex = tabIndex > 0 ? tabIndex - 1 : tabs.length - 1;
+                        tabs[tabIndex].focus();
+                        break;
+                    case 'ArrowRight':
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        tabIndex = tabIndex < tabs.length - 1 ? tabIndex + 1 : 0;
+                        tabs[tabIndex].focus();
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        tabs[0].focus();
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        tabs[tabs.length - 1].focus();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

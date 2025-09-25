@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Reports-specific styles */
+        .reports-container {
+            display: flex;
+            height: calc(100vh - 120px);
+            gap: 0;
+        }
+
+        .reports-sidebar {
+            width: 280px;
+            background: var(--snow-white);
+            border-right: 1px solid var(--snow-gray-200);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reports-main {
+            flex: 1;
+            background: var(--snow-gray-50);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--snow-gray-100);
+        }
+
+        .sidebar-section h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--snow-gray-900);
+        }
+
+        .report-category {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+        }
+
+        .report-category:hover {
+            background: var(--snow-gray-100);
+        }
+
+        .report-category.active {
+            background: var(--snow-blue-100);
+            color: var(--snow-blue-700);
+            font-weight: 500;
+        }
+
+        .report-category-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .report-template {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 2px;
+            border-left: 3px solid transparent;
+        }
+
+        .report-template:hover {
+            background: var(--snow-gray-50);
+            border-left-color: var(--snow-blue-300);
+        }
+
+        .report-template.selected {
+            background: var(--snow-blue-50);
+            border-left-color: var(--snow-blue-500);
+            color: var(--snow-blue-800);
+        }
+
+        .template-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .template-description {
+            font-size: 12px;
+            color: var(--snow-gray-600);
+            margin-top: 2px;
+        }
+
+        .reports-toolbar {
+            padding: 16px 20px;
+            background: var(--snow-white);
+            border-bottom: 1px solid var(--snow-gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-range-picker {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border: 1px solid var(--snow-gray-300);
+            border-radius: 6px;
+            background: var(--snow-white);
+        }
+
+        .reports-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .report-card {
+            background: var(--snow-white);
+            border-radius: 8px;
+            border: 1px solid var(--snow-gray-200);
+            overflow: hidden;
+        }
+
+        .report-card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--snow-gray-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .report-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--snow-gray-900);
+        }
+
+        .report-card-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .report-card-content {
+            padding: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 12px;
+            background: var(--snow-gray-50);
+            border-radius: 6px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--snow-blue-600);
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--snow-gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--snow-gray-100);
+        }
+
+        .summary-table th {
+            background: var(--snow-gray-50);
+            font-weight: 600;
+            color: var(--snow-gray-700);
+        }
+
+        .dashboard-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .overview-card {
+            background: var(--snow-white);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--snow-gray-200);
+            text-align: center;
+        }
+
+        .overview-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--snow-blue-500);
+        }
+
+        .overview-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--snow-gray-900);
+            margin-bottom: 4px;
+        }
+
+        .overview-label {
+            font-size: 14px;
+            color: var(--snow-gray-600);
+        }
+
+        .no-data-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--snow-gray-600);
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: var(--snow-gray-600);
+        }
+
+        .export-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .export-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--snow-white);
+            border: 1px solid var(--snow-gray-200);
+            border-radius: 6px;
+            box-shadow: var(--snow-shadow-lg);
+            min-width: 150px;
+            z-index: 100;
+            display: none;
+        }
+
+        .export-dropdown.active {
+            display: block;
+        }
+
+        .export-option {
+            display: block;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: var(--snow-gray-700);
+            transition: background-color 0.2s ease;
+        }
+
+        .export-option:hover {
+            background: var(--snow-gray-50);
+        }
+
+        @media (max-width: 768px) {
+            .reports-container {
+                flex-direction: column;
+            }
+
+            .reports-sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--snow-gray-200);
+            }
+
+            .report-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="snow-container">
+        <!-- Header -->
+        <div class="snow-header">
+            <div class="snow-header-content">
+                <div class="snow-header-title">
+                    <h1>📊 Reports & Analytics</h1>
+                    <p>Comprehensive reporting and business intelligence dashboard</p>
+                </div>
+                <div class="snow-header-actions">
+                    <button class="snow-btn snow-btn-primary" onclick="showReportBuilder()">
+                        📝 Create Report
+                    </button>
+                    <button class="snow-btn snow-btn-secondary" onclick="refreshReports()">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Container -->
+        <div class="reports-container">
+            <!-- Sidebar -->
+            <div class="reports-sidebar">
+                <div class="sidebar-section">
+                    <h3>Quick Reports</h3>
+                    <div class="report-category active" onclick="showQuickReports()" data-category="quick">
+                        <span class="report-category-icon">⚡</span>
+                        Quick Reports
+                    </div>
+                    <div class="report-category" onclick="showDashboard()" data-category="dashboard">
+                        <span class="report-category-icon">📊</span>
+                        Dashboard
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>Report Categories</h3>
+                    <div class="report-category" onclick="loadReportsByCategory('sales')" data-category="sales">
+                        <span class="report-category-icon">💰</span>
+                        Sales Reports
+                    </div>
+                    <div class="report-category" onclick="loadReportsByCategory('marketing')" data-category="marketing">
+                        <span class="report-category-icon">📈</span>
+                        Marketing Reports
+                    </div>
+                    <div class="report-category" onclick="loadReportsByCategory('productivity')" data-category="productivity">
+                        <span class="report-category-icon">✅</span>
+                        Productivity Reports
+                    </div>
+                    <div class="report-category" onclick="loadReportsByCategory('operations')" data-category="operations">
+                        <span class="report-category-icon">⚙️</span>
+                        Operations Reports
+                    </div>
+                </div>
+
+                <div class="sidebar-section" id="reportTemplatesSection" style="display: none;">
+                    <h3>Report Templates</h3>
+                    <div id="reportTemplatesList">
+                        <!-- Templates will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="reports-main">
+                <div class="reports-toolbar">
+                    <div class="toolbar-left">
+                        <h2 id="currentReportTitle">Quick Reports</h2>
+                    </div>
+                    <div class="toolbar-right">
+                        <div class="date-range-picker">
+                            <select id="dateRangePicker" onchange="updateDateRange()">
+                                <option value="today">Today</option>
+                                <option value="yesterday">Yesterday</option>
+                                <option value="this_week">This Week</option>
+                                <option value="this_month">This Month</option>
+                                <option value="last_7_days" selected>Last 7 Days</option>
+                                <option value="last_30_days">Last 30 Days</option>
+                                <option value="last_90_days">Last 90 Days</option>
+                                <option value="this_year">This Year</option>
+                            </select>
+                        </div>
+                        <div class="export-menu">
+                            <button class="snow-btn snow-btn-sm" onclick="toggleExportMenu()">
+                                📤 Export
+                            </button>
+                            <div class="export-dropdown" id="exportDropdown">
+                                <a href="#" class="export-option" onclick="exportReport('pdf')">📄 Export as PDF</a>
+                                <a href="#" class="export-option" onclick="exportReport('csv')">📊 Export as CSV</a>
+                                <a href="#" class="export-option" onclick="exportReport('json')">💾 Export as JSON</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reports-content" id="reportsContent">
+                    <!-- Dashboard Overview (Default View) -->
+                    <div id="dashboardView">
+                        <div class="dashboard-overview">
+                            <div class="overview-card">
+                                <div class="overview-icon">👥</div>
+                                <div class="overview-value" id="totalLeads">-</div>
+                                <div class="overview-label">Total Leads</div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="overview-icon">📧</div>
+                                <div class="overview-value" id="totalCampaigns">-</div>
+                                <div class="overview-label">Active Campaigns</div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="overview-icon">✅</div>
+                                <div class="overview-value" id="completedTasks">-</div>
+                                <div class="overview-label">Tasks Completed</div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="overview-icon">💰</div>
+                                <div class="overview-value" id="totalRevenue">-</div>
+                                <div class="overview-label">Revenue</div>
+                            </div>
+                        </div>
+
+                        <div class="report-grid">
+                            <div class="report-card">
+                                <div class="report-card-header">
+                                    <h3 class="report-card-title">Sales Pipeline</h3>
+                                    <div class="report-card-actions">
+                                        <button class="snow-btn snow-btn-sm" onclick="generateQuickReport('sales')">
+                                            🔄 Refresh
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="report-card-content">
+                                    <div class="chart-container">
+                                        <canvas id="salesChart"></canvas>
+                                    </div>
+                                    <div id="salesSummary"></div>
+                                </div>
+                            </div>
+
+                            <div class="report-card">
+                                <div class="report-card-header">
+                                    <h3 class="report-card-title">Marketing Performance</h3>
+                                    <div class="report-card-actions">
+                                        <button class="snow-btn snow-btn-sm" onclick="generateQuickReport('marketing')">
+                                            🔄 Refresh
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="report-card-content">
+                                    <div class="chart-container">
+                                        <canvas id="marketingChart"></canvas>
+                                    </div>
+                                    <div id="marketingSummary"></div>
+                                </div>
+                            </div>
+
+                            <div class="report-card">
+                                <div class="report-card-header">
+                                    <h3 class="report-card-title">Team Productivity</h3>
+                                    <div class="report-card-actions">
+                                        <button class="snow-btn snow-btn-sm" onclick="generateQuickReport('productivity')">
+                                            🔄 Refresh
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="report-card-content">
+                                    <div class="chart-container">
+                                        <canvas id="productivityChart"></canvas>
+                                    </div>
+                                    <div id="productivitySummary"></div>
+                                </div>
+                            </div>
+
+                            <div class="report-card">
+                                <div class="report-card-header">
+                                    <h3 class="report-card-title">Activity Trends</h3>
+                                    <div class="report-card-actions">
+                                        <button class="snow-btn snow-btn-sm" onclick="generateQuickReport('trends')">
+                                            🔄 Refresh
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="report-card-content">
+                                    <div class="chart-container">
+                                        <canvas id="trendsChart"></canvas>
+                                    </div>
+                                    <div id="trendsSummary"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="loadingView" style="display: none;">
+                        <div class="loading-spinner">
+                            <div class="snow-spinner"></div>
+                            <span style="margin-left: 12px;">Generating report...</span>
+                        </div>
+                    </div>
+
+                    <!-- No Data State -->
+                    <div id="noDataView" style="display: none;">
+                        <div class="no-data-message">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+                            <h3>No Reports Available</h3>
+                            <p>Select a report category or create a custom report to get started.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="snow-loading" style="display: none;">
+            <div class="snow-spinner"></div>
+            <p>Loading reports...</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = 'http://localhost:3001/api';
+        let currentCategory = 'quick';
+        let currentDateRange = 'last_7_days';
+        let charts = {};
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOverviewData();
+            generateQuickReports();
+        });
+
+        // Navigation functions
+        function showQuickReports() {
+            currentCategory = 'quick';
+            updateActiveCategory('quick');
+            document.getElementById('currentReportTitle').textContent = 'Quick Reports';
+            document.getElementById('dashboardView').style.display = 'block';
+            document.getElementById('reportTemplatesSection').style.display = 'none';
+            generateQuickReports();
+        }
+
+        function showDashboard() {
+            currentCategory = 'dashboard';
+            updateActiveCategory('dashboard');
+            document.getElementById('currentReportTitle').textContent = 'Dashboard Overview';
+            document.getElementById('dashboardView').style.display = 'block';
+            document.getElementById('reportTemplatesSection').style.display = 'none';
+            loadOverviewData();
+            generateQuickReports();
+        }
+
+        function loadReportsByCategory(category) {
+            currentCategory = category;
+            updateActiveCategory(category);
+
+            const titles = {
+                sales: 'Sales Reports',
+                marketing: 'Marketing Reports',
+                productivity: 'Productivity Reports',
+                operations: 'Operations Reports'
+            };
+
+            document.getElementById('currentReportTitle').textContent = titles[category];
+            document.getElementById('dashboardView').style.display = 'block';
+            document.getElementById('reportTemplatesSection').style.display = 'block';
+
+            loadReportTemplates(category);
+            generateCategoryReport(category);
+        }
+
+        function updateActiveCategory(category) {
+            document.querySelectorAll('.report-category').forEach(cat => {
+                cat.classList.remove('active');
+            });
+
+            document.querySelector(`[data-category="${category}"]`).classList.add('active');
+        }
+
+        // Data loading functions
+        async function loadOverviewData() {
+            try {
+                const response = await fetch(`${API_BASE}/reports/overview`);
+                const data = await response.json();
+
+                if (data.success) {
+                    updateOverviewCards(data.data);
+                }
+            } catch (error) {
+                console.error('Error loading overview data:', error);
+                // Use sample data for demonstration
+                updateOverviewCards({
+                    totalTemplates: 4,
+                    totalReports: 12,
+                    totalDashboards: 3,
+                    categoryBreakdown: {
+                        sales: 5,
+                        marketing: 3,
+                        productivity: 2,
+                        operations: 2
+                    }
+                });
+            }
+        }
+
+        function updateOverviewCards(data) {
+            // For now, display static sample data
+            document.getElementById('totalLeads').textContent = '127';
+            document.getElementById('totalCampaigns').textContent = '8';
+            document.getElementById('completedTasks').textContent = '45';
+            document.getElementById('totalRevenue').textContent = '$124K';
+        }
+
+        async function loadReportTemplates(category) {
+            try {
+                const response = await fetch(`${API_BASE}/reports/templates?category=${category}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayReportTemplates(data.data);
+                }
+            } catch (error) {
+                console.error('Error loading report templates:', error);
+                displayReportTemplates(getSampleTemplates(category));
+            }
+        }
+
+        function displayReportTemplates(templates) {
+            const container = document.getElementById('reportTemplatesList');
+
+            if (templates.length === 0) {
+                container.innerHTML = '<p class="snow-text-muted">No templates available</p>';
+                return;
+            }
+
+            container.innerHTML = templates.map(template => `
+                <div class="report-template" onclick="selectTemplate('${template.id}')" data-template-id="${template.id}">
+                    <div>
+                        <div class="template-name">${template.name}</div>
+                        <div class="template-description">${template.description}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Report generation functions
+        async function generateQuickReports() {
+            const reports = ['sales', 'marketing', 'productivity', 'trends'];
+
+            for (const reportType of reports) {
+                await generateQuickReport(reportType);
+            }
+        }
+
+        async function generateQuickReport(type) {
+            try {
+                showLoading(true, `${type}Chart`);
+
+                const response = await fetch(`${API_BASE}/reports/quick/${type}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ period: currentDateRange })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayReport(type, data.data);
+                } else {
+                    console.error(`Failed to generate ${type} report:`, data.message);
+                    displaySampleReport(type);
+                }
+            } catch (error) {
+                console.error(`Error generating ${type} report:`, error);
+                displaySampleReport(type);
+            } finally {
+                showLoading(false, `${type}Chart`);
+            }
+        }
+
+        async function generateCategoryReport(category) {
+            // Generate the main report for the selected category
+            await generateQuickReport(category === 'operations' ? 'trends' : category);
+        }
+
+        function displayReport(type, reportData) {
+            const chartId = `${type}Chart`;
+            const summaryId = `${type}Summary`;
+
+            // Create or update chart
+            createChart(chartId, reportData.chartData, getChartType(type));
+
+            // Update summary
+            displaySummary(summaryId, reportData.summary);
+        }
+
+        function createChart(canvasId, chartData, type) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+
+            // Destroy existing chart
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+
+            // Create new chart
+            charts[canvasId] = new Chart(ctx, {
+                type: type,
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        }
+                    },
+                    scales: type === 'doughnut' || type === 'pie' ? {} : {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displaySummary(elementId, summary) {
+            const element = document.getElementById(elementId);
+            if (!element || !summary) return;
+
+            const metrics = Object.entries(summary).map(([key, value]) => {
+                const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                let formattedValue = value;
+
+                // Format specific types of values
+                if (key.includes('Rate') || key.includes('rate')) {
+                    formattedValue = value + '%';
+                } else if (key.includes('Value') || key.includes('Revenue')) {
+                    formattedValue = '$' + (typeof value === 'number' ? value.toLocaleString() : value);
+                } else if (key.includes('Time')) {
+                    formattedValue = value + 'h';
+                }
+
+                return `
+                    <div class="metric-item">
+                        <div class="metric-value">${formattedValue}</div>
+                        <div class="metric-label">${formattedKey}</div>
+                    </div>
+                `;
+            }).join('');
+
+            element.innerHTML = `<div class="metrics-grid">${metrics}</div>`;
+        }
+
+        function getChartType(reportType) {
+            const types = {
+                sales: 'bar',
+                marketing: 'line',
+                productivity: 'doughnut',
+                trends: 'line'
+            };
+            return types[reportType] || 'bar';
+        }
+
+        // Sample data functions
+        function displaySampleReport(type) {
+            const sampleData = getSampleReportData(type);
+            displayReport(type, sampleData);
+        }
+
+        function getSampleReportData(type) {
+            const sampleData = {
+                sales: {
+                    chartData: {
+                        labels: ['New', 'Contacted', 'Qualified', 'Proposal', 'Negotiation', 'Customer'],
+                        datasets: [{
+                            label: 'Lead Count',
+                            data: [15, 12, 8, 5, 3, 7],
+                            backgroundColor: ['#EF4444', '#F59E0B', '#3B82F6', '#8B5CF6', '#10B981', '#059669']
+                        }]
+                    },
+                    summary: {
+                        totalLeads: 50,
+                        qualifiedLeads: 20,
+                        convertedLeads: 7,
+                        conversionRate: 14,
+                        totalValue: 85000,
+                        avgDealSize: 12143
+                    }
+                },
+                marketing: {
+                    chartData: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        datasets: [{
+                            label: 'Email Opens',
+                            data: [45, 52, 48, 61],
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)'
+                        }, {
+                            label: 'Click Through',
+                            data: [12, 18, 15, 22],
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)'
+                        }]
+                    },
+                    summary: {
+                        totalCampaigns: 8,
+                        activeCampaigns: 3,
+                        emailsSent: 1250,
+                        openRate: 42,
+                        clickRate: 16
+                    }
+                },
+                productivity: {
+                    chartData: {
+                        labels: ['Completed', 'In Progress', 'To Do', 'Overdue'],
+                        datasets: [{
+                            data: [45, 18, 12, 5],
+                            backgroundColor: ['#10B981', '#F59E0B', '#6B7280', '#EF4444']
+                        }]
+                    },
+                    summary: {
+                        totalTasks: 80,
+                        completedTasks: 45,
+                        completionRate: 56,
+                        overdueTasks: 5,
+                        avgCompletionTime: 24
+                    }
+                },
+                trends: {
+                    chartData: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'New Leads',
+                            data: [3, 5, 2, 8, 6, 1, 2],
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)'
+                        }, {
+                            label: 'Tasks Completed',
+                            data: [8, 12, 6, 15, 10, 5, 7],
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)'
+                        }]
+                    },
+                    summary: {}
+                }
+            };
+
+            return sampleData[type] || sampleData.sales;
+        }
+
+        function getSampleTemplates(category) {
+            const templates = {
+                sales: [
+                    { id: 'sales-1', name: 'Sales Pipeline Report', description: 'Detailed pipeline analysis' },
+                    { id: 'sales-2', name: 'Conversion Funnel', description: 'Lead conversion tracking' }
+                ],
+                marketing: [
+                    { id: 'marketing-1', name: 'Campaign Performance', description: 'Marketing campaign ROI' },
+                    { id: 'marketing-2', name: 'Email Analytics', description: 'Email engagement metrics' }
+                ],
+                productivity: [
+                    { id: 'productivity-1', name: 'Team Performance', description: 'Task completion analytics' },
+                    { id: 'productivity-2', name: 'Time Tracking', description: 'Time spent analysis' }
+                ],
+                operations: [
+                    { id: 'operations-1', name: 'Activity Summary', description: 'Daily operations overview' },
+                    { id: 'operations-2', name: 'System Usage', description: 'Platform utilization metrics' }
+                ]
+            };
+
+            return templates[category] || [];
+        }
+
+        // UI interaction functions
+        function selectTemplate(templateId) {
+            document.querySelectorAll('.report-template').forEach(t => t.classList.remove('selected'));
+            document.querySelector(`[data-template-id="${templateId}"]`).classList.add('selected');
+
+            // Generate report from template (placeholder)
+            showNotification('Template selected. Report generation coming soon!', 'info');
+        }
+
+        function updateDateRange() {
+            currentDateRange = document.getElementById('dateRangePicker').value;
+
+            if (currentCategory === 'quick' || currentCategory === 'dashboard') {
+                generateQuickReports();
+            } else {
+                generateCategoryReport(currentCategory);
+            }
+        }
+
+        function toggleExportMenu() {
+            const dropdown = document.getElementById('exportDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function exportReport(format) {
+            document.getElementById('exportDropdown').classList.remove('active');
+
+            // Placeholder for export functionality
+            showNotification(`Export to ${format.toUpperCase()} coming soon!`, 'info');
+        }
+
+        function showReportBuilder() {
+            showNotification('Custom report builder coming soon!', 'info');
+        }
+
+        function refreshReports() {
+            loadOverviewData();
+
+            if (currentCategory === 'quick' || currentCategory === 'dashboard') {
+                generateQuickReports();
+            } else {
+                generateCategoryReport(currentCategory);
+            }
+
+            showNotification('Reports refreshed successfully!', 'success');
+        }
+
+        // Utility functions
+        function showLoading(show, chartId) {
+            if (show) {
+                const chartContainer = document.getElementById(chartId)?.parentElement;
+                if (chartContainer) {
+                    chartContainer.innerHTML = '<div class="loading-spinner"><div class="snow-spinner"></div></div>';
+                }
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `snow-notification snow-notification-${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+                padding: 12px 16px;
+                border-radius: 6px;
+                color: white;
+                font-weight: 500;
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+            `;
+
+            const colors = {
+                success: '#10B981',
+                error: '#EF4444',
+                warning: '#F59E0B',
+                info: '#3B82F6'
+            };
+            notification.style.background = colors[type] || colors.info;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        // Close export dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.export-menu')) {
+                document.getElementById('exportDropdown').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

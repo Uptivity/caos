@@ -1,0 +1,254 @@
+/* SnowUI Design System v4.0 - Main CSS Entry Point */
+/* Complete implementation of design/snowui-lawsofux-design-system.md */
+
+/* FOUNDATIONAL LAYERS */
+@import './base/variables.css';
+@import './base/reset.css';
+@import './base/responsive.css';
+
+/* COMPONENT LIBRARY */
+@import './components/buttons.css';
+@import './components/cards.css';
+@import './components/forms.css';
+@import './components/modals.css';
+
+/* UTILITY CLASSES */
+@import './utils/spacing.css';
+@import './utils/text.css';
+@import './utils/layout.css';
+
+/* ACCESSIBILITY UTILITIES - WCAG AA COMPLIANT */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--snow-gray-900);
+  color: var(--snow-white);
+  padding: var(--space-2) var(--space-3);
+  text-decoration: none;
+  border-radius: var(--radius);
+  z-index: 999999;
+  transition: top var(--motion-duration-fast) ease;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  border: var(--focus-ring-width) solid transparent;
+}
+
+.skip-link:focus {
+  top: 6px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* FOCUS MANAGEMENT */
+*:focus {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* KEYBOARD NAVIGATION INDICATORS */
+.focusable {
+  cursor: pointer;
+  transition: all var(--motion-duration-fast) var(--motion-easing);
+}
+
+.focusable:focus,
+.focusable:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  box-shadow: 0 0 0 var(--focus-ring-offset) rgba(59, 130, 246, 0.1);
+}
+
+/* ARIA LIVE REGIONS */
+.sr-live {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* LANDMARK ROLES */
+[role="main"],
+main {
+  display: block;
+}
+
+[role="banner"],
+header {
+  display: block;
+}
+
+[role="navigation"],
+nav {
+  display: block;
+}
+
+[role="contentinfo"],
+footer {
+  display: block;
+}
+
+/* HIGH CONTRAST MODE SUPPORT - ENHANCED */
+@media (prefers-contrast: high) {
+  :root {
+    --snow-gray-200: #000000;
+    --snow-gray-300: #000000;
+    --snow-gray-400: #000000;
+    --snow-gray-500: #000000;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+    --focus-ring-width: 3px;
+  }
+
+  .btn,
+  .card,
+  .form-input,
+  .form-textarea,
+  .form-select,
+  .action-card,
+  .stat-card {
+    border: var(--high-contrast-border) currentColor !important;
+  }
+
+  .btn:focus,
+  .form-input:focus,
+  .form-textarea:focus,
+  .form-select:focus {
+    outline: var(--high-contrast-outline) currentColor !important;
+    outline-offset: 2px;
+  }
+
+  /* Ensure sufficient contrast for interactive elements */
+  button,
+  [role="button"],
+  a,
+  input,
+  select,
+  textarea {
+    border: 2px solid currentColor;
+  }
+
+  /* Remove subtle backgrounds in high contrast */
+  .stat-card::before {
+    height: 6px !important;
+  }
+}
+
+/* REDUCE MOTION SUPPORT - ENHANCED */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    transform: none !important;
+  }
+
+  .btn:hover,
+  .card:hover,
+  .stat-card:hover,
+  .action-card:hover {
+    transform: none !important;
+  }
+
+  .modal,
+  .modal-backdrop {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  /* Keep focus indicators even with reduced motion */
+  *:focus,
+  *:focus-visible {
+    transition: none !important;
+  }
+}
+
+/* FORCED COLORS MODE SUPPORT (Windows High Contrast) */
+@media (forced-colors: active) {
+  .btn,
+  .card,
+  .form-input,
+  .form-textarea,
+  .form-select {
+    border: 1px solid ButtonBorder;
+  }
+
+  .btn-primary {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonBorder;
+  }
+
+  .btn:focus,
+  .form-input:focus {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .sr-only {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    clip: auto !important;
+    white-space: normal !important;
+  }
+}
+
+/* PRINT STYLES */
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .btn {
+    border: 1px solid black !important;
+    background: transparent !important;
+    color: black !important;
+  }
+
+  .modal-backdrop {
+    display: none !important;
+  }
+
+  .card {
+    border: 1px solid black !important;
+    break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+}

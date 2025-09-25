@@ -1,0 +1,119 @@
+{
+  "name": "CAOS CRM Mobile",
+  "short_name": "CAOS CRM",
+  "description": "Customer Relationship Management System - Mobile Interface",
+  "start_url": "./Mobile.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "scope": "./",
+  "lang": "en-US",
+  "categories": ["business", "productivity", "finance"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiMyNTYzZWIiLz4KPHBhdGggZD0iTTQ4IDY0VjEyOEgxNDRWNjRINDhaTTY0IDgwSDEyOFYxMTJINjRWODBaIiBmaWxsPSJ3aGl0ZSIvPgo8Y2lyY2xlIGN4PSI5NiIgY3k9Ijk2IiByPSI4IiBmaWxsPSIjMjU2M2ViIi8+Cjwvc3ZnPgo=",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9IiMyNTYzZWIiLz4KPHBhdGggZD0iTTEyOCAxNzJWMzQwSDM4NFYxNzJIMTI4Wk0xNzYgMjIwSDMzNlYyOTJIMTc2VjIyMFoiIGZpbGw9IndoaXRlIi8+CjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjAiIGZpbGw9IiMyNTYzZWIiLz4KPC9zdmc+Cg==",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzc1IiBoZWlnaHQ9IjgxMiIgdmlld0JveD0iMCAwIDM3NSA4MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzNzUiIGhlaWdodD0iODEyIiBmaWxsPSIjZjlmYWZiIi8+CjxyZWN0IHg9IjE2IiB5PSI2NCIgd2lkdGg9IjM0MyIgaGVpZ2h0PSI2NCIgcng9IjgiIGZpbGw9IiMyNTYzZWIiLz4KPHRleHQgeD0iMzIiIHk9IjEwNCIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iNjAwIj5DQU9TIENSTTwvdGV4dD4KPC9zdmc+Cg==",
+      "sizes": "375x812",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "CAOS CRM Mobile Dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Quick access to your CRM dashboard",
+      "url": "./Mobile.html#dashboard",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iMTIiIGZpbGw9IiMyNTYzZWIiLz4KPHBhdGggZD0iTTI0IDMyVjY0SDcyVjMySDI0Wk0zMiA0MEg2NFY1NkgzMlY0MFoiIGZpbGw9IndoaXRlIi8+CjwvdmkKPC9zdmc+Cg==",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "New Lead",
+      "short_name": "Add Lead",
+      "description": "Create a new lead",
+      "url": "./Mobile.html#leads/new",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iMTIiIGZpbGw9IiMxMGI5ODEiLz4KPHBhdGggZD0iTTQ4IDMyVjY0TTMyIDQ4SDY0IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "short_name": "Tasks",
+      "description": "View your tasks",
+      "url": "./Mobile.html#tasks",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iMTIiIGZpbGw9IiNkYzI2MjYiLz4KPHBhdGggZD0iTTMyIDQ4TDQwIDU2TDY0IDMyIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "share_target": {
+    "action": "./Mobile.html#share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": ["image/*", "text/*", ".pdf", ".doc", ".docx"]
+        }
+      ]
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "mailto",
+      "url": "./Mobile.html#email/compose?to=%s"
+    },
+    {
+      "protocol": "tel",
+      "url": "./Mobile.html#leads/call?phone=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "./Mobile.html#import",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/json": [".json"],
+        "text/vcard": [".vcf"],
+        "application/vnd.ms-excel": [".xls", ".xlsx"]
+      }
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": ["focus-existing", "auto"]
+  }
+}
