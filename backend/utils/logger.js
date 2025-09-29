@@ -28,7 +28,10 @@ const logColors = {
     silly: 'rainbow'
 };
 
-winston.addColors(logColors);
+// Add colors to winston - check if addColors exists to avoid test errors
+if (winston.addColors && typeof winston.addColors === 'function') {
+    winston.addColors(logColors);
+}
 
 // Sensitive field patterns to sanitize
 const SENSITIVE_PATTERNS = [
@@ -84,13 +87,13 @@ class EnhancedLogger {
             return winston.format.combine(
                 baseFormat,
                 winston.format.colorize({ all: true }),
-                winston.format.printf(this.developmentFormat)
+                winston.format.printf(this.developmentFormat.bind(this))
             );
         }
 
         return winston.format.combine(
             baseFormat,
-            winston.format.printf(this.productionFormat)
+            winston.format.printf(this.productionFormat.bind(this))
         );
     }
 

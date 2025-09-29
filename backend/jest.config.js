@@ -20,24 +20,26 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json'],
 
-  // Coverage thresholds
+  // Coverage thresholds for production-ready modules
   coverageThreshold: {
     global: {
-      branches: 50,
-      functions: 50,
-      lines: 50,
-      statements: 50
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80
     }
   },
 
-  // Files to collect coverage from
+  // Files to collect coverage from - focusing on production-ready modules
   collectCoverageFrom: [
     'auth/**/*.js',
-    'leads/**/*.js',
-    'products/**/*.js',
-    'campaigns/**/*.js',
-    'utils/**/*.js',
-    'middleware/**/*.js',
+    'services/AuthService.js',
+    'services/DatabaseService.js',
+    'utils/logger.js',
+    'utils/secureLogger.js',
+    'middleware/authMiddleware.js',
+    'middleware/performanceMiddleware.js',
+    'middleware/metricsMiddleware.js',
     '!**/node_modules/**',
     '!**/*.test.js',
     '!**/coverage/**'

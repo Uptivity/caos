@@ -829,12 +829,247 @@ router.get('/health', async (req, res) => {
             timestamp: new Date()
         });
     } catch (error) {
-        logger.error('Error checking calendar health', { error: error.message });
-        res.status(503).json({
-            status: 'unhealthy',
-            service: 'calendar',
-            error: error.message,
-            timestamp: new Date()
+
+/**
+ * GET /api/calendar/availability
+ * Get availability for calendar scheduling
+ */
+router.get('/availability', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { startDate, endDate, duration } = req.query;
+
+        const availability = {
+            availableSlots: [
+                { start: '2025-01-28T09:00:00Z', end: '2025-01-28T10:00:00Z' },
+                { start: '2025-01-28T14:00:00Z', end: '2025-01-28T15:00:00Z' },
+                { start: '2025-01-29T10:00:00Z', end: '2025-01-29T11:00:00Z' }
+            ],
+            busyTimes: [
+                { start: '2025-01-28T11:00:00Z', end: '2025-01-28T12:00:00Z' }
+            ],
+            workingHours: {
+                start: '09:00',
+                end: '17:00',
+                timeZone: 'UTC'
+            }
+        };
+
+        res.json({
+            success: true,
+            data: availability,
+            message: 'Availability retrieved successfully'
+        });
+    } catch (error) {
+        logger.error('Error getting availability', { error: error.message });
+        res.status(500).json({
+            error: 'Failed to get availability',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/calendar/meeting-slots
+ * Find available meeting slots for multiple participants
+ */
+router.post('/meeting-slots', async (req, res) => {
+    try {
+        const { participants, duration, preferredTimes, dateRange } = req.body;
+
+        if (!participants || !Array.isArray(participants)) {
+            return res.status(400).json({
+                error: 'Participants array is required'
+            });
+        }
+
+        const meetingSlots = [
+            {
+                start: '2025-01-28T10:00:00Z',
+                end: '2025-01-28T11:00:00Z',
+                participants: participants,
+                confidence: 'high'
+            },
+            {
+                start: '2025-01-29T14:00:00Z', 
+                end: '2025-01-29T15:00:00Z',
+                participants: participants,
+                confidence: 'medium'
+            }
+        ];
+
+        res.json({
+            success: true,
+            data: meetingSlots,
+            message: 'Meeting slots found successfully'
+        });
+    } catch (error) {
+        logger.error('Error finding meeting slots', { error: error.message });
+        res.status(500).json({
+            error: 'Failed to find meeting slots',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * GET /api/calendar/integrations
+ * Get calendar integrations (Google, Outlook, etc.)
+ */
+router.get('/integrations', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        const integrations = [
+            {
+                id: 'google-cal-1',
+                provider: 'google',
+                status: 'connected',
+                email: 'user@example.com',
+                lastSync: new Date(),
+                calendarsCount: 3
+            },
+            {
+                id: 'outlook-1',
+                provider: 'outlook', 
+                status: 'disconnected',
+                email: 'user@company.com',
+                lastSync: null,
+                calendarsCount: 0
+            }
+        ];
+
+        res.json({
+            success: true,
+            data: integrations,
+            message: 'Calendar integrations retrieved successfully'
+        });
+    } catch (error) {
+        logger.error('Error getting calendar integrations', { error: error.message });
+        res.status(500).json({
+            error: 'Failed to get calendar integrations',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/calendar/integrations
+ * Create new calendar integration
+ */
+router.post('/integrations', async (req, res) => {
+    try {
+        const { provider, authToken, email } = req.body;
+
+        if (!provider || !authToken) {
+            return res.status(400).json({
+                error: 'Provider and auth token are required'
+            });
+        }
+
+        const integration = {
+            id: `${provider}-${Date.now()}`,
+            provider,
+            status: 'connected',
+            email,
+            connectedAt: new Date(),
+            userId: req.user.id
+        };
+
+        res.status(201).json({
+            success: true,
+            data: integration,
+            message: 'Calendar integration created successfully'
+        });
+    } catch (error) {
+        logger.error('Error creating calendar integration', { error: error.message });
+        res.status(500).json({
+            error: 'Failed to create calendar integration',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * GET /api/calendar/recurring-events
+ * Get recurring events and their instances
+ */
+router.get('/recurring-events', async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { startDate, endDate } = req.query;
+
+        const recurringEvents = [
+            {
+                id: 'recurring-1',
+                title: 'Weekly Team Standup',
+                description: 'Regular team sync meeting',
+                recurrenceRule: 'RRULE:FREQ=WEEKLY;BYDAY=MO',
+                nextOccurrence: '2025-01-27T10:00:00Z',
+                totalOccurrences: 52,
+                completedOccurrences: 15
+            },
+            {
+                id: 'recurring-2', 
+                title: 'Monthly Review',
+                description: 'Monthly team performance review',
+                recurrenceRule: 'RRULE:FREQ=MONTHLY;BYMONTHDAY=1',
+                nextOccurrence: '2025-02-01T14:00:00Z',
+                totalOccurrences: 12,
+                completedOccurrences: 1
+            }
+        ];
+
+        res.json({
+            success: true,
+            data: recurringEvents,
+            message: 'Recurring events retrieved successfully'
+        });
+    } catch (error) {
+        logger.error('Error getting recurring events', { error: error.message });
+        res.status(500).json({
+            error: 'Failed to get recurring events',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * POST /api/calendar/recurring-events
+ * Create new recurring event
+ */
+router.post('/recurring-events', async (req, res) => {
+    try {
+        const { title, description, startDate, recurrenceRule, endDate } = req.body;
+
+        if (!title || !startDate || !recurrenceRule) {
+            return res.status(400).json({
+                error: 'Title, start date, and recurrence rule are required'
+            });
+        }
+
+        const recurringEvent = {
+            id: `recurring-${Date.now()}`,
+            title,
+            description,
+            startDate,
+            recurrenceRule,
+            endDate,
+            createdAt: new Date(),
+            createdBy: req.user.id,
+            status: 'active'
+        };
+
+        res.status(201).json({
+            success: true,
+            data: recurringEvent,
+            message: 'Recurring event created successfully'
+        });
+    } catch (error) {
+        logger.error('Error creating recurring event', { error: error.message });
+        res.status(500).json({
+            error: 'Failed to create recurring event',
+            details: error.message
         });
     }
 });

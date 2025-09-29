@@ -52,4 +52,541 @@ class AlertingSystem {
             enableSlackAlerts: process.env.ENABLE_SLACK_ALERTS === 'true',
             slackWebhookUrl: process.env.SLACK_WEBHOOK_URL,
             slackChannel: process.env.SLACK_CHANNEL || '#alerts'
-        };\n\n        this.alertTypes = {\n            ERROR_RATE: 'error_rate',\n            RESPONSE_TIME: 'response_time',\n            DATABASE: 'database',\n            MEMORY: 'memory',\n            CPU: 'cpu',\n            DISK: 'disk',\n            SECURITY: 'security',\n            BUSINESS: 'business'\n        };\n\n        this.severityLevels = {\n            INFO: 'info',\n            WARNING: 'warning',\n            CRITICAL: 'critical'\n        };\n\n        // Start monitoring\n        this.startMonitoring();\n\n        logger.info('Alerting system initialized', {\n            thresholds: {\n                errorRate: `${this.config.errorRateThresholdWarning}%/${this.config.errorRateThresholdCritical}%`,\n                responseTime: `${this.config.responseTimeThresholdWarning}ms/${this.config.responseTimeThresholdCritical}ms`,\n                memory: `${this.config.memoryThresholdWarning}%/${this.config.memoryThresholdCritical}%`\n            },\n            channels: {\n                email: this.config.enableEmailAlerts,\n                webhook: this.config.enableWebhookAlerts,\n                slack: this.config.enableSlackAlerts\n            }\n        });\n    }\n\n    /**\n     * Start monitoring and alerting\n     */\n    startMonitoring() {\n        setInterval(() => {\n            this.checkSystemHealth();\n        }, this.config.checkInterval);\n\n        logger.info('System monitoring started', {\n            interval: `${this.config.checkInterval}ms`\n        });\n    }\n\n    /**\n     * Check overall system health and trigger alerts\n     */\n    async checkSystemHealth() {\n        try {\n            // Check error rates\n            await this.checkErrorRates();\n\n            // Check response times\n            await this.checkResponseTimes();\n\n            // Check database health\n            await this.checkDatabaseHealth();\n\n            // Check system resources\n            await this.checkSystemResources();\n\n        } catch (error) {\n            logger.error('System health check failed', {\n                error: error.message,\n                stack: error.stack\n            });\n        }\n    }\n\n    /**\n     * Check API error rates\n     */\n    async checkErrorRates() {\n        const coreWebVitals = performanceMonitor.getCoreWebVitals();\n        const errorRate = parseFloat(coreWebVitals.errorRate);\n\n        if (errorRate >= this.config.errorRateThresholdCritical) {\n            await this.triggerAlert(this.alertTypes.ERROR_RATE, this.severityLevels.CRITICAL, {\n                message: `Critical error rate detected: ${errorRate}%`,\n                threshold: `${this.config.errorRateThresholdCritical}%`,\n                currentValue: `${errorRate}%`,\n                requestVolume: coreWebVitals.requestVolume\n            });\n        } else if (errorRate >= this.config.errorRateThresholdWarning) {\n            await this.triggerAlert(this.alertTypes.ERROR_RATE, this.severityLevels.WARNING, {\n                message: `High error rate detected: ${errorRate}%`,\n                threshold: `${this.config.errorRateThresholdWarning}%`,\n                currentValue: `${errorRate}%`,\n                requestVolume: coreWebVitals.requestVolume\n            });\n        }\n    }\n\n    /**\n     * Check API response times\n     */\n    async checkResponseTimes() {\n        const coreWebVitals = performanceMonitor.getCoreWebVitals();\n        const avgResponseTime = parseFloat(coreWebVitals.averageResponseTime);\n\n        if (avgResponseTime >= this.config.responseTimeThresholdCritical) {\n            await this.triggerAlert(this.alertTypes.RESPONSE_TIME, this.severityLevels.CRITICAL, {\n                message: `Critical response time detected: ${avgResponseTime.toFixed(0)}ms`,\n                threshold: `${this.config.responseTimeThresholdCritical}ms`,\n                currentValue: `${avgResponseTime.toFixed(0)}ms`,\n                percentiles: coreWebVitals.percentiles\n            });\n        } else if (avgResponseTime >= this.config.responseTimeThresholdWarning) {\n            await this.triggerAlert(this.alertTypes.RESPONSE_TIME, this.severityLevels.WARNING, {\n                message: `Slow response time detected: ${avgResponseTime.toFixed(0)}ms`,\n                threshold: `${this.config.responseTimeThresholdWarning}ms`,\n                currentValue: `${avgResponseTime.toFixed(0)}ms`,\n                percentiles: coreWebVitals.percentiles\n            });\n        }\n    }\n\n    /**\n     * Check database health\n     */\n    async checkDatabaseHealth() {\n        const database = require('../config/database');\n        \n        try {\n            const dbHealth = await database.getHealthStatus();\n            const poolStats = database.getPoolStatus();\n            \n            if (!dbHealth.connected) {\n                await this.triggerAlert(this.alertTypes.DATABASE, this.severityLevels.CRITICAL, {\n                    message: 'Database connection lost',\n                    status: dbHealth.status,\n                    error: dbHealth.error\n                });\n                return;\n            }\n\n            // Check connection pool utilization\n            const poolUtilization = poolStats.totalConnections > 0 \n                ? (poolStats.usedConnections / poolStats.totalConnections) * 100\n                : 0;\n\n            if (poolUtilization >= this.config.dbConnectionThresholdCritical) {\n                await this.triggerAlert(this.alertTypes.DATABASE, this.severityLevels.CRITICAL, {\n                    message: `Critical database connection pool usage: ${poolUtilization.toFixed(1)}%`,\n                    threshold: `${this.config.dbConnectionThresholdCritical}%`,\n                    currentValue: `${poolUtilization.toFixed(1)}%`,\n                    poolStats\n                });\n            } else if (poolUtilization >= this.config.dbConnectionThresholdWarning) {\n                await this.triggerAlert(this.alertTypes.DATABASE, this.severityLevels.WARNING, {\n                    message: `High database connection pool usage: ${poolUtilization.toFixed(1)}%`,\n                    threshold: `${this.config.dbConnectionThresholdWarning}%`,\n                    currentValue: `${poolUtilization.toFixed(1)}%`,\n                    poolStats\n                });\n            }\n\n            // Check database response time\n            const responseTime = dbHealth.responseTime ? parseInt(dbHealth.responseTime) : 0;\n            if (responseTime > 500) {\n                await this.triggerAlert(this.alertTypes.DATABASE, this.severityLevels.WARNING, {\n                    message: `Slow database response time: ${responseTime}ms`,\n                    threshold: '500ms',\n                    currentValue: `${responseTime}ms`\n                });\n            }\n\n        } catch (error) {\n            await this.triggerAlert(this.alertTypes.DATABASE, this.severityLevels.CRITICAL, {\n                message: 'Database health check failed',\n                error: error.message\n            });\n        }\n    }\n\n    /**\n     * Check system resources (memory, CPU)\n     */\n    async checkSystemResources() {\n        const os = require('os');\n        \n        // Memory check\n        const totalMemory = os.totalmem();\n        const freeMemory = os.freemem();\n        const memoryUsage = ((totalMemory - freeMemory) / totalMemory) * 100;\n\n        if (memoryUsage >= this.config.memoryThresholdCritical) {\n            await this.triggerAlert(this.alertTypes.MEMORY, this.severityLevels.CRITICAL, {\n                message: `Critical memory usage: ${memoryUsage.toFixed(1)}%`,\n                threshold: `${this.config.memoryThresholdCritical}%`,\n                currentValue: `${memoryUsage.toFixed(1)}%`,\n                totalMemory: `${(totalMemory / 1024 / 1024 / 1024).toFixed(2)}GB`,\n                freeMemory: `${(freeMemory / 1024 / 1024 / 1024).toFixed(2)}GB`\n            });\n        } else if (memoryUsage >= this.config.memoryThresholdWarning) {\n            await this.triggerAlert(this.alertTypes.MEMORY, this.severityLevels.WARNING, {\n                message: `High memory usage: ${memoryUsage.toFixed(1)}%`,\n                threshold: `${this.config.memoryThresholdWarning}%`,\n                currentValue: `${memoryUsage.toFixed(1)}%`,\n                totalMemory: `${(totalMemory / 1024 / 1024 / 1024).toFixed(2)}GB`,\n                freeMemory: `${(freeMemory / 1024 / 1024 / 1024).toFixed(2)}GB`\n            });\n        }\n\n        // CPU check (simplified)\n        const loadAvg = os.loadavg();\n        const numCPUs = os.cpus().length;\n        const cpuUsage = (loadAvg[0] / numCPUs) * 100;\n\n        if (cpuUsage >= this.config.cpuThresholdCritical) {\n            await this.triggerAlert(this.alertTypes.CPU, this.severityLevels.CRITICAL, {\n                message: `Critical CPU usage: ${cpuUsage.toFixed(1)}%`,\n                threshold: `${this.config.cpuThresholdCritical}%`,\n                currentValue: `${cpuUsage.toFixed(1)}%`,\n                loadAverage: loadAvg[0].toFixed(2),\n                cores: numCPUs\n            });\n        } else if (cpuUsage >= this.config.cpuThresholdWarning) {\n            await this.triggerAlert(this.alertTypes.CPU, this.severityLevels.WARNING, {\n                message: `High CPU usage: ${cpuUsage.toFixed(1)}%`,\n                threshold: `${this.config.cpuThresholdWarning}%`,\n                currentValue: `${cpuUsage.toFixed(1)}%`,\n                loadAverage: loadAvg[0].toFixed(2),\n                cores: numCPUs\n            });\n        }\n    }\n\n    /**\n     * Trigger an alert\n     */\n    async triggerAlert(type, severity, details) {\n        const alertKey = `${type}_${severity}`;\n        const now = Date.now();\n        \n        // Check if alert should be suppressed\n        const lastAlert = this.alerts.get(alertKey);\n        if (lastAlert && (now - lastAlert.timestamp) < this.config.alertSuppressionWindow) {\n            logger.debug('Alert suppressed due to suppression window', {\n                type,\n                severity,\n                suppressionWindow: `${this.config.alertSuppressionWindow}ms`\n            });\n            return;\n        }\n\n        const alert = {\n            id: this.generateAlertId(),\n            type,\n            severity,\n            timestamp: now,\n            message: details.message,\n            details,\n            resolved: false,\n            environment: process.env.NODE_ENV || 'development'\n        };\n\n        // Store alert\n        this.alerts.set(alertKey, alert);\n        this.addToHistory(alert);\n\n        // Log alert\n        logger.warn('Alert triggered', alert);\n\n        // Send notifications\n        await this.sendNotifications(alert);\n\n        return alert;\n    }\n\n    /**\n     * Generate unique alert ID\n     */\n    generateAlertId() {\n        return `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n    }\n\n    /**\n     * Send alert notifications through configured channels\n     */\n    async sendNotifications(alert) {\n        const notifications = [];\n\n        // Email notifications\n        if (this.config.enableEmailAlerts && this.config.alertEmailTo.length > 0) {\n            notifications.push(this.sendEmailAlert(alert));\n        }\n\n        // Webhook notifications\n        if (this.config.enableWebhookAlerts && this.config.alertWebhookUrl) {\n            notifications.push(this.sendWebhookAlert(alert));\n        }\n\n        // Slack notifications\n        if (this.config.enableSlackAlerts && this.config.slackWebhookUrl) {\n            notifications.push(this.sendSlackAlert(alert));\n        }\n\n        // Wait for all notifications to complete\n        try {\n            await Promise.allSettled(notifications);\n        } catch (error) {\n            logger.error('Error sending alert notifications', {\n                alertId: alert.id,\n                error: error.message\n            });\n        }\n    }\n\n    /**\n     * Send email alert (basic implementation)\n     */\n    async sendEmailAlert(alert) {\n        try {\n            // In a real implementation, you would integrate with an email service\n            // like SendGrid, AWS SES, or SMTP\n            logger.info('Email alert would be sent', {\n                alertId: alert.id,\n                to: this.config.alertEmailTo,\n                subject: `[${alert.severity.toUpperCase()}] CAOS CRM Alert: ${alert.type}`,\n                message: alert.message\n            });\n        } catch (error) {\n            logger.error('Failed to send email alert', {\n                alertId: alert.id,\n                error: error.message\n            });\n        }\n    }\n\n    /**\n     * Send webhook alert\n     */\n    async sendWebhookAlert(alert) {\n        try {\n            // In a real implementation, you would make HTTP request to webhook URL\n            logger.info('Webhook alert would be sent', {\n                alertId: alert.id,\n                url: this.config.alertWebhookUrl,\n                payload: alert\n            });\n        } catch (error) {\n            logger.error('Failed to send webhook alert', {\n                alertId: alert.id,\n                error: error.message\n            });\n        }\n    }\n\n    /**\n     * Send Slack alert\n     */\n    async sendSlackAlert(alert) {\n        try {\n            const color = alert.severity === 'critical' ? 'danger' : 'warning';\n            const emoji = alert.severity === 'critical' ? '🚨' : '⚠️';\n            \n            const slackPayload = {\n                channel: this.config.slackChannel,\n                username: 'CAOS CRM Alerts',\n                icon_emoji: ':exclamation:',\n                attachments: [{\n                    color: color,\n                    title: `${emoji} ${alert.severity.toUpperCase()} Alert: ${alert.type}`,\n                    text: alert.message,\n                    fields: [\n                        {\n                            title: 'Environment',\n                            value: alert.environment,\n                            short: true\n                        },\n                        {\n                            title: 'Timestamp',\n                            value: new Date(alert.timestamp).toISOString(),\n                            short: true\n                        }\n                    ],\n                    footer: 'CAOS CRM Monitoring',\n                    ts: Math.floor(alert.timestamp / 1000)\n                }]\n            };\n\n            logger.info('Slack alert would be sent', {\n                alertId: alert.id,\n                channel: this.config.slackChannel,\n                payload: slackPayload\n            });\n        } catch (error) {\n            logger.error('Failed to send Slack alert', {\n                alertId: alert.id,\n                error: error.message\n            });\n        }\n    }\n\n    /**\n     * Add alert to history\n     */\n    addToHistory(alert) {\n        this.alertHistory.push(alert);\n        \n        // Keep only recent entries\n        if (this.alertHistory.length > this.maxHistoryEntries) {\n            this.alertHistory.shift();\n        }\n    }\n\n    /**\n     * Get current active alerts\n     */\n    getActiveAlerts() {\n        return Array.from(this.alerts.values()).filter(alert => !alert.resolved);\n    }\n\n    /**\n     * Get alert history\n     */\n    getAlertHistory(limit = 50) {\n        return this.alertHistory\n            .slice(-limit)\n            .sort((a, b) => b.timestamp - a.timestamp);\n    }\n\n    /**\n     * Get alert statistics\n     */\n    getAlertStatistics() {\n        const now = Date.now();\n        const last24h = now - (24 * 60 * 60 * 1000);\n        const last7d = now - (7 * 24 * 60 * 60 * 1000);\n        \n        const recent24h = this.alertHistory.filter(alert => alert.timestamp > last24h);\n        const recent7d = this.alertHistory.filter(alert => alert.timestamp > last7d);\n        \n        return {\n            active: this.getActiveAlerts().length,\n            total: this.alertHistory.length,\n            last24h: recent24h.length,\n            last7d: recent7d.length,\n            byType: this.groupAlertsByField(this.alertHistory, 'type'),\n            bySeverity: this.groupAlertsByField(this.alertHistory, 'severity'),\n            timestamp: new Date().toISOString()\n        };\n    }\n\n    /**\n     * Group alerts by field\n     */\n    groupAlertsByField(alerts, field) {\n        return alerts.reduce((groups, alert) => {\n            const key = alert[field];\n            groups[key] = (groups[key] || 0) + 1;\n            return groups;\n        }, {});\n    }\n\n    /**\n     * Resolve an alert\n     */\n    resolveAlert(alertId) {\n        for (const [key, alert] of this.alerts.entries()) {\n            if (alert.id === alertId) {\n                alert.resolved = true;\n                alert.resolvedAt = Date.now();\n                this.alerts.set(key, alert);\n                \n                logger.info('Alert resolved', { alertId });\n                return alert;\n            }\n        }\n        \n        return null;\n    }\n\n    /**\n     * Create Express endpoints for alert management\n     */\n    createAlertsEndpoint() {\n        const express = require('express');\n        const router = express.Router();\n\n        // Get active alerts\n        router.get('/active', (req, res) => {\n            res.json({\n                alerts: this.getActiveAlerts(),\n                count: this.getActiveAlerts().length,\n                timestamp: new Date().toISOString()\n            });\n        });\n\n        // Get alert history\n        router.get('/history', (req, res) => {\n            const limit = parseInt(req.query.limit) || 50;\n            res.json({\n                alerts: this.getAlertHistory(limit),\n                timestamp: new Date().toISOString()\n            });\n        });\n\n        // Get alert statistics\n        router.get('/stats', (req, res) => {\n            res.json(this.getAlertStatistics());\n        });\n\n        // Resolve alert\n        router.post('/:alertId/resolve', (req, res) => {\n            const alertId = req.params.alertId;\n            const resolvedAlert = this.resolveAlert(alertId);\n            \n            if (resolvedAlert) {\n                res.json({\n                    success: true,\n                    alert: resolvedAlert\n                });\n            } else {\n                res.status(404).json({\n                    error: 'Alert not found',\n                    alertId\n                });\n            }\n        });\n\n        return router;\n    }\n}\n\n// Create singleton instance\nconst alertingSystem = new AlertingSystem();\n\nmodule.exports = {\n    alertingSystem,\n    AlertingSystem\n};
+        };
+
+        this.alertTypes = {
+            ERROR_RATE: 'error_rate',
+            RESPONSE_TIME: 'response_time',
+            DATABASE: 'database',
+            MEMORY: 'memory',
+            CPU: 'cpu',
+            DISK: 'disk',
+            SECURITY: 'security',
+            BUSINESS: 'business'
+        };
+
+        this.severityLevels = {
+            INFO: 'info',
+            WARNING: 'warning',
+            CRITICAL: 'critical'
+        };
+
+        // Start monitoring
+        this.startMonitoring();
+
+        logger.info('Alerting system initialized', {
+            thresholds: {
+                errorRate: `${this.config.errorRateThresholdWarning}%/${this.config.errorRateThresholdCritical}%`,
+                responseTime: `${this.config.responseTimeThresholdWarning}ms/${this.config.responseTimeThresholdCritical}ms`,
+                memory: `${this.config.memoryThresholdWarning}%/${this.config.memoryThresholdCritical}%`
+            },
+            channels: {
+                email: this.config.enableEmailAlerts,
+                webhook: this.config.enableWebhookAlerts,
+                slack: this.config.enableSlackAlerts
+            }
+        });
+    }
+
+    /**
+     * Start monitoring and alerting
+     */
+    startMonitoring() {
+        setInterval(() => {
+            this.checkSystemHealth();
+        }, this.config.checkInterval);
+
+        logger.info('System monitoring started', {
+            interval: `${this.config.checkInterval}ms`
+        });
+    }
+
+    /**
+     * Check overall system health and trigger alerts
+     */
+    async checkSystemHealth() {
+        try {
+            // Check error rates
+            await this.checkErrorRates();
+
+            // Check response times
+            await this.checkResponseTimes();
+
+            // Check database health
+            await this.checkDatabaseHealth();
+
+            // Check system resources
+            await this.checkSystemResources();
+
+        } catch (error) {
+            logger.error('System health check failed', {
+                error: error.message,
+                stack: error.stack
+            });
+        }
+    }
+
+    /**
+     * Check API error rates
+     */
+    async checkErrorRates() {
+        const coreWebVitals = performanceMonitor.getCoreWebVitals();
+        const errorRate = parseFloat(coreWebVitals.errorRate);
+
+        if (errorRate >= this.config.errorRateThresholdCritical) {
+            await this.triggerAlert(this.alertTypes.ERROR_RATE, this.severityLevels.CRITICAL, {
+                message: `Critical error rate detected: ${errorRate}%`,
+                threshold: `${this.config.errorRateThresholdCritical}%`,
+                currentValue: `${errorRate}%`,
+                requestVolume: coreWebVitals.requestVolume
+            });
+        } else if (errorRate >= this.config.errorRateThresholdWarning) {
+            await this.triggerAlert(this.alertTypes.ERROR_RATE, this.severityLevels.WARNING, {
+                message: `High error rate detected: ${errorRate}%`,
+                threshold: `${this.config.errorRateThresholdWarning}%`,
+                currentValue: `${errorRate}%`,
+                requestVolume: coreWebVitals.requestVolume
+            });
+        }
+    }
+
+    /**
+     * Check API response times
+     */
+    async checkResponseTimes() {
+        const coreWebVitals = performanceMonitor.getCoreWebVitals();
+        const avgResponseTime = parseFloat(coreWebVitals.averageResponseTime);
+
+        if (avgResponseTime >= this.config.responseTimeThresholdCritical) {
+            await this.triggerAlert(this.alertTypes.RESPONSE_TIME, this.severityLevels.CRITICAL, {
+                message: `Critical response time detected: ${avgResponseTime.toFixed(0)}ms`,
+                threshold: `${this.config.responseTimeThresholdCritical}ms`,
+                currentValue: `${avgResponseTime.toFixed(0)}ms`,
+                percentiles: coreWebVitals.percentiles
+            });
+        } else if (avgResponseTime >= this.config.responseTimeThresholdWarning) {
+            await this.triggerAlert(this.alertTypes.RESPONSE_TIME, this.severityLevels.WARNING, {
+                message: `Slow response time detected: ${avgResponseTime.toFixed(0)}ms`,
+                threshold: `${this.config.responseTimeThresholdWarning}ms`,
+                currentValue: `${avgResponseTime.toFixed(0)}ms`,
+                percentiles: coreWebVitals.percentiles
+            });
+        }
+    }
+
+    /**
+     * Check database health
+     */
+    async checkDatabaseHealth() {
+        const database = require('../config/database');
+
+        try {
+            const dbHealth = await database.getHealthStatus();
+            const poolStats = database.getPoolStatus();
+
+            if (!dbHealth.connected) {
+                await this.triggerAlert(this.alertTypes.DATABASE, this.severityLevels.CRITICAL, {
+                    message: 'Database connection lost',
+                    status: dbHealth.status,
+                    error: dbHealth.error
+                });
+                return;
+            }
+
+            // Check connection pool utilization
+            const poolUtilization = poolStats.totalConnections > 0
+                ? (poolStats.usedConnections / poolStats.totalConnections) * 100
+                : 0;
+
+            if (poolUtilization >= this.config.dbConnectionThresholdCritical) {
+                await this.triggerAlert(this.alertTypes.DATABASE, this.severityLevels.CRITICAL, {
+                    message: `Critical database connection pool usage: ${poolUtilization.toFixed(1)}%`,
+                    threshold: `${this.config.dbConnectionThresholdCritical}%`,
+                    currentValue: `${poolUtilization.toFixed(1)}%`,
+                    poolStats
+                });
+            } else if (poolUtilization >= this.config.dbConnectionThresholdWarning) {
+                await this.triggerAlert(this.alertTypes.DATABASE, this.severityLevels.WARNING, {
+                    message: `High database connection pool usage: ${poolUtilization.toFixed(1)}%`,
+                    threshold: `${this.config.dbConnectionThresholdWarning}%`,
+                    currentValue: `${poolUtilization.toFixed(1)}%`,
+                    poolStats
+                });
+            }
+
+            // Check database response time
+            const responseTime = dbHealth.responseTime ? parseInt(dbHealth.responseTime) : 0;
+            if (responseTime > 500) {
+                await this.triggerAlert(this.alertTypes.DATABASE, this.severityLevels.WARNING, {
+                    message: `Slow database response time: ${responseTime}ms`,
+                    threshold: '500ms',
+                    currentValue: `${responseTime}ms`
+                });
+            }
+
+        } catch (error) {
+            await this.triggerAlert(this.alertTypes.DATABASE, this.severityLevels.CRITICAL, {
+                message: 'Database health check failed',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Check system resources (memory, CPU)
+     */
+    async checkSystemResources() {
+        const os = require('os');
+
+        // Memory check
+        const totalMemory = os.totalmem();
+        const freeMemory = os.freemem();
+        const memoryUsage = ((totalMemory - freeMemory) / totalMemory) * 100;
+
+        if (memoryUsage >= this.config.memoryThresholdCritical) {
+            await this.triggerAlert(this.alertTypes.MEMORY, this.severityLevels.CRITICAL, {
+                message: `Critical memory usage: ${memoryUsage.toFixed(1)}%`,
+                threshold: `${this.config.memoryThresholdCritical}%`,
+                currentValue: `${memoryUsage.toFixed(1)}%`,
+                totalMemory: `${(totalMemory / 1024 / 1024 / 1024).toFixed(2)}GB`,
+                freeMemory: `${(freeMemory / 1024 / 1024 / 1024).toFixed(2)}GB`
+            });
+        } else if (memoryUsage >= this.config.memoryThresholdWarning) {
+            await this.triggerAlert(this.alertTypes.MEMORY, this.severityLevels.WARNING, {
+                message: `High memory usage: ${memoryUsage.toFixed(1)}%`,
+                threshold: `${this.config.memoryThresholdWarning}%`,
+                currentValue: `${memoryUsage.toFixed(1)}%`,
+                totalMemory: `${(totalMemory / 1024 / 1024 / 1024).toFixed(2)}GB`,
+                freeMemory: `${(freeMemory / 1024 / 1024 / 1024).toFixed(2)}GB`
+            });
+        }
+
+        // CPU check (simplified)
+        const loadAvg = os.loadavg();
+        const numCPUs = os.cpus().length;
+        const cpuUsage = (loadAvg[0] / numCPUs) * 100;
+
+        if (cpuUsage >= this.config.cpuThresholdCritical) {
+            await this.triggerAlert(this.alertTypes.CPU, this.severityLevels.CRITICAL, {
+                message: `Critical CPU usage: ${cpuUsage.toFixed(1)}%`,
+                threshold: `${this.config.cpuThresholdCritical}%`,
+                currentValue: `${cpuUsage.toFixed(1)}%`,
+                loadAverage: loadAvg[0].toFixed(2),
+                cores: numCPUs
+            });
+        } else if (cpuUsage >= this.config.cpuThresholdWarning) {
+            await this.triggerAlert(this.alertTypes.CPU, this.severityLevels.WARNING, {
+                message: `High CPU usage: ${cpuUsage.toFixed(1)}%`,
+                threshold: `${this.config.cpuThresholdWarning}%`,
+                currentValue: `${cpuUsage.toFixed(1)}%`,
+                loadAverage: loadAvg[0].toFixed(2),
+                cores: numCPUs
+            });
+        }
+    }
+
+    /**
+     * Trigger an alert
+     */
+    async triggerAlert(type, severity, details) {
+        const alertKey = `${type}_${severity}`;
+        const now = Date.now();
+
+        // Check if alert should be suppressed
+        const lastAlert = this.alerts.get(alertKey);
+        if (lastAlert && (now - lastAlert.timestamp) < this.config.alertSuppressionWindow) {
+            logger.debug('Alert suppressed due to suppression window', {
+                type,
+                severity,
+                suppressionWindow: `${this.config.alertSuppressionWindow}ms`
+            });
+            return;
+        }
+
+        const alert = {
+            id: this.generateAlertId(),
+            type,
+            severity,
+            timestamp: now,
+            message: details.message,
+            details,
+            resolved: false,
+            environment: process.env.NODE_ENV || 'development'
+        };
+
+        // Store alert
+        this.alerts.set(alertKey, alert);
+        this.addToHistory(alert);
+
+        // Log alert
+        logger.warn('Alert triggered', alert);
+
+        // Send notifications
+        await this.sendNotifications(alert);
+
+        return alert;
+    }
+
+    /**
+     * Generate unique alert ID
+     */
+    generateAlertId() {
+        return `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    /**
+     * Send alert notifications through configured channels
+     */
+    async sendNotifications(alert) {
+        const notifications = [];
+
+        // Email notifications
+        if (this.config.enableEmailAlerts && this.config.alertEmailTo.length > 0) {
+            notifications.push(this.sendEmailAlert(alert));
+        }
+
+        // Webhook notifications
+        if (this.config.enableWebhookAlerts && this.config.alertWebhookUrl) {
+            notifications.push(this.sendWebhookAlert(alert));
+        }
+
+        // Slack notifications
+        if (this.config.enableSlackAlerts && this.config.slackWebhookUrl) {
+            notifications.push(this.sendSlackAlert(alert));
+        }
+
+        // Wait for all notifications to complete
+        try {
+            await Promise.allSettled(notifications);
+        } catch (error) {
+            logger.error('Error sending alert notifications', {
+                alertId: alert.id,
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Send email alert (basic implementation)
+     */
+    async sendEmailAlert(alert) {
+        try {
+            // In a real implementation, you would integrate with an email service
+            // like SendGrid, AWS SES, or SMTP
+            logger.info('Email alert would be sent', {
+                alertId: alert.id,
+                to: this.config.alertEmailTo,
+                subject: `[${alert.severity.toUpperCase()}] CAOS CRM Alert: ${alert.type}`,
+                message: alert.message
+            });
+        } catch (error) {
+            logger.error('Failed to send email alert', {
+                alertId: alert.id,
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Send webhook alert
+     */
+    async sendWebhookAlert(alert) {
+        try {
+            // In a real implementation, you would make HTTP request to webhook URL
+            logger.info('Webhook alert would be sent', {
+                alertId: alert.id,
+                url: this.config.alertWebhookUrl,
+                payload: alert
+            });
+        } catch (error) {
+            logger.error('Failed to send webhook alert', {
+                alertId: alert.id,
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Send Slack alert
+     */
+    async sendSlackAlert(alert) {
+        try {
+            const color = alert.severity === 'critical' ? 'danger' : 'warning';
+            const emoji = alert.severity === 'critical' ? '🚨' : '⚠️';
+
+            const slackPayload = {
+                channel: this.config.slackChannel,
+                username: 'CAOS CRM Alerts',
+                icon_emoji: ':exclamation:',
+                attachments: [{
+                    color: color,
+                    title: `${emoji} ${alert.severity.toUpperCase()} Alert: ${alert.type}`,
+                    text: alert.message,
+                    fields: [
+                        {
+                            title: 'Environment',
+                            value: alert.environment,
+                            short: true
+                        },
+                        {
+                            title: 'Timestamp',
+                            value: new Date(alert.timestamp).toISOString(),
+                            short: true
+                        }
+                    ],
+                    footer: 'CAOS CRM Monitoring',
+                    ts: Math.floor(alert.timestamp / 1000)
+                }]
+            };
+
+            logger.info('Slack alert would be sent', {
+                alertId: alert.id,
+                channel: this.config.slackChannel,
+                payload: slackPayload
+            });
+        } catch (error) {
+            logger.error('Failed to send Slack alert', {
+                alertId: alert.id,
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Add alert to history
+     */
+    addToHistory(alert) {
+        this.alertHistory.push(alert);
+
+        // Keep only recent entries
+        if (this.alertHistory.length > this.maxHistoryEntries) {
+            this.alertHistory.shift();
+        }
+    }
+
+    /**
+     * Get current active alerts
+     */
+    getActiveAlerts() {
+        return Array.from(this.alerts.values()).filter(alert => !alert.resolved);
+    }
+
+    /**
+     * Get alert history
+     */
+    getAlertHistory(limit = 50) {
+        return this.alertHistory
+            .slice(-limit)
+            .sort((a, b) => b.timestamp - a.timestamp);
+    }
+
+    /**
+     * Get alert statistics
+     */
+    getAlertStatistics() {
+        const now = Date.now();
+        const last24h = now - (24 * 60 * 60 * 1000);
+        const last7d = now - (7 * 24 * 60 * 60 * 1000);
+
+        const recent24h = this.alertHistory.filter(alert => alert.timestamp > last24h);
+        const recent7d = this.alertHistory.filter(alert => alert.timestamp > last7d);
+
+        return {
+            active: this.getActiveAlerts().length,
+            total: this.alertHistory.length,
+            last24h: recent24h.length,
+            last7d: recent7d.length,
+            byType: this.groupAlertsByField(this.alertHistory, 'type'),
+            bySeverity: this.groupAlertsByField(this.alertHistory, 'severity'),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    /**
+     * Group alerts by field
+     */
+    groupAlertsByField(alerts, field) {
+        return alerts.reduce((groups, alert) => {
+            const key = alert[field];
+            groups[key] = (groups[key] || 0) + 1;
+            return groups;
+        }, {});
+    }
+
+    /**
+     * Resolve an alert
+     */
+    resolveAlert(alertId) {
+        for (const [key, alert] of this.alerts.entries()) {
+            if (alert.id === alertId) {
+                alert.resolved = true;
+                alert.resolvedAt = Date.now();
+                this.alerts.set(key, alert);
+
+                logger.info('Alert resolved', { alertId });
+                return alert;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Create Express endpoints for alert management
+     */
+    createAlertsEndpoint() {
+        const express = require('express');
+        const router = express.Router();
+
+        // Get active alerts
+        router.get('/active', (req, res) => {
+            res.json({
+                alerts: this.getActiveAlerts(),
+                count: this.getActiveAlerts().length,
+                timestamp: new Date().toISOString()
+            });
+        });
+
+        // Get alert history
+        router.get('/history', (req, res) => {
+            const limit = parseInt(req.query.limit) || 50;
+            res.json({
+                alerts: this.getAlertHistory(limit),
+                timestamp: new Date().toISOString()
+            });
+        });
+
+        // Get alert statistics
+        router.get('/stats', (req, res) => {
+            res.json(this.getAlertStatistics());
+        });
+
+        // Resolve alert
+        router.post('/:alertId/resolve', (req, res) => {
+            const alertId = req.params.alertId;
+            const resolvedAlert = this.resolveAlert(alertId);
+
+            if (resolvedAlert) {
+                res.json({
+                    success: true,
+                    alert: resolvedAlert
+                });
+            } else {
+                res.status(404).json({
+                    error: 'Alert not found',
+                    alertId
+                });
+            }
+        });
+
+        return router;
+    }
+}
+
+// Create singleton instance
+const alertingSystem = new AlertingSystem();
+
+module.exports = {
+    alertingSystem,
+    AlertingSystem
+};

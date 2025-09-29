@@ -43,6 +43,7 @@ class AuthService {
                 password_hash: hashedPassword,
                 first_name: userData.firstName,
                 last_name: userData.lastName,
+                company: userData.company || null,
                 role: userData.role || 'user',
                 is_active: true,
                 email_verified: false

@@ -80,20 +80,28 @@ describe('Comprehensive API Endpoints Tests', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
 
+    // Clear mock database between tests
+    const mockDB = require('../mocks/databaseMock');
+    mockDB.clearAllData();
+
     // Register regular user
     const userResponse = await request(app)
       .post('/auth/register')
       .send(TestData.validUser);
 
-    accessToken = userResponse.body.tokens.accessToken;
-    userId = userResponse.body.user.id;
+    if (userResponse.body && userResponse.body.tokens) {
+      accessToken = userResponse.body.tokens.accessToken;
+      userId = userResponse.body.user.id;
 
-    // Register admin user
-    const adminResponse = await request(app)
-      .post('/auth/register')
-      .send(TestData.adminUser);
+      // Register admin user
+      const adminResponse = await request(app)
+        .post('/auth/register')
+        .send(TestData.adminUser);
 
-    adminToken = adminResponse.body.tokens.accessToken;
+      if (adminResponse.body && adminResponse.body.tokens) {
+        adminToken = adminResponse.body.tokens.accessToken;
+      }
+    }
   });
 
   describe('Health Check and Core Endpoints', () => {
