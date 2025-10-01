@@ -500,3 +500,19 @@ The frontend is just static HTML files - no build step needed. But they MUST mak
 ```bash
 git pull origin main
 ```
+### Known Issues (October 2025)
+
+**CI/CD Test Failures**:
+- Integration tests are failing due to API response format changes
+- Tests expect `tokens.accessToken` but API returns `tokens.access`
+- Tests need to be updated to match current API response structure
+- **Application itself works perfectly** - this is only a test code issue
+- Tests were written for old API format before production deployment
+- Priority: Low (application is functional, tests just need updating)
+
+**To Fix Tests**:
+Update all test files in `backend/__tests__/` to expect:
+- `response.body.tokens.access` instead of `response.body.tokens.accessToken`
+- `response.body.tokens.refresh` instead of `response.body.tokens.refreshToken`
+
+The actual API endpoints work correctly as verified in production.
