@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <style>
+        body { margin: 0; padding: 20px; background: var(--snow-gray-50); font-family: system-ui, -apple-system, sans-serif; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0 0 5px 0; }
+        .header-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: var(--snow-primary); color: white; }
+        .btn-secondary { background: var(--snow-gray-200); color: var(--snow-gray-900); }
+        .task-list { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .task-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid var(--snow-gray-200); }
+        .task-item:hover { background: var(--snow-gray-25); }
+        .task-checkbox { width: 20px; height: 20px; }
+        .task-content { flex: 1; }
+        .task-title { font-weight: 600; color: var(--snow-gray-900); }
+        .task-meta { font-size: 12px; color: var(--snow-gray-500); margin-top: 4px; }
+        .priority { width: 8px; height: 8px; border-radius: 50%; }
+        .priority-high { background: var(--snow-red-500); }
+        .priority-medium { background: var(--snow-yellow-500); }
+        .priority-low { background: var(--snow-green-500); }
+        .loading, .error { text-align: center; padding: 40px; color: var(--snow-gray-500); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Tasks</h1>
+            <p>Manage your tasks and to-dos</p>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="createTask()">➕ Create Task</button>
+                <button class="btn btn-secondary" onclick="window.location.href='../dashboard/Dashboard.html'">← Back to Dashboard</button>
+            </div>
+        </div>
+
+        <div class="task-list" id="taskList">
+            <div class="loading">Loading tasks...</div>
+        </div>
+    </div>
+
+    <script src="../utils/apiClient.js"></script>
+    <script>
+        if (!apiClient.isAuthenticated()) {
+            window.location.href = '../auth/login.html';
+        }
+
+        let tasks = [];
+
+        document.addEventListener('DOMContentLoaded', loadTasks);
+
+        async function loadTasks() {
+            try {
+                tasks = await apiClient.getTasks();
+                renderTasks();
+                console.log('Loaded', tasks.length, 'tasks');
+            } catch (error) {
+                console.error('Failed to load tasks:', error);
+                document.getElementById('taskList').innerHTML =
+                    '<div class="error">Failed to load tasks: ' + error.message + '</div>';
+            }
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<div class="loading">No tasks yet. Create your first task!</div>';
+                return;
+            }
+
+            taskList.innerHTML = tasks.map(task => `
+                <div class="task-item">
+                    <input type="checkbox" class="task-checkbox" ${task.status === 'completed' ? 'checked' : ''} onchange="toggleTask('${task.id}', this.checked)">
+                    <div class="task-content">
+                        <div class="task-title">${task.title || task.description || 'Untitled task'}</div>
+                        <div class="task-meta">
+                            ${task.dueDate ? 'Due: ' + new Date(task.dueDate).toLocaleDateString() : 'No due date'}
+                            ${task.assignedTo ? ' | Assigned to: ' + task.assignedTo : ''}
+                        </div>
+                    </div>
+                    <div class="priority priority-${task.priority || 'low'}"></div>
+                    <button class="btn btn-secondary" onclick="deleteTask('${task.id}')">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        async function createTask() {
+            const title = prompt('Task title:');
+            if (!title) return;
+
+            const dueDate = prompt('Due date (YYYY-MM-DD):');
+
+            try {
+                const newTask = await apiClient.createTask({
+                    title,
+                    description: title,
+                    dueDate: dueDate || null,
+                    status: 'pending',
+                    priority: 'medium'
+                });
+
+                tasks.unshift(newTask);
+                renderTasks();
+                alert('Task created successfully!');
+            } catch (error) {
+                console.error('Failed to create task:', error);
+                alert('Failed to create task: ' + error.message);
+            }
+        }
+
+        async function toggleTask(taskId, isCompleted) {
+            try {
+                await apiClient.put(`/api/tasks/${taskId}`, {
+                    status: isCompleted ? 'completed' : 'pending'
+                });
+
+                const task = tasks.find(t => t.id == taskId);
+                if (task) {
+                    task.status = isCompleted ? 'completed' : 'pending';
+                }
+            } catch (error) {
+                console.error('Failed to update task:', error);
+                alert('Failed to update task');
+                loadTasks(); // Reload to reset state
+            }
+        }
+
+        async function deleteTask(taskId) {
+            if (!confirm('Delete this task?')) return;
+
+            try {
+                await apiClient.delete(`/api/tasks/${taskId}`);
+                tasks = tasks.filter(t => t.id != taskId);
+                renderTasks();
+                alert('Task deleted!');
+            } catch (error) {
+                console.error('Failed to delete task:', error);
+                alert('Failed to delete task: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leads Management - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <style>
+        body { margin: 0; padding: 20px; background: var(--snow-gray-50); font-family: system-ui, -apple-system, sans-serif; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0 0 5px 0; color: var(--snow-gray-900); }
+        .header-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: var(--snow-primary); color: white; }
+        .btn-secondary { background: var(--snow-gray-200); color: var(--snow-gray-900); }
+        .search-box { flex: 1; max-width: 400px; }
+        .search-box input { width: 100%; padding: 8px 12px; border: 1px solid var(--snow-gray-300); border-radius: 6px; }
+        .table-container { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--snow-gray-50); }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--snow-gray-200); }
+        th { font-weight: 600; font-size: 12px; text-transform: uppercase; color: var(--snow-gray-600); }
+        tbody tr:hover { background: var(--snow-gray-25); }
+        .lead-name { font-weight: 600; color: var(--snow-gray-900); cursor: pointer; }
+        .lead-name:hover { color: var(--snow-primary); text-decoration: underline; }
+        .lead-company { font-size: 12px; color: var(--snow-gray-500); }
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; text-transform: uppercase; }
+        .status-new { background: var(--snow-blue-light); color: var(--snow-blue-700); }
+        .status-contacted { background: var(--snow-yellow-light); color: var(--snow-yellow-700); }
+        .status-qualified { background: var(--snow-green-light); color: var(--snow-green-700); }
+        .status-lost { background: var(--snow-red-light); color: var(--snow-red-700); }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px 8px; }
+        .action-btn:hover { background: var(--snow-gray-100); border-radius: 4px; }
+        .loading { text-align: center; padding: 40px; color: var(--snow-gray-500); }
+        .error { text-align: center; padding: 40px; color: var(--snow-red-600); }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-label { font-size: 12px; color: var(--snow-gray-600); text-transform: uppercase; }
+        .stat-value { font-size: 24px; font-weight: 700; color: var(--snow-gray-900); margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Leads Management</h1>
+            <p>Manage and track your sales leads</p>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search leads..." />
+                </div>
+                <button class="btn btn-primary" onclick="showCreateLeadModal()">➕ Create Lead</button>
+                <button class="btn btn-secondary" onclick="exportLeads()">📥 Export</button>
+                <button class="btn btn-secondary" onclick="apiClient.logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Leads</div>
+                <div class="stat-value" id="totalLeads">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">New</div>
+                <div class="stat-value" id="newLeads">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Qualified</div>
+                <div class="stat-value" id="qualifiedLeads">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Contacted</div>
+                <div class="stat-value" id="contactedLeads">0</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Source</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="leadsTableBody">
+                    <tr><td colspan="6" class="loading">Loading leads...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../utils/apiClient.js"></script>
+    <script>
+        // Check authentication
+        if (!apiClient.isAuthenticated()) {
+            window.location.href = '../auth/login.html';
+        }
+
+        let allLeads = [];
+
+        // Load leads on page load
+        document.addEventListener('DOMContentLoaded', loadLeads);
+
+        // Setup search
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredLeads = allLeads.filter(lead =>
+                (lead.firstName && lead.firstName.toLowerCase().includes(searchTerm)) ||
+                (lead.lastName && lead.lastName.toLowerCase().includes(searchTerm)) ||
+                (lead.email && lead.email.toLowerCase().includes(searchTerm)) ||
+                (lead.company && lead.company.toLowerCase().includes(searchTerm))
+            );
+            renderLeads(filteredLeads);
+        });
+
+        async function loadLeads() {
+            try {
+                const response = await apiClient.getLeads({ limit: 1000 });
+                allLeads = response.data || response || [];
+                renderLeads(allLeads);
+                updateStats();
+                console.log('Loaded', allLeads.length, 'leads');
+            } catch (error) {
+                console.error('Failed to load leads:', error);
+                document.getElementById('leadsTableBody').innerHTML =
+                    '<tr><td colspan="6" class="error">Failed to load leads: ' + error.message + '</td></tr>';
+            }
+        }
+
+        function renderLeads(leads) {
+            const tbody = document.getElementById('leadsTableBody');
+
+            if (leads.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No leads found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = leads.map(lead => `
+                <tr>
+                    <td>
+                        <div class="lead-name" onclick="viewLead('${lead.id}')">${lead.firstName || ''} ${lead.lastName || ''}</div>
+                        <div class="lead-company">${lead.company || 'No company'}</div>
+                    </td>
+                    <td>${lead.email || 'No email'}</td>
+                    <td>${lead.phone || 'No phone'}</td>
+                    <td><span class="status-badge status-${(lead.status || 'new').toLowerCase()}">${lead.status || 'New'}</span></td>
+                    <td>${lead.source || 'Unknown'}</td>
+                    <td>
+                        <button class="action-btn" onclick="editLead('${lead.id}')" title="Edit">✏️</button>
+                        <button class="action-btn" onclick="deleteLead('${lead.id}')" title="Delete">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('totalLeads').textContent = allLeads.length;
+            document.getElementById('newLeads').textContent = allLeads.filter(l => l.status === 'new').length;
+            document.getElementById('qualifiedLeads').textContent = allLeads.filter(l => l.status === 'qualified').length;
+            document.getElementById('contactedLeads').textContent = allLeads.filter(l => l.status === 'contacted').length;
+        }
+
+        async function showCreateLeadModal() {
+            const firstName = prompt('First Name:');
+            if (!firstName) return;
+
+            const lastName = prompt('Last Name:');
+            const email = prompt('Email:');
+            const phone = prompt('Phone:');
+            const company = prompt('Company:');
+
+            try {
+                const newLead = await apiClient.createLead({
+                    firstName,
+                    lastName,
+                    email,
+                    phone,
+                    company,
+                    status: 'new',
+                    source: 'manual'
+                });
+
+                allLeads.unshift(newLead);
+                renderLeads(allLeads);
+                updateStats();
+                alert('Lead created successfully!');
+            } catch (error) {
+                console.error('Failed to create lead:', error);
+                alert('Failed to create lead: ' + error.message);
+            }
+        }
+
+        async function editLead(leadId) {
+            const lead = allLeads.find(l => l.id == leadId);
+            if (!lead) return;
+
+            const firstName = prompt('First Name:', lead.firstName);
+            if (firstName === null) return;
+
+            const lastName = prompt('Last Name:', lead.lastName);
+            const email = prompt('Email:', lead.email);
+            const phone = prompt('Phone:', lead.phone);
+            const company = prompt('Company:', lead.company);
+
+            try {
+                const updatedLead = await apiClient.updateLead(leadId, {
+                    firstName,
+                    lastName,
+                    email,
+                    phone,
+                    company
+                });
+
+                const index = allLeads.findIndex(l => l.id == leadId);
+                if (index !== -1) {
+                    allLeads[index] = updatedLead;
+                    renderLeads(allLeads);
+                    alert('Lead updated successfully!');
+                }
+            } catch (error) {
+                console.error('Failed to update lead:', error);
+                alert('Failed to update lead: ' + error.message);
+            }
+        }
+
+        async function deleteLead(leadId) {
+            if (!confirm('Are you sure you want to delete this lead?')) return;
+
+            try {
+                await apiClient.deleteLead(leadId);
+                allLeads = allLeads.filter(l => l.id != leadId);
+                renderLeads(allLeads);
+                updateStats();
+                alert('Lead deleted successfully!');
+            } catch (error) {
+                console.error('Failed to delete lead:', error);
+                alert('Failed to delete lead: ' + error.message);
+            }
+        }
+
+        function viewLead(leadId) {
+            window.location.href = `LeadDetail.html?id=${leadId}`;
+        }
+
+        function exportLeads() {
+            if (allLeads.length === 0) {
+                alert('No leads to export');
+                return;
+            }
+
+            const csvContent = [
+                ['First Name', 'Last Name', 'Email', 'Phone', 'Company', 'Status', 'Source'],
+                ...allLeads.map(lead => [
+                    lead.firstName || '',
+                    lead.lastName || '',
+                    lead.email || '',
+                    lead.phone || '',
+                    lead.company || '',
+                    lead.status || '',
+                    lead.source || ''
+                ])
+            ].map(row => row.map(field =>
+                `"${String(field).replace(/"/g, '""')}"`
+            ).join(',')).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'leads_export.csv';
+            link.click();
+        }
+    </script>
+</body>
+</html>

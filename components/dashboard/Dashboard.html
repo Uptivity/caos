@@ -748,15 +748,26 @@
         </main>
     </div>
 
+    <!-- Load API Client -->
+    <script src="../utils/apiClient.js"></script>
+
     <script>
+        // Check authentication on page load
+        if (!apiClient.isAuthenticated()) {
+            window.location.href = '../auth/login.html';
+        }
+
         // Dashboard interactivity
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Load user data and update UI
+            await loadDashboardData();
+
             // Auto-refresh data every 5 minutes
             const refreshInterval = 5 * 60 * 1000; // 5 minutes
 
-            function refreshDashboard() {
+            async function refreshDashboard() {
                 console.log('Refreshing dashboard data...');
-                // In real implementation, this would fetch fresh data from API
+                await loadDashboardData();
                 updateLastRefresh();
             }
 
@@ -816,17 +827,25 @@
             function updateGreeting() {
                 const hour = new Date().getHours();
                 const headerTitle = document.querySelector('.header-title');
+                const userData = apiClient.getUserData();
+                const userName = userData ? userData.name || userData.email.split('@')[0] : 'User';
                 let greeting;
 
                 if (hour < 12) {
-                    greeting = 'Good morning, John! 🌅';
+                    greeting = `Good morning, ${userName}! 🌅`;
                 } else if (hour < 17) {
-                    greeting = 'Good afternoon, John! ☀️';
+                    greeting = `Good afternoon, ${userName}! ☀️`;
                 } else {
-                    greeting = 'Good evening, John! 🌆';
+                    greeting = `Good evening, ${userName}! 🌆`;
                 }
 
                 headerTitle.textContent = greeting;
+
+                // Update user avatar
+                const userAvatar = document.querySelector('.user-avatar');
+                const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                userAvatar.textContent = initials;
+                userAvatar.title = userName;
             }
 
             updateGreeting();
@@ -848,6 +867,150 @@
             setInterval(simulateRealTimeUpdates, 30000);
 
             console.log('Dashboard initialized successfully');
+        });
+
+        // Load dashboard data from API
+        async function loadDashboardData() {
+            try {
+                // Fetch data from multiple endpoints in parallel
+                const [leadsResponse, tasksResponse, campaignsResponse] = await Promise.all([
+                    apiClient.getLeads({ limit: 100 }).catch(() => ({ data: [], total: 0 })),
+                    apiClient.getTasks().catch(() => []),
+                    apiClient.getCampaigns().catch(() => [])
+                ]);
+
+                // Update stats
+                updateStats(leadsResponse, tasksResponse, campaignsResponse);
+
+                // Update tasks list
+                updateTasksList(tasksResponse);
+
+                console.log('Dashboard data loaded successfully');
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                showError('Failed to load dashboard data. Please refresh the page.');
+            }
+        }
+
+        // Update dashboard statistics
+        function updateStats(leadsData, tasksData, campaignsData) {
+            const statCards = document.querySelectorAll('.stat-card');
+
+            // Update leads count
+            const leadsCard = statCards[0];
+            const leadsCount = leadsData.total || leadsData.data?.length || 0;
+            leadsCard.querySelector('.stat-value').textContent = leadsCount;
+
+            // Update active deals (using leads with status 'qualified' or similar)
+            const dealsCard = statCards[2];
+            const activeDeals = Array.isArray(leadsData.data)
+                ? leadsData.data.filter(lead => lead.status === 'qualified' || lead.status === 'negotiation').length
+                : 0;
+            dealsCard.querySelector('.stat-value').textContent = activeDeals;
+
+            // Note: Revenue and conversion stats would require additional API endpoints
+            // For now, keep placeholder values or fetch from analytics endpoint
+        }
+
+        // Update tasks list with real data
+        function updateTasksList(tasks) {
+            const tasksList = document.querySelector('.activity-card:last-child .activity-list');
+            if (!tasksList || !Array.isArray(tasks)) return;
+
+            // Clear existing mock tasks
+            tasksList.innerHTML = '';
+
+            // Add real tasks (limit to 5 for dashboard)
+            const displayTasks = tasks.slice(0, 5);
+
+            if (displayTasks.length === 0) {
+                tasksList.innerHTML = '<div class="task-item"><div class="task-content"><div class="task-title">No tasks yet</div></div></div>';
+                return;
+            }
+
+            displayTasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+
+                const priorityClass = task.priority === 'high' ? 'priority-high' :
+                                     task.priority === 'medium' ? 'priority-medium' : 'priority-low';
+
+                const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date';
+                const isCompleted = task.status === 'completed';
+
+                taskItem.innerHTML = `
+                    <input type="checkbox" class="task-checkbox" ${isCompleted ? 'checked' : ''} data-task-id="${task.id}">
+                    <div class="task-content">
+                        <div class="task-title" style="${isCompleted ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${task.title || task.description || 'Untitled task'}</div>
+                        <div class="task-meta">${isCompleted ? 'Completed' : `Due: ${dueDate}`}</div>
+                    </div>
+                    <div class="task-priority ${priorityClass}"></div>
+                `;
+
+                tasksList.appendChild(taskItem);
+            });
+
+            // Re-attach event listeners to new checkboxes
+            attachTaskCheckboxListeners();
+        }
+
+        // Attach event listeners to task checkboxes
+        function attachTaskCheckboxListeners() {
+            const taskCheckboxes = document.querySelectorAll('.task-checkbox');
+            taskCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', async function() {
+                    const taskItem = this.closest('.task-item');
+                    const taskTitle = taskItem.querySelector('.task-title');
+                    const taskId = this.dataset.taskId;
+
+                    if (this.checked) {
+                        taskTitle.style.textDecoration = 'line-through';
+                        taskTitle.style.opacity = '0.6';
+                        taskItem.querySelector('.task-meta').textContent = 'Completed';
+
+                        // Update task status via API if taskId exists
+                        if (taskId) {
+                            try {
+                                await apiClient.put(`/api/tasks/${taskId}`, { status: 'completed' });
+                            } catch (error) {
+                                console.error('Failed to update task:', error);
+                            }
+                        }
+                    } else {
+                        taskTitle.style.textDecoration = 'none';
+                        taskTitle.style.opacity = '1';
+                        const meta = taskItem.querySelector('.task-meta');
+                        if (meta.textContent === 'Completed') {
+                            meta.textContent = 'Due: Today';
+                        }
+
+                        // Update task status via API if taskId exists
+                        if (taskId) {
+                            try {
+                                await apiClient.put(`/api/tasks/${taskId}`, { status: 'pending' });
+                            } catch (error) {
+                                console.error('Failed to update task:', error);
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // Show error message
+        function showError(message) {
+            const headerSubtitle = document.querySelector('.header-subtitle');
+            if (headerSubtitle) {
+                headerSubtitle.textContent = `⚠️ ${message}`;
+                headerSubtitle.style.color = 'var(--snow-red-600)';
+            }
+        }
+
+        // Add logout button handler
+        document.querySelector('.user-avatar')?.addEventListener('click', function() {
+            if (confirm('Do you want to logout?')) {
+                apiClient.logout();
+            }
         });
 
         // Add pulse animation for real-time updates
