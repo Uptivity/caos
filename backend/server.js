@@ -60,7 +60,7 @@ const productRouter = require('./products/productRoutes');
 const settingsRouter = require('./settings/settingsRoutes');
 const analyticsRouter = require('./analytics/analyticsRoutes');
 const tasksRouter = require('./tasks/tasksRoutes');
-const calendarRouter = require('./calendar/calendarRoutes');
+// const calendarRouter = require('./calendar/calendarRoutes'); // Temporarily disabled due to syntax errors
 const emailRouter = require('./email/emailRoutes');
 const reportsRouter = require('./reports/reportsRoutes');
 const teamsRouter = require('./teams/teamsRoutes');
@@ -71,6 +71,9 @@ const gdprRouter = require('./routes/gdprRoutes');
 const app = express();
 const PORT = process.env.PORT || 3001;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// Trust proxy - required for rate limiting behind nginx
+app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet({
@@ -150,7 +153,7 @@ app.use('/api/products', productRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/tasks', tasksRouter);
-app.use('/api/calendar', calendarRouter);
+// app.use('/api/calendar', calendarRouter); // Temporarily disabled due to syntax errors
 app.use('/api/email', emailRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/teams', teamsRouter);

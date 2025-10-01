@@ -161,10 +161,13 @@ router.get('/export/:exportId/status',
             const userId = req.user.userId;
 
             // Get export request details
-            const [exports] = await DatabaseService.query(
+            const __res = await DatabaseService.query(
                 'SELECT * FROM data_export_requests WHERE id = ? AND user_id = ?',
                 [exportId, userId]
             );
+const exports = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
 
             if (exports.length === 0) {
                 return res.status(404).json({
@@ -223,10 +226,13 @@ router.get('/export/:exportId/download',
             const { token } = req.query;
 
             // Get export request
-            const [exports] = await DatabaseService.query(
+            const __res = await DatabaseService.query(
                 'SELECT * FROM data_export_requests WHERE id = ? AND verification_token = ?',
                 [exportId, token]
             );
+const exports = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
 
             if (exports.length === 0) {
                 return res.status(404).json({

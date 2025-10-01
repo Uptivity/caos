@@ -675,3 +675,5 @@ router.get('/exports', (req, res) => {
 router.post('/exports', (req, res) => {
     res.status(201).json({ success: true, data: { id: Date.now(), status: 'processing' } });
 });
+
+module.exports = router;

@@ -150,15 +150,16 @@ class PIIProtectionMiddleware {
 
             // Store original json method
             const originalJson = res.json;
+            const self = this;
 
             // Override res.json to sanitize response
             res.json = function(obj) {
                 if (obj && typeof obj === 'object') {
-                    const sanitized = this.sanitizeResponseData(obj, { maskingChar, partialMasking });
-                    return originalJson.call(this, sanitized);
+                    const sanitized = self.sanitizeResponseData(obj, { maskingChar, partialMasking });
+                    return originalJson.call(res, sanitized);
                 }
-                return originalJson.call(this, obj);
-            }.bind(this);
+                return originalJson.call(res, obj);
+            };
 
             next();
         };

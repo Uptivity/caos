@@ -358,7 +358,10 @@ class AuditLogger {
 
             params.push(limit, offset);
 
-            const [rows] = await DatabaseService.query(query, params);
+            const __res = await DatabaseService.query(query, params);
+const rows = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
             return rows.map(row => this.sanitizeAuditEntry(row));
 
         } catch (error) {
@@ -423,7 +426,10 @@ class AuditLogger {
 
             const results = {};
             for (const [key, query] of Object.entries(queries)) {
-                const [rows] = await DatabaseService.query(query, params);
+                const __res = await DatabaseService.query(query, params);
+const rows = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
                 results[key] = rows;
             }
 
@@ -521,7 +527,10 @@ class AuditLogger {
             cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
             const query = 'DELETE FROM audit_logs WHERE created_at < ?';
-            const [result] = await DatabaseService.query(query, [cutoffDate.toISOString()]);
+            const __res = await DatabaseService.query(query, [cutoffDate.toISOString()]);
+const result = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
 
             logger.info('Audit logs cleanup completed', {
                 retentionDays,

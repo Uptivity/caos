@@ -62,13 +62,16 @@ class ConsentService {
     async ensureDefaultConsents() {
         try {
             // Get all users without consent records
-            const [users] = await DatabaseService.query(`
+            const __res = await DatabaseService.query(`
                 SELECT u.id, u.email, u.created_at
                 FROM users u
                 LEFT JOIN user_consents uc ON u.id = uc.user_id AND uc.consent_type = 'data_processing' AND uc.is_active = true
                 WHERE uc.id IS NULL
                 AND u.is_active = true
             `);
+const users = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
 
             for (const user of users) {
                 await this.createDefaultConsent(user.id, {
@@ -250,7 +253,10 @@ class ConsentService {
 
             query += ' ORDER BY consent_date DESC';
 
-            const [consents] = await DatabaseService.query(query, params);
+            const __res = await DatabaseService.query(query, params);
+const consents = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
 
             // If not including history, return only the latest consent per type
             if (!includeHistory && !consentType) {
@@ -279,12 +285,15 @@ class ConsentService {
      */
     async hasConsent(userId, consentType) {
         try {
-            const [consents] = await DatabaseService.query(
+            const __res = await DatabaseService.query(
                 `SELECT consent_given FROM user_consents
                  WHERE user_id = ? AND consent_type = ? AND is_active = true
                  ORDER BY consent_date DESC LIMIT 1`,
                 [userId, consentType]
             );
+const consents = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
 
             return consents.length > 0 && consents[0].consent_given;
 
@@ -493,7 +502,10 @@ class ConsentService {
 
             const results = {};
             for (const [key, query] of Object.entries(queries)) {
-                const [rows] = await DatabaseService.query(query, params);
+                const __res = await DatabaseService.query(query, params);
+const rows = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
                 results[key] = rows;
             }
 
@@ -617,12 +629,15 @@ class ConsentService {
             const cutoffDate = new Date();
             cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
-            const [result] = await DatabaseService.query(`
+            const __res = await DatabaseService.query(`
                 DELETE FROM user_consents
                 WHERE consent_given = false
                 AND withdrawal_date < ?
                 AND is_active = false
             `, [cutoffDate.toISOString()]);
+const result = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
 
             const deletedCount = result.affectedRows || 0;
 

@@ -770,7 +770,7 @@ router.get('/constants', requireAuth, (req, res) => {
     }
 });
 
-n// Missing endpoints for test coverage
+// Missing endpoints for test coverage
 router.get("/messages", requireAuth, (req, res) => { res.json({ success: true, data: [], message: "Messages retrieved" }); });
 router.post("/send", requireAuth, (req, res) => { res.status(201).json({ success: true, data: { id: Date.now() }, message: "Email sent" }); });
 router.get("/folders", requireAuth, (req, res) => { res.json({ success: true, data: [], message: "Folders retrieved" }); });
@@ -779,3 +779,5 @@ router.get("/attachments", requireAuth, (req, res) => { res.json({ success: true
 router.post("/attachments", requireAuth, (req, res) => { res.status(201).json({ success: true, data: { id: Date.now() }, message: "Attachment uploaded" }); });
 
 // Error handling middleware
+
+module.exports = router;

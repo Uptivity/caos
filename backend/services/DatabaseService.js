@@ -35,9 +35,19 @@ class DatabaseService {
             }
 
             // Add timestamps if not provided
-            const now = new Date().toISOString();
+            const now = this.toMySQLDateTime(new Date());
             if (!data.created_at) data.created_at = now;
             if (!data.updated_at) data.updated_at = now;
+
+            // Convert any ISO date strings to MySQL format
+            for (const key in data) {
+                if (data[key] && typeof data[key] === 'string') {
+                    // Check if it's an ISO date string
+                    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/.test(data[key])) {
+                        data[key] = this.toMySQLDateTime(new Date(data[key]));
+                    }
+                }
+            }
 
             const fields = Object.keys(data).join(', ');
             const placeholders = Object.keys(data).map(() => '?').join(', ');
@@ -55,6 +65,13 @@ class DatabaseService {
             });
             throw error;
         }
+    }
+
+    /**
+     * Convert Date to MySQL DATETIME format
+     */
+    toMySQLDateTime(date) {
+        return date.toISOString().slice(0, 19).replace('T', ' ');
     }
 
     /**
@@ -147,7 +164,16 @@ class DatabaseService {
     async update(table, id, updates) {
         try {
             // Add updated_at timestamp
-            updates.updated_at = new Date().toISOString();
+            updates.updated_at = this.toMySQLDateTime(new Date());
+
+            // Convert any ISO date strings to MySQL format
+            for (const key in updates) {
+                if (updates[key] && typeof updates[key] === 'string') {
+                    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/.test(updates[key])) {
+                        updates[key] = this.toMySQLDateTime(new Date(updates[key]));
+                    }
+                }
+            }
 
             const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
             const values = [...Object.values(updates), id];
@@ -180,7 +206,7 @@ class DatabaseService {
     async softDelete(table, id) {
         try {
             const sql = `UPDATE ${table} SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL`;
-            const [result] = await database.query(sql, [new Date().toISOString(), id]);
+            const [result] = await database.query(sql, [this.toMySQLDateTime(new Date()), id]);
             return result.affectedRows > 0;
         } catch (error) {
             logger.error(`Failed to soft delete record in ${table}`, {

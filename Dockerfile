@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Copy package files
 COPY backend/package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Production stage
 FROM node:18-alpine AS production

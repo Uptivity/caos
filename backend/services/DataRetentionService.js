@@ -33,9 +33,12 @@ class DataRetentionService {
      */
     async loadRetentionPolicies() {
         try {
-            const [policies] = await DatabaseService.query(
+            const __res = await DatabaseService.query(
                 'SELECT * FROM data_retention_policies WHERE is_active = true'
             );
+const policies = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
 
             this.retentionPolicies.clear();
 
@@ -251,7 +254,10 @@ class DataRetentionService {
             }
 
             // Execute cleanup
-            const [result] = await DatabaseService.query(deleteQuery, params);
+            const __res = await DatabaseService.query(deleteQuery, params);
+const result = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
             const deletedCount = result.affectedRows || 0;
 
             if (deletedCount > 0) {
@@ -293,12 +299,15 @@ class DataRetentionService {
             }
 
             // Get expired export requests
-            const [expiredRequests] = await DatabaseService.query(`
+            const __res = await DatabaseService.query(`
                 SELECT file_path FROM data_export_requests
                 WHERE expires_at < NOW()
                 AND file_path IS NOT NULL
                 AND status = 'completed'
             `);
+const expiredRequests = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
 
             let deletedFiles = 0;
 
@@ -513,10 +522,11 @@ class DataRetentionService {
      */
     async tableExists(tableName) {
         try {
-            const [tables] = await DatabaseService.query(
-                "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
-                [tableName]
-            );
+            const __res = await DatabaseService.query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
+                [tableName]);
+const tables = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
             return tables.length > 0;
         } catch (error) {
             logger.error('Failed to check table existence', { tableName, error: error.message });
@@ -532,10 +542,11 @@ class DataRetentionService {
      */
     async tableHasColumn(tableName, columnName) {
         try {
-            const [columns] = await DatabaseService.query(
-                "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
-                [tableName, columnName]
-            );
+            const __res = await DatabaseService.query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+                [tableName, columnName]);
+const columns = Array.isArray(__res)
+  ? (Array.isArray(__res[0]) ? __res[0] : __res)
+  : (Array.isArray(__res && __res.rows) ? __res.rows : []);
             return columns.length > 0;
         } catch (error) {
             logger.error('Failed to check column existence', { tableName, columnName, error: error.message });

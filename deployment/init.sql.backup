@@ -40,7 +40,6 @@ CREATE TABLE IF NOT EXISTS leads (
     assigned_to CHAR(36),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (assigned_to) REFERENCES users(id)
 );
 
@@ -70,7 +69,6 @@ CREATE TABLE IF NOT EXISTS campaigns (
     created_by CHAR(36),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
@@ -101,8 +99,7 @@ CREATE TABLE IF NOT EXISTS products (
     stock_quantity INTEGER DEFAULT 0,
     is_active TINYINT(1) DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Create Tasks table
@@ -118,7 +115,6 @@ CREATE TABLE IF NOT EXISTS tasks (
     related_lead_id CHAR(36),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (assigned_to) REFERENCES users(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (related_lead_id) REFERENCES leads(id)
@@ -138,7 +134,6 @@ CREATE TABLE IF NOT EXISTS calendar_events (
     related_lead_id CHAR(36),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (related_lead_id) REFERENCES leads(id)
 );
@@ -153,7 +148,6 @@ CREATE TABLE IF NOT EXISTS teams (
     created_by CHAR(36),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (parent_team_id) REFERENCES teams(id),
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
@@ -184,7 +178,6 @@ CREATE TABLE IF NOT EXISTS documents (
     shared_with JSON DEFAULT (CAST('[]' AS JSON)),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (uploaded_by) REFERENCES users(id)
 );
 
@@ -197,7 +190,6 @@ CREATE TABLE IF NOT EXISTS settings (
     user_id CHAR(36),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     UNIQUE KEY unique_category_key_user (category, key_name, user_id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -243,7 +235,6 @@ CREATE TABLE IF NOT EXISTS user_consents (
     user_agent TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_consent_type (user_id, consent_type),
     INDEX idx_consent_active (is_active)
@@ -282,7 +273,6 @@ CREATE TABLE IF NOT EXISTS data_retention_policies (
     is_active TINYINT(1) DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     INDEX idx_retention_table (table_name),
     INDEX idx_retention_active (is_active)
 );
@@ -301,7 +291,6 @@ CREATE TABLE IF NOT EXISTS data_export_requests (
     ip_address VARCHAR(45),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_export_user (user_id),
     INDEX idx_export_status (status),
@@ -320,7 +309,6 @@ CREATE TABLE IF NOT EXISTS data_deletion_requests (
     ip_address VARCHAR(45),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_deletion_user (user_id),
     INDEX idx_deletion_status (status)
@@ -357,18 +345,16 @@ CREATE INDEX idx_sessions_user ON user_sessions(user_id);
 CREATE INDEX idx_sessions_expires ON user_sessions(expires_at);
 
 -- Insert default admin user (password: admin123)
-INSERT INTO users (id, email, password_hash, first_name, last_name, company, role, is_active, email_verified, deleted_at)
+INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active, email_verified)
 VALUES (
     UUID(),
     'admin@caoscrm.com',
     '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LdFUfaRnqKfLgWWUy', -- admin123
     'System',
     'Administrator',
-    NULL,
     'admin',
     1,
-    1,
-    NULL
+    1
 ) ON DUPLICATE KEY UPDATE email = email;
 
 -- Insert sample data for demonstration
