@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaigns - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <link rel="stylesheet" href="../shared/components.css">
+    <link rel="stylesheet" href="../shared/navigation.css">
+</head>
+<body>
+    <div id="page-content">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1 class="page-title">Campaigns Management</h1>
+                <p class="page-description">Manage marketing campaigns</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-secondary" onclick="exportToCSV()" aria-label="Export campaigns"><span>=å</span> Export CSV</button>
+                <button class="btn btn-primary" onclick="showCreateModal()" aria-label="Create new campaign"><span>+</span> New Campaign</button>
+            </div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon">=ç</div><div class="stat-content"><div class="stat-label">Total</div><div class="stat-value" id="stat-total">0</div></div></div>
+            <div class="stat-card"><div class="stat-icon">=</div><div class="stat-content"><div class="stat-label">Active</div><div class="stat-value" id="stat-active">0</div></div></div>
+            <div class="stat-card"><div class="stat-icon">=°</div><div class="stat-content"><div class="stat-label">Budget</div><div class="stat-value" id="stat-budget">$0</div></div></div>
+            <div class="stat-card"><div class="stat-icon"></div><div class="stat-content"><div class="stat-label">Completed</div><div class="stat-value" id="stat-completed">0</div></div></div>
+        </div>
+        <div class="filter-bar">
+            <div class="filter-group">
+                <select id="filter-status" class="form-select" onchange="filterData()">
+                    <option value="">All Status</option><option value="draft">Draft</option><option value="active">Active</option><option value="paused">Paused</option><option value="completed">Completed</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <select id="filter-type" class="form-select" onchange="filterData()">
+                    <option value="">All Types</option><option value="email">Email</option><option value="social">Social</option><option value="ppc">PPC</option><option value="event">Event</option>
+                </select>
+            </div>
+        </div>
+        <div class="card"><div id="data-table-container"></div></div>
+    </div>
+    <script src="../utils/apiClient.js"></script>
+    <script src="../shared/components.js"></script>
+    <script src="../shared/navigation.js"></script>
+    <script>
+        if (!apiClient.isAuthenticated()) window.location.href = '../auth/login.html';
+        let allData = []; let dataTable = null;
+        document.addEventListener('DOMContentLoaded', loadData);
+        async function loadData() {
+            try {
+                LoadingSpinner.show('Loading...');
+                const response = await apiClient.get('/api/campaigns');
+                allData = Array.isArray(response) ? response : (response.campaigns || response.data || []);
+                updateStats(); renderTable(); LoadingSpinner.hide();
+            } catch (error) { LoadingSpinner.hide(); Toast.show('Failed to load: ' + error.message, 'error'); }
+        }
+        function updateStats() {
+            document.getElementById('stat-total').textContent = allData.length;
+            document.getElementById('stat-active').textContent = allData.filter(d => d.status === 'active').length;
+            document.getElementById('stat-budget').textContent = '$' + allData.reduce((s, d) => s + (parseFloat(d.budget) || 0), 0).toLocaleString();
+            document.getElementById('stat-completed').textContent = allData.filter(d => d.status === 'completed').length;
+        }
+        function renderTable() {
+            dataTable = new DataTable({
+                columns: [
+                    { label: 'Name', field: 'name' },
+                    { label: 'Type', field: 'type', render: (v) => {
+                        const b = {email:'<span class="badge badge-primary">Email</span>',social:'<span class="badge badge-info">Social</span>',ppc:'<span class="badge badge-warning">PPC</span>',event:'<span class="badge badge-success">Event</span>'};
+                        return b[v] || v;
+                    }},
+                    { label: 'Status', field: 'status', render: (v) => {
+                        const b = {draft:'<span class="badge badge-secondary">Draft</span>',active:'<span class="badge badge-success">Active</span>',paused:'<span class="badge badge-warning">Paused</span>',completed:'<span class="badge badge-info">Completed</span>'};
+                        return b[v] || v;
+                    }},
+                    { label: 'Start', field: 'startDate', render: (v) => v ? new Date(v).toLocaleDateString() : 'N/A' },
+                    { label: 'End', field: 'endDate', render: (v) => v ? new Date(v).toLocaleDateString() : 'N/A' },
+                    { label: 'Budget', field: 'budget', render: (v) => '$' + (parseFloat(v) || 0).toLocaleString() },
+                    { label: 'Actions', field: 'id', sortable: false, render: (v) => '<div class="table-actions"><button class="btn btn-sm btn-secondary" onclick="showEditModal(\'' + v + '\')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteItem(\'' + v + '\')">Delete</button></div>' }
+                ],
+                data: allData, searchable: true, sortable: true, pagination: true, pageSize: 10
+            });
+            dataTable.render('data-table-container');
+        }
+        function filterData() {
+            const statusFilter = document.getElementById('filter-status').value;
+            const typeFilter = document.getElementById('filter-type').value;
+            let filtered = allData;
+            if (statusFilter) filtered = filtered.filter(d => d.status === statusFilter);
+            if (typeFilter) filtered = filtered.filter(d => d.type === typeFilter);
+            dataTable.updateData(filtered); dataTable.render('data-table-container');
+        }
+        async function showCreateModal() {
+            const fb = new FormBuilder([
+                { name: 'name', label: 'Campaign Name', type: 'text', required: true, validation: { minLength: 3 } },
+                { name: 'type', label: 'Type', type: 'select', required: true, options: [{value:'email',label:'Email'},{value:'social',label:'Social'},{value:'ppc',label:'PPC'},{value:'event',label:'Event'}] },
+                { name: 'status', label: 'Status', type: 'select', required: true, options: [{value:'draft',label:'Draft'},{value:'active',label:'Active'},{value:'paused',label:'Paused'},{value:'completed',label:'Completed'}] },
+                { name: 'startDate', label: 'Start Date', type: 'date', required: true },
+                { name: 'endDate', label: 'End Date', type: 'date', required: true },
+                { name: 'budget', label: 'Budget', type: 'number', required: true, validation: { min: 0 } },
+                { name: 'target', label: 'Target Audience', type: 'text' },
+                { name: 'description', label: 'Description', type: 'textarea' }
+            ]);
+            const modal = new Modal({
+                title: 'Create Campaign',
+                content: '<form id="createForm">' + fb.render() + '</form>',
+                confirmText: 'Create',
+                size: 'large',
+                onConfirm: async () => {
+                    const form = document.getElementById('createForm');
+                    if (fb.validate(form)) {
+                        try {
+                            LoadingSpinner.show('Creating...'); await apiClient.post('/api/campaigns', fb.getData(form));
+                            Toast.show('Created successfully!', 'success'); await loadData(); LoadingSpinner.hide();
+                        } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); throw error; }
+                    } else { throw new Error('Validation failed'); }
+                }
+            });
+            modal.show();
+        }
+        async function showEditModal(id) {
+            try {
+                const item = allData.find(d => d.id === id);
+                if (!item) { Toast.show('Not found', 'error'); return; }
+                const fb = new FormBuilder([
+                    { name: 'name', label: 'Campaign Name', type: 'text', required: true, value: item.name || '' },
+                    { name: 'type', label: 'Type', type: 'select', required: true, value: item.type || '', options: [{value:'email',label:'Email'},{value:'social',label:'Social'},{value:'ppc',label:'PPC'},{value:'event',label:'Event'}] },
+                    { name: 'status', label: 'Status', type: 'select', required: true, value: item.status || '', options: [{value:'draft',label:'Draft'},{value:'active',label:'Active'},{value:'paused',label:'Paused'},{value:'completed',label:'Completed'}] },
+                    { name: 'startDate', label: 'Start Date', type: 'date', required: true, value: item.startDate ? item.startDate.split('T')[0] : '' },
+                    { name: 'endDate', label: 'End Date', type: 'date', required: true, value: item.endDate ? item.endDate.split('T')[0] : '' },
+                    { name: 'budget', label: 'Budget', type: 'number', required: true, value: item.budget || 0 },
+                    { name: 'target', label: 'Target', type: 'text', value: item.target || '' },
+                    { name: 'description', label: 'Description', type: 'textarea', value: item.description || '' }
+                ]);
+                const modal = new Modal({
+                    title: 'Edit Campaign',
+                    content: '<form id="editForm">' + fb.render() + '</form>',
+                    confirmText: 'Update',
+                    size: 'large',
+                    onConfirm: async () => {
+                        const form = document.getElementById('editForm');
+                        if (fb.validate(form)) {
+                            try {
+                                LoadingSpinner.show('Updating...'); await apiClient.put('/api/campaigns/' + id, fb.getData(form));
+                                Toast.show('Updated successfully!', 'success'); await loadData(); LoadingSpinner.hide();
+                            } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); throw error; }
+                        } else { throw new Error('Validation failed'); }
+                    }
+                });
+                modal.show();
+            } catch (error) { Toast.show('Error: ' + error.message, 'error'); }
+        }
+        async function deleteItem(id) {
+            const modal = new Modal({
+                title: 'Delete Campaign',
+                content: '<p>Are you sure?</p>',
+                confirmText: 'Delete',
+                onConfirm: async () => {
+                    try { LoadingSpinner.show('Deleting...'); await apiClient.delete('/api/campaigns/' + id);
+                        Toast.show('Deleted successfully!', 'success'); await loadData(); LoadingSpinner.hide();
+                    } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); }
+                }
+            });
+            modal.show();
+        }
+        function exportToCSV() {
+            if (allData.length === 0) { Toast.show('No data to export', 'warning'); return; }
+            const headers = ['Name','Type','Status','Start','End','Budget','Target','Description'];
+            const rows = allData.map(d => [d.name||'',d.type||'',d.status||'',d.startDate?new Date(d.startDate).toLocaleDateString():'',d.endDate?new Date(d.endDate).toLocaleDateString():'',d.budget||0,d.target||'',d.description||'']);
+            const csv = [headers.join(','), ...rows.map(r => r.map(c => '"' + c + '"').join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' }); const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob); link.download = 'campaigns_' + new Date().toISOString().split('T')[0] + '.csv';
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            Toast.show('Exported!', 'success');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - CAOS CRM</title>
+    <link rel="stylesheet" href="../../styles/snowui.css">
+    <link rel="stylesheet" href="../shared/components.css">
+    <link rel="stylesheet" href="../shared/navigation.css">
+</head>
+<body>
+    <div id="page-content">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1 class="page-title">Products Management</h1>
+                <p class="page-description">Manage product catalog and inventory</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-secondary" onclick="exportToCSV()" aria-label="Export products"><span>=å</span> Export CSV</button>
+                <button class="btn btn-primary" onclick="showCreateModal()" aria-label="Create new product"><span>+</span> New Product</button>
+            </div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon">=æ</div><div class="stat-content"><div class="stat-label">Total Products</div><div class="stat-value" id="stat-total">0</div></div></div>
+            <div class="stat-card"><div class="stat-icon"></div><div class="stat-content"><div class="stat-label">In Stock</div><div class="stat-value" id="stat-stock">0</div></div></div>
+            <div class="stat-card"><div class="stat-icon"> </div><div class="stat-content"><div class="stat-label">Low Stock</div><div class="stat-value" id="stat-low">0</div></div></div>
+            <div class="stat-card"><div class="stat-icon">=°</div><div class="stat-content"><div class="stat-label">Total Value</div><div class="stat-value" id="stat-value">$0</div></div></div>
+        </div>
+        <div class="filter-bar">
+            <div class="filter-group">
+                <select id="filter-category" class="form-select" onchange="filterData()">
+                    <option value="">All Categories</option><option value="software">Software</option><option value="hardware">Hardware</option><option value="service">Service</option><option value="consulting">Consulting</option>
+                </select>
+            </div>
+        </div>
+        <div class="card"><div id="data-table-container"></div></div>
+    </div>
+    <script src="../utils/apiClient.js"></script>
+    <script src="../shared/components.js"></script>
+    <script src="../shared/navigation.js"></script>
+    <script>
+        if (!apiClient.isAuthenticated()) window.location.href = '../auth/login.html';
+        let allData = []; let dataTable = null;
+        document.addEventListener('DOMContentLoaded', loadData);
+        async function loadData() {
+            try {
+                LoadingSpinner.show('Loading...');
+                const response = await apiClient.get('/api/products');
+                allData = Array.isArray(response) ? response : (response.products || response.data || []);
+                updateStats(); renderTable(); LoadingSpinner.hide();
+            } catch (error) { LoadingSpinner.hide(); Toast.show('Failed to load: ' + error.message, 'error'); }
+        }
+        function updateStats() {
+            const total = allData.length;
+            const inStock = allData.filter(d => (d.stock || 0) > 0).length;
+            const lowStock = allData.filter(d => (d.stock || 0) > 0 && (d.stock || 0) <= 10).length;
+            const value = allData.reduce((s, d) => s + ((d.price || 0) * (d.stock || 0)), 0);
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-stock').textContent = inStock;
+            document.getElementById('stat-low').textContent = lowStock;
+            document.getElementById('stat-value').textContent = '$' + value.toLocaleString();
+        }
+        function renderTable() {
+            dataTable = new DataTable({
+                columns: [
+                    { label: 'Name', field: 'name' },
+                    { label: 'SKU', field: 'sku' },
+                    { label: 'Category', field: 'category', render: (v) => {
+                        const b = {software:'<span class="badge badge-primary">Software</span>',hardware:'<span class="badge badge-info">Hardware</span>',service:'<span class="badge badge-success">Service</span>',consulting:'<span class="badge badge-warning">Consulting</span>'};
+                        return b[v] || v;
+                    }},
+                    { label: 'Price', field: 'price', render: (v) => '$' + (parseFloat(v) || 0).toFixed(2) },
+                    { label: 'Cost', field: 'cost', render: (v) => '$' + (parseFloat(v) || 0).toFixed(2) },
+                    { label: 'Stock', field: 'stock', render: (v, row) => {
+                        const stock = v || 0;
+                        const cls = stock === 0 ? 'text-danger' : stock <= 10 ? 'text-warning' : '';
+                        return '<span class="' + cls + '">' + stock + '</span>';
+                    }},
+                    { label: 'Actions', field: 'id', sortable: false, render: (v) => '<div class="table-actions"><button class="btn btn-sm btn-secondary" onclick="showEditModal(\'' + v + '\')">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteItem(\'' + v + '\')">Delete</button></div>' }
+                ],
+                data: allData, searchable: true, sortable: true, pagination: true, pageSize: 10
+            });
+            dataTable.render('data-table-container');
+        }
+        function filterData() {
+            const categoryFilter = document.getElementById('filter-category').value;
+            let filtered = allData;
+            if (categoryFilter) filtered = filtered.filter(d => d.category === categoryFilter);
+            dataTable.updateData(filtered); dataTable.render('data-table-container');
+        }
+        async function showCreateModal() {
+            const fb = new FormBuilder([
+                { name: 'name', label: 'Product Name', type: 'text', required: true, validation: { minLength: 3 } },
+                { name: 'sku', label: 'SKU', type: 'text', required: true },
+                { name: 'category', label: 'Category', type: 'select', required: true, options: [{value:'software',label:'Software'},{value:'hardware',label:'Hardware'},{value:'service',label:'Service'},{value:'consulting',label:'Consulting'}] },
+                { name: 'price', label: 'Price', type: 'number', required: true, validation: { min: 0 } },
+                { name: 'cost', label: 'Cost', type: 'number', required: true, validation: { min: 0 } },
+                { name: 'stock', label: 'Stock Quantity', type: 'number', required: true, validation: { min: 0 } },
+                { name: 'description', label: 'Description', type: 'textarea' }
+            ]);
+            const modal = new Modal({
+                title: 'Create Product',
+                content: '<form id="createForm">' + fb.render() + '</form>',
+                confirmText: 'Create',
+                size: 'large',
+                onConfirm: async () => {
+                    const form = document.getElementById('createForm');
+                    if (fb.validate(form)) {
+                        try {
+                            LoadingSpinner.show('Creating...'); await apiClient.post('/api/products', fb.getData(form));
+                            Toast.show('Created successfully!', 'success'); await loadData(); LoadingSpinner.hide();
+                        } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); throw error; }
+                    } else { throw new Error('Validation failed'); }
+                }
+            });
+            modal.show();
+        }
+        async function showEditModal(id) {
+            try {
+                const item = allData.find(d => d.id === id);
+                if (!item) { Toast.show('Not found', 'error'); return; }
+                const fb = new FormBuilder([
+                    { name: 'name', label: 'Product Name', type: 'text', required: true, value: item.name || '' },
+                    { name: 'sku', label: 'SKU', type: 'text', required: true, value: item.sku || '' },
+                    { name: 'category', label: 'Category', type: 'select', required: true, value: item.category || '', options: [{value:'software',label:'Software'},{value:'hardware',label:'Hardware'},{value:'service',label:'Service'},{value:'consulting',label:'Consulting'}] },
+                    { name: 'price', label: 'Price', type: 'number', required: true, value: item.price || 0 },
+                    { name: 'cost', label: 'Cost', type: 'number', required: true, value: item.cost || 0 },
+                    { name: 'stock', label: 'Stock', type: 'number', required: true, value: item.stock || 0 },
+                    { name: 'description', label: 'Description', type: 'textarea', value: item.description || '' }
+                ]);
+                const modal = new Modal({
+                    title: 'Edit Product',
+                    content: '<form id="editForm">' + fb.render() + '</form>',
+                    confirmText: 'Update',
+                    size: 'large',
+                    onConfirm: async () => {
+                        const form = document.getElementById('editForm');
+                        if (fb.validate(form)) {
+                            try {
+                                LoadingSpinner.show('Updating...'); await apiClient.put('/api/products/' + id, fb.getData(form));
+                                Toast.show('Updated successfully!', 'success'); await loadData(); LoadingSpinner.hide();
+                            } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); throw error; }
+                        } else { throw new Error('Validation failed'); }
+                    }
+                });
+                modal.show();
+            } catch (error) { Toast.show('Error: ' + error.message, 'error'); }
+        }
+        async function deleteItem(id) {
+            const modal = new Modal({
+                title: 'Delete Product',
+                content: '<p>Are you sure?</p>',
+                confirmText: 'Delete',
+                onConfirm: async () => {
+                    try { LoadingSpinner.show('Deleting...'); await apiClient.delete('/api/products/' + id);
+                        Toast.show('Deleted successfully!', 'success'); await loadData(); LoadingSpinner.hide();
+                    } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); }
+                }
+            });
+            modal.show();
+        }
+        function exportToCSV() {
+            if (allData.length === 0) { Toast.show('No data to export', 'warning'); return; }
+            const headers = ['Name','SKU','Category','Price','Cost','Stock','Description'];
+            const rows = allData.map(d => [d.name||'',d.sku||'',d.category||'',d.price||0,d.cost||0,d.stock||0,d.description||'']);
+            const csv = [headers.join(','), ...rows.map(r => r.map(c => '"' + c + '"').join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' }); const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob); link.download = 'products_' + new Date().toISOString().split('T')[0] + '.csv';
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            Toast.show('Exported!', 'success');
+        }
+    </script>
+</body>
+</html>

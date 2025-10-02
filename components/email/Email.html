@@ -3,1127 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Management - CAOS CRM</title>
+    <title>Email - CAOS CRM</title>
     <link rel="stylesheet" href="../../styles/snowui.css">
-    <style>
-        /* Email-specific styles */
-        .email-container {
-            display: flex;
-            height: calc(100vh - 120px);
-            gap: 0;
-        }
-
-        .email-sidebar {
-            width: 250px;
-            background: var(--snow-white);
-            border-right: 1px solid var(--snow-gray-200);
-            flex-shrink: 0;
-        }
-
-        .email-list {
-            flex: 1;
-            background: var(--snow-white);
-            border-right: 1px solid var(--snow-gray-200);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .email-detail {
-            width: 400px;
-            background: var(--snow-white);
-            flex-shrink: 0;
-            display: none;
-        }
-
-        .email-detail.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .email-item {
-            padding: 12px;
-            border-bottom: 1px solid var(--snow-gray-100);
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .email-item:hover {
-            background: var(--snow-gray-50);
-        }
-
-        .email-item.unread {
-            font-weight: 600;
-            background: var(--snow-blue-50);
-        }
-
-        .email-item.selected {
-            background: var(--snow-blue-100);
-            border-left: 4px solid var(--snow-blue-500);
-        }
-
-        .email-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-
-        .email-from {
-            font-weight: 500;
-            color: var(--snow-gray-900);
-        }
-
-        .email-date {
-            font-size: 12px;
-            color: var(--snow-gray-600);
-        }
-
-        .email-subject {
-            font-size: 14px;
-            color: var(--snow-gray-800);
-            margin-bottom: 2px;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .email-preview {
-            font-size: 13px;
-            color: var(--snow-gray-600);
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .email-actions {
-            display: flex;
-            gap: 4px;
-            margin-top: 8px;
-        }
-
-        .compose-btn {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 1000;
-        }
-
-        .search-box {
-            padding: 12px;
-            border-bottom: 1px solid var(--snow-gray-200);
-        }
-
-        .sidebar-nav {
-            padding: 12px 0;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            font-size: 14px;
-        }
-
-        .nav-item:hover {
-            background: var(--snow-gray-50);
-        }
-
-        .nav-item.active {
-            background: var(--snow-blue-50);
-            color: var(--snow-blue-700);
-            border-right: 3px solid var(--snow-blue-500);
-        }
-
-        .nav-item-icon {
-            width: 16px;
-            height: 16px;
-            margin-right: 8px;
-        }
-
-        .nav-item-count {
-            margin-left: auto;
-            background: var(--snow-gray-200);
-            color: var(--snow-gray-700);
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        .nav-item.active .nav-item-count {
-            background: var(--snow-blue-200);
-            color: var(--snow-blue-800);
-        }
-
-        .email-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--snow-gray-200);
-            background: var(--snow-gray-50);
-        }
-
-        .email-body {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-        }
-
-        .email-toolbar {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--snow-gray-200);
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .email-list-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--snow-gray-200);
-            background: var(--snow-gray-50);
-            display: flex;
-            justify-content: between;
-            align-items: center;
-        }
-
-        .compose-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1001;
-        }
-
-        .compose-modal.active {
-            display: flex;
-        }
-
-        .compose-content {
-            background: var(--snow-white);
-            border-radius: 8px;
-            width: 90%;
-            max-width: 700px;
-            height: 80%;
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--snow-shadow-xl);
-        }
-
-        .compose-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--snow-gray-200);
-            display: flex;
-            justify-content: between;
-            align-items: center;
-        }
-
-        .compose-body {
-            flex: 1;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .compose-actions {
-            padding: 16px;
-            border-top: 1px solid var(--snow-gray-200);
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        .email-field {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .email-field label {
-            width: 60px;
-            font-weight: 500;
-            color: var(--snow-gray-700);
-        }
-
-        .email-editor {
-            flex: 1;
-            min-height: 300px;
-            border: 1px solid var(--snow-gray-300);
-            border-radius: 4px;
-            padding: 12px;
-            font-family: inherit;
-            resize: vertical;
-        }
-
-        .star-btn {
-            color: var(--snow-gray-400);
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .star-btn.starred {
-            color: var(--snow-yellow-500);
-        }
-
-        .unread-indicator {
-            width: 8px;
-            height: 8px;
-            background: var(--snow-blue-500);
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        @media (max-width: 768px) {
-            .email-container {
-                flex-direction: column;
-            }
-
-            .email-sidebar {
-                width: 100%;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid var(--snow-gray-200);
-            }
-
-            .email-list {
-                border-right: none;
-            }
-
-            .email-detail {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../shared/components.css">
+    <link rel="stylesheet" href="../shared/navigation.css">
 </head>
 <body>
-    <div class="snow-container">
-        <!-- Header -->
-        <div class="snow-header">
-            <div class="snow-header-content">
-                <div class="snow-header-title">
-                    <h1>📧 Email Management</h1>
-                    <p>Manage your email communications and templates</p>
-                </div>
-                <div class="snow-header-actions">
-                    <button class="snow-btn snow-btn-primary" onclick="showCompose()">
-                        ✉️ Compose
-                    </button>
-                    <button class="snow-btn snow-btn-secondary" onclick="refreshEmails()">
-                        🔄 Refresh
-                    </button>
-                </div>
+    <div id="page-content">
+        <div class="page-header">
+            <div class="page-header-content">
+                <h1 class="page-title">Email Management</h1>
+                <p class="page-description">Manage email communications and campaigns</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-secondary" onclick="exportToCSV()" aria-label="Export emails"><span>📥</span> Export CSV</button>
+                <button class="btn btn-primary" onclick="showCreateModal()" aria-label="Compose new email"><span>+</span> Compose Email</button>
             </div>
         </div>
-
-        <!-- Email Container -->
-        <div class="email-container">
-            <!-- Sidebar -->
-            <div class="email-sidebar">
-                <div class="search-box">
-                    <input type="text" id="emailSearch" class="snow-input" placeholder="Search emails..." onkeyup="searchEmails()">
-                </div>
-
-                <div class="sidebar-nav">
-                    <button class="nav-item active" onclick="setActiveFolder('inbox')" data-folder="inbox">
-                        <span class="nav-item-icon">📥</span>
-                        Inbox
-                        <span class="nav-item-count" id="inboxCount">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setActiveFolder('sent')" data-folder="sent">
-                        <span class="nav-item-icon">📤</span>
-                        Sent
-                        <span class="nav-item-count" id="sentCount">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setActiveFolder('draft')" data-folder="draft">
-                        <span class="nav-item-icon">📝</span>
-                        Drafts
-                        <span class="nav-item-count" id="draftCount">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setActiveFolder('starred')" data-folder="starred">
-                        <span class="nav-item-icon">⭐</span>
-                        Starred
-                        <span class="nav-item-count" id="starredCount">0</span>
-                    </button>
-                    <button class="nav-item" onclick="setActiveFolder('archived')" data-folder="archived">
-                        <span class="nav-item-icon">🗄️</span>
-                        Archived
-                        <span class="nav-item-count" id="archivedCount">0</span>
-                    </button>
-                </div>
-
-                <div class="sidebar-nav" style="border-top: 1px solid var(--snow-gray-200); margin-top: 16px; padding-top: 16px;">
-                    <button class="nav-item" onclick="showTemplates()">
-                        <span class="nav-item-icon">📄</span>
-                        Templates
-                    </button>
-                    <button class="nav-item" onclick="showStats()">
-                        <span class="nav-item-icon">📊</span>
-                        Statistics
-                    </button>
-                    <button class="nav-item" onclick="showSettings()">
-                        <span class="nav-item-icon">⚙️</span>
-                        Settings
-                    </button>
-                </div>
-            </div>
-
-            <!-- Email List -->
-            <div class="email-list">
-                <div class="email-list-header">
-                    <h3 id="folderTitle">Inbox</h3>
-                    <div class="email-toolbar">
-                        <button class="snow-btn snow-btn-sm" onclick="markSelectedAsRead()" title="Mark as read">
-                            📖
-                        </button>
-                        <button class="snow-btn snow-btn-sm" onclick="markSelectedAsUnread()" title="Mark as unread">
-                            📕
-                        </button>
-                        <button class="snow-btn snow-btn-sm" onclick="archiveSelected()" title="Archive">
-                            🗄️
-                        </button>
-                        <button class="snow-btn snow-btn-sm" onclick="deleteSelected()" title="Delete">
-                            🗑️
-                        </button>
-                    </div>
-                </div>
-
-                <div id="emailList" class="snow-scroll">
-                    <!-- Email items will be populated here -->
-                </div>
-            </div>
-
-            <!-- Email Detail -->
-            <div id="emailDetail" class="email-detail">
-                <div class="email-header">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div>
-                            <h3 id="detailSubject">Email Subject</h3>
-                            <p id="detailFrom" class="snow-text-muted">From: sender@example.com</p>
-                            <p id="detailTo" class="snow-text-muted">To: recipient@example.com</p>
-                            <p id="detailDate" class="snow-text-muted">Date: Now</p>
-                        </div>
-                        <div class="email-actions">
-                            <button class="snow-btn snow-btn-sm" onclick="replyToEmail()" title="Reply">
-                                ↩️
-                            </button>
-                            <button class="snow-btn snow-btn-sm" onclick="forwardEmail()" title="Forward">
-                                ↪️
-                            </button>
-                            <button class="snow-btn snow-btn-sm" onclick="toggleStarSelected()" title="Star">
-                                ⭐
-                            </button>
-                            <button class="snow-btn snow-btn-sm" onclick="closeDetail()">
-                                ❌
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="email-body">
-                    <div id="detailBody">
-                        Email content will appear here...
-                    </div>
-                </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon">📧</div><div class="stat-content"><div class="stat-label">Total Emails</div><div class="stat-value" id="stat-total">0</div></div></div>
+            <div class="stat-card"><div class="stat-icon">📥</div><div class="stat-content"><div class="stat-label">Inbox</div><div class="stat-value" id="stat-inbox">0</div></div></div>
+            <div class="stat-card"><div class="stat-icon">📤</div><div class="stat-content"><div class="stat-label">Sent</div><div class="stat-value" id="stat-sent">0</div></div></div>
+            <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-content"><div class="stat-label">Drafts</div><div class="stat-value" id="stat-drafts">0</div></div></div>
+        </div>
+        <div class="filter-bar">
+            <div class="filter-group">
+                <select id="filter-status" class="form-select" onchange="filterData()">
+                    <option value="">All Status</option><option value="received">Inbox</option><option value="sent">Sent</option><option value="draft">Draft</option>
+                </select>
             </div>
         </div>
-
-        <!-- Compose Modal -->
-        <div id="composeModal" class="compose-modal">
-            <div class="compose-content">
-                <div class="compose-header">
-                    <h3>✉️ Compose Email</h3>
-                    <button class="snow-btn snow-btn-sm" onclick="closeCompose()">❌</button>
-                </div>
-
-                <div class="compose-body">
-                    <div class="email-field">
-                        <label>To:</label>
-                        <input type="email" id="composeTo" class="snow-input" placeholder="recipient@example.com" multiple>
-                    </div>
-
-                    <div class="email-field">
-                        <label>CC:</label>
-                        <input type="email" id="composeCc" class="snow-input" placeholder="cc@example.com" multiple>
-                    </div>
-
-                    <div class="email-field">
-                        <label>Subject:</label>
-                        <input type="text" id="composeSubject" class="snow-input" placeholder="Email subject">
-                    </div>
-
-                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                        <select id="composeTemplate" class="snow-input" onchange="applyTemplate()">
-                            <option value="">Select template...</option>
-                        </select>
-                        <select id="composePriority" class="snow-input">
-                            <option value="normal">Normal Priority</option>
-                            <option value="high">High Priority</option>
-                            <option value="urgent">Urgent</option>
-                            <option value="low">Low Priority</option>
-                        </select>
-                    </div>
-
-                    <textarea id="composeBody" class="email-editor" placeholder="Write your email here..."></textarea>
-                </div>
-
-                <div class="compose-actions">
-                    <button class="snow-btn snow-btn-secondary" onclick="saveDraft()">
-                        💾 Save Draft
-                    </button>
-                    <button class="snow-btn snow-btn-secondary" onclick="scheduleEmail()">
-                        📅 Schedule
-                    </button>
-                    <button class="snow-btn snow-btn-primary" onclick="sendEmail()">
-                        📧 Send Email
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="snow-loading" style="display: none;">
-            <div class="snow-spinner"></div>
-            <p>Loading emails...</p>
-        </div>
+        <div class="card"><div id="data-table-container"></div></div>
     </div>
-
+    <script src="../utils/apiClient.js"></script>
+    <script src="../shared/components.js"></script>
+    <script src="../shared/navigation.js"></script>
     <script>
-        // State management
-        let currentFolder = 'inbox';
-        let selectedEmailId = null;
-        let selectedEmails = new Set();
-        let emailsData = [];
-        let templatesData = [];
-
-        // API Base URL
-        const API_BASE = 'http://localhost:3001/api';
-
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            loadEmails();
-            loadTemplates();
-            loadEmailStats();
-        });
-
-        // Email loading and display
-        async function loadEmails(folder = currentFolder) {
-            showLoading(true);
-
+        if (!apiClient.isAuthenticated()) window.location.href = '../auth/login.html';
+        let allData = []; let dataTable = null;
+        document.addEventListener('DOMContentLoaded', loadData);
+        async function loadData() {
             try {
-                let url = `${API_BASE}/email`;
-
-                // Apply folder-specific filters
-                const params = new URLSearchParams();
-
-                switch(folder) {
-                    case 'sent':
-                        params.append('status', 'sent');
-                        break;
-                    case 'draft':
-                        params.append('status', 'draft');
-                        break;
-                    case 'starred':
-                        params.append('isStarred', 'true');
-                        break;
-                    case 'archived':
-                        params.append('isArchived', 'true');
-                        break;
-                    case 'inbox':
-                    default:
-                        params.append('status', 'received');
-                        break;
-                }
-
-                if (params.toString()) {
-                    url += '?' + params.toString();
-                }
-
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.success) {
-                    emailsData = data.data;
-                    displayEmails(emailsData);
-                } else {
-                    showNotification('Failed to load emails: ' + data.message, 'error');
-                }
-            } catch (error) {
-                console.error('Error loading emails:', error);
-                showNotification('Error loading emails', 'error');
-                // Show sample data for demonstration
-                emailsData = generateSampleEmails();
-                displayEmails(emailsData);
-            } finally {
-                showLoading(false);
-            }
+                LoadingSpinner.show('Loading...');
+                const response = await apiClient.get('/api/email');
+                allData = Array.isArray(response) ? response : (response.emails || response.data || []);
+                updateStats(); renderTable(); LoadingSpinner.hide();
+            } catch (error) { LoadingSpinner.hide(); Toast.show('Failed to load: ' + error.message, 'error'); }
         }
-
-        function displayEmails(emails) {
-            const emailList = document.getElementById('emailList');
-
-            if (emails.length === 0) {
-                emailList.innerHTML = `
-                    <div style="padding: 40px; text-align: center; color: var(--snow-gray-600);">
-                        <p>📭 No emails found</p>
-                        <p style="font-size: 14px;">Try switching folders or composing a new email</p>
-                    </div>
-                `;
-                return;
-            }
-
-            emailList.innerHTML = emails.map(email => `
-                <div class="email-item ${email.isRead ? '' : 'unread'}"
-                     onclick="selectEmail('${email.id}')"
-                     data-email-id="${email.id}">
-                    <div class="email-meta">
-                        <div style="display: flex; align-items: center;">
-                            ${!email.isRead ? '<div class="unread-indicator"></div>' : ''}
-                            <span class="email-from">${email.from}</span>
-                            <button class="star-btn ${email.isStarred ? 'starred' : ''}"
-                                    onclick="event.stopPropagation(); toggleStar('${email.id}')">
-                                ⭐
-                            </button>
-                        </div>
-                        <span class="email-date">${formatDate(email.createdAt)}</span>
-                    </div>
-                    <div class="email-subject">${email.subject || '(No Subject)'}</div>
-                    <div class="email-preview">${getEmailPreview(email.body)}</div>
-                </div>
-            `).join('');
+        function updateStats() {
+            const total = allData.length;
+            const inbox = allData.filter(d => d.status === 'received').length;
+            const sent = allData.filter(d => d.status === 'sent').length;
+            const drafts = allData.filter(d => d.status === 'draft').length;
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-inbox').textContent = inbox;
+            document.getElementById('stat-sent').textContent = sent;
+            document.getElementById('stat-drafts').textContent = drafts;
         }
-
-        async function selectEmail(emailId) {
-            selectedEmailId = emailId;
-
-            // Update visual selection
-            document.querySelectorAll('.email-item').forEach(item => {
-                item.classList.remove('selected');
+        function renderTable() {
+            dataTable = new DataTable({
+                columns: [
+                    { label: 'From', field: 'from' },
+                    { label: 'To', field: 'to', render: (v) => Array.isArray(v) ? v.join(', ') : v },
+                    { label: 'Subject', field: 'subject' },
+                    { label: 'Status', field: 'status', render: (v) => {
+                        const b = {received:'<span class="badge badge-primary">Inbox</span>',sent:'<span class="badge badge-success">Sent</span>',draft:'<span class="badge badge-secondary">Draft</span>'};
+                        return b[v] || v;
+                    }},
+                    { label: 'Date', field: 'createdAt', render: (v) => v ? new Date(v).toLocaleDateString() : 'N/A' },
+                    { label: 'Actions', field: 'id', sortable: false, render: (v) => '<div class="table-actions"><button class="btn btn-sm btn-secondary" onclick="showEditModal(\\'' + v + '\\')" aria-label="View email">View</button><button class="btn btn-sm btn-danger" onclick="deleteItem(\\'' + v + '\\')" aria-label="Delete email">Delete</button></div>' }
+                ],
+                data: allData, searchable: true, sortable: true, pagination: true, pageSize: 10
             });
-
-            document.querySelector(`[data-email-id="${emailId}"]`).classList.add('selected');
-
-            // Load email details
-            try {
-                const response = await fetch(`${API_BASE}/email/${emailId}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    displayEmailDetail(data.data);
-
-                    // Mark as read if unread
-                    if (!data.data.isRead) {
-                        markAsRead([emailId]);
-                    }
-                } else {
-                    showNotification('Failed to load email details: ' + data.message, 'error');
+            dataTable.render('data-table-container');
+        }
+        function filterData() {
+            const statusFilter = document.getElementById('filter-status').value;
+            let filtered = allData;
+            if (statusFilter) filtered = filtered.filter(d => d.status === statusFilter);
+            dataTable.updateData(filtered); dataTable.render('data-table-container');
+        }
+        async function showCreateModal() {
+            const fb = new FormBuilder([
+                { name: 'to', label: 'To', type: 'text', required: true, placeholder: 'recipient@example.com' },
+                { name: 'cc', label: 'CC', type: 'text', placeholder: 'cc@example.com' },
+                { name: 'subject', label: 'Subject', type: 'text', required: true, validation: { minLength: 3 } },
+                { name: 'body', label: 'Message', type: 'textarea', required: true, placeholder: 'Email content...' },
+                { name: 'priority', label: 'Priority', type: 'select', required: true, options: [{value:'normal',label:'Normal'},{value:'high',label:'High'},{value:'urgent',label:'Urgent'},{value:'low',label:'Low'}] },
+                { name: 'status', label: 'Status', type: 'select', required: true, options: [{value:'draft',label:'Save as Draft'},{value:'sent',label:'Send Now'}] }
+            ]);
+            const modal = new Modal({
+                title: 'Compose Email',
+                content: '<form id="createForm">' + fb.render() + '</form>',
+                confirmText: 'Send',
+                size: 'large',
+                onConfirm: async () => {
+                    const form = document.getElementById('createForm');
+                    if (fb.validate(form)) {
+                        try {
+                            LoadingSpinner.show('Sending...');
+                            const data = fb.getData(form);
+                            data.to = data.to.split(',').map(s => s.trim());
+                            if (data.cc) data.cc = data.cc.split(',').map(s => s.trim());
+                            await apiClient.post('/api/email', data);
+                            Toast.show('Email ' + (data.status === 'sent' ? 'sent' : 'saved') + ' successfully!', 'success');
+                            await loadData(); LoadingSpinner.hide();
+                        } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); throw error; }
+                    } else { throw new Error('Validation failed'); }
                 }
-            } catch (error) {
-                console.error('Error loading email details:', error);
-                // Show sample email detail
-                const email = emailsData.find(e => e.id === emailId);
-                if (email) {
-                    displayEmailDetail(email);
-                }
-            }
-        }
-
-        function displayEmailDetail(email) {
-            document.getElementById('detailSubject').textContent = email.subject || '(No Subject)';
-            document.getElementById('detailFrom').textContent = `From: ${email.from}`;
-            document.getElementById('detailTo').textContent = `To: ${Array.isArray(email.to) ? email.to.join(', ') : email.to}`;
-            document.getElementById('detailDate').textContent = `Date: ${formatDate(email.createdAt)}`;
-            document.getElementById('detailBody').innerHTML = `
-                <div style="white-space: pre-wrap; line-height: 1.6;">
-                    ${email.htmlBody || email.body || email.textBody}
-                </div>
-            `;
-
-            document.getElementById('emailDetail').classList.add('active');
-        }
-
-        function closeDetail() {
-            document.getElementById('emailDetail').classList.remove('active');
-            selectedEmailId = null;
-        }
-
-        // Folder navigation
-        function setActiveFolder(folder) {
-            currentFolder = folder;
-
-            // Update UI
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
             });
-
-            document.querySelector(`[data-folder="${folder}"]`).classList.add('active');
-
-            // Update folder title
-            const titles = {
-                inbox: 'Inbox',
-                sent: 'Sent Mail',
-                draft: 'Drafts',
-                starred: 'Starred',
-                archived: 'Archived'
-            };
-
-            document.getElementById('folderTitle').textContent = titles[folder] || folder;
-
-            // Load emails for the folder
-            loadEmails(folder);
-            closeDetail();
+            modal.show();
         }
-
-        // Email actions
-        async function markAsRead(emailIds) {
+        async function showEditModal(id) {
             try {
-                const promises = emailIds.map(id =>
-                    fetch(`${API_BASE}/email/${id}/read`, { method: 'PUT' })
-                );
-
-                await Promise.all(promises);
-
-                // Update UI
-                emailIds.forEach(id => {
-                    const emailItem = document.querySelector(`[data-email-id="${id}"]`);
-                    if (emailItem) {
-                        emailItem.classList.remove('unread');
-                        const indicator = emailItem.querySelector('.unread-indicator');
-                        if (indicator) indicator.remove();
+                const item = allData.find(d => d.id === id);
+                if (!item) { Toast.show('Not found', 'error'); return; }
+                const fb = new FormBuilder([
+                    { name: 'to', label: 'To', type: 'text', required: true, value: Array.isArray(item.to) ? item.to.join(', ') : item.to || '' },
+                    { name: 'cc', label: 'CC', type: 'text', value: Array.isArray(item.cc) ? item.cc.join(', ') : item.cc || '' },
+                    { name: 'subject', label: 'Subject', type: 'text', required: true, value: item.subject || '' },
+                    { name: 'body', label: 'Message', type: 'textarea', required: true, value: item.body || item.textBody || '' },
+                    { name: 'priority', label: 'Priority', type: 'select', required: true, value: item.priority || 'normal', options: [{value:'normal',label:'Normal'},{value:'high',label:'High'},{value:'urgent',label:'Urgent'},{value:'low',label:'Low'}] },
+                    { name: 'status', label: 'Status', type: 'select', required: true, value: item.status || 'draft', options: [{value:'draft',label:'Draft'},{value:'sent',label:'Sent'},{value:'received',label:'Received'}] }
+                ]);
+                const modal = new Modal({
+                    title: 'View/Edit Email',
+                    content: '<form id="editForm">' + fb.render() + '</form>',
+                    confirmText: 'Update',
+                    size: 'large',
+                    onConfirm: async () => {
+                        const form = document.getElementById('editForm');
+                        if (fb.validate(form)) {
+                            try {
+                                LoadingSpinner.show('Updating...');
+                                const data = fb.getData(form);
+                                data.to = data.to.split(',').map(s => s.trim());
+                                if (data.cc) data.cc = data.cc.split(',').map(s => s.trim());
+                                await apiClient.put('/api/email/' + id, data);
+                                Toast.show('Updated successfully!', 'success');
+                                await loadData(); LoadingSpinner.hide();
+                            } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); throw error; }
+                        } else { throw new Error('Validation failed'); }
                     }
                 });
-
-                loadEmailStats();
-            } catch (error) {
-                console.error('Error marking as read:', error);
-            }
+                modal.show();
+            } catch (error) { Toast.show('Error: ' + error.message, 'error'); }
         }
-
-        async function markAsUnread(emailIds) {
-            try {
-                const promises = emailIds.map(id =>
-                    fetch(`${API_BASE}/email/${id}/unread`, { method: 'PUT' })
-                );
-
-                await Promise.all(promises);
-                refreshEmails();
-            } catch (error) {
-                console.error('Error marking as unread:', error);
-            }
-        }
-
-        async function toggleStar(emailId) {
-            try {
-                await fetch(`${API_BASE}/email/${emailId}/star`, { method: 'PUT' });
-
-                // Update UI
-                const starBtn = document.querySelector(`[data-email-id="${emailId}"] .star-btn`);
-                starBtn.classList.toggle('starred');
-
-                loadEmailStats();
-            } catch (error) {
-                console.error('Error toggling star:', error);
-            }
-        }
-
-        async function archiveEmails(emailIds) {
-            try {
-                await fetch(`${API_BASE}/email/bulk/archive`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ emailIds })
-                });
-
-                refreshEmails();
-                showNotification(`${emailIds.length} email(s) archived`, 'success');
-            } catch (error) {
-                console.error('Error archiving emails:', error);
-            }
-        }
-
-        // Toolbar actions
-        function markSelectedAsRead() {
-            if (selectedEmailId) {
-                markAsRead([selectedEmailId]);
-            }
-        }
-
-        function markSelectedAsUnread() {
-            if (selectedEmailId) {
-                markAsUnread([selectedEmailId]);
-            }
-        }
-
-        function toggleStarSelected() {
-            if (selectedEmailId) {
-                toggleStar(selectedEmailId);
-            }
-        }
-
-        function archiveSelected() {
-            if (selectedEmailId) {
-                archiveEmails([selectedEmailId]);
-            }
-        }
-
-        function deleteSelected() {
-            if (selectedEmailId && confirm('Are you sure you want to delete this email?')) {
-                deleteEmail(selectedEmailId);
-            }
-        }
-
-        // Compose functionality
-        function showCompose() {
-            document.getElementById('composeModal').classList.add('active');
-            document.getElementById('composeTo').focus();
-        }
-
-        function closeCompose() {
-            document.getElementById('composeModal').classList.remove('active');
-            clearComposeForm();
-        }
-
-        function clearComposeForm() {
-            document.getElementById('composeTo').value = '';
-            document.getElementById('composeCc').value = '';
-            document.getElementById('composeSubject').value = '';
-            document.getElementById('composeBody').value = '';
-            document.getElementById('composeTemplate').value = '';
-            document.getElementById('composePriority').value = 'normal';
-        }
-
-        async function sendEmail() {
-            const emailData = {
-                to: document.getElementById('composeTo').value.split(',').map(s => s.trim()),
-                cc: document.getElementById('composeCc').value.split(',').filter(s => s.trim()).map(s => s.trim()),
-                subject: document.getElementById('composeSubject').value,
-                body: document.getElementById('composeBody').value,
-                priority: document.getElementById('composePriority').value,
-                type: 'outbound'
-            };
-
-            if (!emailData.to[0] || !emailData.subject || !emailData.body) {
-                showNotification('Please fill in all required fields', 'warning');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/email`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(emailData)
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Send the email
-                    const sendResponse = await fetch(`${API_BASE}/email/${data.data.id}/send`, {
-                        method: 'POST'
-                    });
-
-                    if (sendResponse.ok) {
-                        showNotification('Email sent successfully!', 'success');
-                        closeCompose();
-                        refreshEmails();
-                    } else {
-                        showNotification('Email created but failed to send', 'warning');
-                    }
-                } else {
-                    showNotification('Failed to create email: ' + data.message, 'error');
+        async function deleteItem(id) {
+            const modal = new Modal({
+                title: 'Delete Email',
+                content: '<p>Are you sure?</p>',
+                confirmText: 'Delete',
+                onConfirm: async () => {
+                    try { LoadingSpinner.show('Deleting...'); await apiClient.delete('/api/email/' + id);
+                        Toast.show('Deleted successfully!', 'success'); await loadData(); LoadingSpinner.hide();
+                    } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); }
                 }
-            } catch (error) {
-                console.error('Error sending email:', error);
-                showNotification('Error sending email', 'error');
-            }
-        }
-
-        async function saveDraft() {
-            const emailData = {
-                to: document.getElementById('composeTo').value.split(',').map(s => s.trim()),
-                cc: document.getElementById('composeCc').value.split(',').filter(s => s.trim()).map(s => s.trim()),
-                subject: document.getElementById('composeSubject').value,
-                body: document.getElementById('composeBody').value,
-                status: 'draft',
-                type: 'outbound'
-            };
-
-            try {
-                const response = await fetch(`${API_BASE}/email`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(emailData)
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showNotification('Draft saved successfully!', 'success');
-                    closeCompose();
-                    loadEmailStats();
-                } else {
-                    showNotification('Failed to save draft: ' + data.message, 'error');
-                }
-            } catch (error) {
-                console.error('Error saving draft:', error);
-                showNotification('Error saving draft', 'error');
-            }
-        }
-
-        // Templates
-        async function loadTemplates() {
-            try {
-                const response = await fetch(`${API_BASE}/email/templates`);
-                const data = await response.json();
-
-                if (data.success) {
-                    templatesData = data.data;
-                    populateTemplateDropdown();
-                }
-            } catch (error) {
-                console.error('Error loading templates:', error);
-            }
-        }
-
-        function populateTemplateDropdown() {
-            const select = document.getElementById('composeTemplate');
-            select.innerHTML = '<option value="">Select template...</option>';
-
-            templatesData.forEach(template => {
-                const option = document.createElement('option');
-                option.value = template.id;
-                option.textContent = template.name;
-                select.appendChild(option);
             });
+            modal.show();
         }
-
-        function applyTemplate() {
-            const templateId = document.getElementById('composeTemplate').value;
-            if (!templateId) return;
-
-            const template = templatesData.find(t => t.id === templateId);
-            if (template) {
-                document.getElementById('composeSubject').value = template.subject;
-                document.getElementById('composeBody').value = template.body;
-            }
-        }
-
-        // Statistics
-        async function loadEmailStats() {
-            try {
-                const response = await fetch(`${API_BASE}/email/stats/overview`);
-                const data = await response.json();
-
-                if (data.success) {
-                    updateStatsCounts(data.data);
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-                // Set some default counts
-                document.getElementById('inboxCount').textContent = '0';
-                document.getElementById('sentCount').textContent = '0';
-                document.getElementById('draftCount').textContent = '0';
-                document.getElementById('starredCount').textContent = '0';
-                document.getElementById('archivedCount').textContent = '0';
-            }
-        }
-
-        function updateStatsCounts(stats) {
-            document.getElementById('inboxCount').textContent = stats.received || '0';
-            document.getElementById('sentCount').textContent = stats.sent || '0';
-            document.getElementById('draftCount').textContent = stats.draft || '0';
-            document.getElementById('starredCount').textContent = stats.starred || '0';
-            document.getElementById('archivedCount').textContent = '0'; // Archived count not in basic stats
-        }
-
-        // Search functionality
-        function searchEmails() {
-            const query = document.getElementById('emailSearch').value;
-
-            if (query.length < 2) {
-                displayEmails(emailsData);
-                return;
-            }
-
-            const filtered = emailsData.filter(email =>
-                email.subject.toLowerCase().includes(query.toLowerCase()) ||
-                email.body.toLowerCase().includes(query.toLowerCase()) ||
-                email.from.toLowerCase().includes(query.toLowerCase()) ||
-                (Array.isArray(email.to) ? email.to.join(' ') : email.to).toLowerCase().includes(query.toLowerCase())
-            );
-
-            displayEmails(filtered);
-        }
-
-        // Reply functionality
-        function replyToEmail() {
-            if (!selectedEmailId) return;
-
-            const email = emailsData.find(e => e.id === selectedEmailId);
-            if (!email) return;
-
-            // Populate compose form with reply data
-            document.getElementById('composeTo').value = email.from;
-            document.getElementById('composeSubject').value = email.subject.startsWith('Re:') ? email.subject : 'Re: ' + email.subject;
-            document.getElementById('composeBody').value = `\n\n--- Original Message ---\nFrom: ${email.from}\nDate: ${formatDate(email.createdAt)}\nSubject: ${email.subject}\n\n${email.body}`;
-
-            showCompose();
-        }
-
-        function forwardEmail() {
-            if (!selectedEmailId) return;
-
-            const email = emailsData.find(e => e.id === selectedEmailId);
-            if (!email) return;
-
-            // Populate compose form with forward data
-            document.getElementById('composeSubject').value = email.subject.startsWith('Fwd:') ? email.subject : 'Fwd: ' + email.subject;
-            document.getElementById('composeBody').value = `\n\n--- Forwarded Message ---\nFrom: ${email.from}\nDate: ${formatDate(email.createdAt)}\nSubject: ${email.subject}\n\n${email.body}`;
-
-            showCompose();
-        }
-
-        // Utility functions
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffInHours = Math.abs(now - date) / (1000 * 60 * 60);
-
-            if (diffInHours < 1) {
-                return Math.floor(Math.abs(now - date) / (1000 * 60)) + 'm ago';
-            } else if (diffInHours < 24) {
-                return Math.floor(diffInHours) + 'h ago';
-            } else if (diffInHours < 48) {
-                return 'Yesterday';
-            } else {
-                return date.toLocaleDateString();
-            }
-        }
-
-        function getEmailPreview(body, maxLength = 100) {
-            if (!body) return '';
-            const cleanBody = body.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-            return cleanBody.length > maxLength ? cleanBody.substring(0, maxLength) + '...' : cleanBody;
-        }
-
-        function showLoading(show) {
-            document.getElementById('loadingIndicator').style.display = show ? 'flex' : 'none';
-        }
-
-        function showNotification(message, type = 'info') {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `snow-notification snow-notification-${type}`;
-            notification.textContent = message;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 1002;
-                padding: 12px 16px;
-                border-radius: 4px;
-                color: white;
-                font-weight: 500;
-                opacity: 0;
-                transform: translateX(100%);
-                transition: all 0.3s ease;
-            `;
-
-            // Set background color based on type
-            const colors = {
-                success: '#10B981',
-                error: '#EF4444',
-                warning: '#F59E0B',
-                info: '#3B82F6'
-            };
-            notification.style.background = colors[type] || colors.info;
-
-            document.body.appendChild(notification);
-
-            // Show notification
-            setTimeout(() => {
-                notification.style.opacity = '1';
-                notification.style.transform = 'translateX(0)';
-            }, 100);
-
-            // Hide notification after 3 seconds
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
-        }
-
-        function refreshEmails() {
-            loadEmails();
-            loadEmailStats();
-        }
-
-        // Additional functions for future features
-        function showTemplates() {
-            showNotification('Templates management coming soon!', 'info');
-        }
-
-        function showStats() {
-            showNotification('Detailed statistics coming soon!', 'info');
-        }
-
-        function showSettings() {
-            showNotification('Email settings coming soon!', 'info');
-        }
-
-        function scheduleEmail() {
-            showNotification('Email scheduling coming soon!', 'info');
-        }
-
-        // Sample data generator for demonstration
-        function generateSampleEmails() {
-            return [
-                {
-                    id: '1',
-                    from: 'john.doe@example.com',
-                    to: ['user@caos-crm.local'],
-                    subject: 'Welcome to CAOS CRM',
-                    body: 'Thank you for trying out our new email integration feature. This is a sample email to demonstrate the functionality.',
-                    status: 'received',
-                    isRead: false,
-                    isStarred: true,
-                    createdAt: new Date(Date.now() - 1000 * 60 * 30) // 30 minutes ago
-                },
-                {
-                    id: '2',
-                    from: 'noreply@caos-crm.local',
-                    to: ['client@example.com'],
-                    subject: 'Your lead has been updated',
-                    body: 'Hi there! We wanted to let you know that your lead status has been updated to "Qualified".',
-                    status: 'sent',
-                    isRead: true,
-                    isStarred: false,
-                    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2) // 2 hours ago
-                },
-                {
-                    id: '3',
-                    from: 'support@example.com',
-                    to: ['user@caos-crm.local'],
-                    subject: 'New features in your CRM',
-                    body: 'We\'ve added exciting new features to your CRM including email integration, calendar management, and task tracking.',
-                    status: 'received',
-                    isRead: true,
-                    isStarred: false,
-                    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24) // 1 day ago
-                }
-            ];
+        function exportToCSV() {
+            if (allData.length === 0) { Toast.show('No data to export', 'warning'); return; }
+            const headers = ['From','To','CC','Subject','Status','Priority','Date'];
+            const rows = allData.map(d => [
+                d.from||'',
+                Array.isArray(d.to)?d.to.join(', '):d.to||'',
+                Array.isArray(d.cc)?d.cc.join(', '):d.cc||'',
+                d.subject||'',
+                d.status||'',
+                d.priority||'',
+                d.createdAt?new Date(d.createdAt).toLocaleDateString():''
+            ]);
+            const csv = [headers.join(','), ...rows.map(r => r.map(c => '"' + c + '"').join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' }); const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob); link.download = 'email_' + new Date().toISOString().split('T')[0] + '.csv';
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            Toast.show('Exported!', 'success');
         }
     </script>
 </body>

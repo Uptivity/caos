@@ -5,925 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Documents - CAOS CRM</title>
     <link rel="stylesheet" href="../../styles/snowui.css">
-    <style>
-        /* Documents-specific styles */
-        .documents-container {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: var(--spacing-lg);
-            height: calc(100vh - 140px);
-        }
-
-        .documents-sidebar {
-            background: var(--snow-primary);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            overflow-y: auto;
-        }
-
-        .documents-main {
-            background: var(--snow-primary);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            overflow-y: auto;
-        }
-
-        .folder-tree {
-            margin-top: var(--spacing-md);
-        }
-
-        .folder-item {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            transition: all 0.3s ease;
-            margin-bottom: var(--spacing-xs);
-        }
-
-        .folder-item:hover {
-            background: var(--primary-light);
-        }
-
-        .folder-item.active {
-            background: var(--primary-light);
-            color: var(--primary);
-            font-weight: 500;
-        }
-
-        .folder-children {
-            margin-left: var(--spacing-lg);
-        }
-
-        .documents-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .view-toggle {
-            display: flex;
-            gap: var(--spacing-xs);
-        }
-
-        .view-btn {
-            padding: var(--spacing-xs) var(--spacing-sm);
-            background: var(--background);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .view-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .documents-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: var(--spacing-md);
-        }
-
-        .documents-list {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-sm);
-        }
-
-        .document-card {
-            background: var(--background);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: var(--spacing-md);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .document-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .document-icon {
-            font-size: 48px;
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .document-name {
-            font-weight: 500;
-            margin-bottom: var(--spacing-xs);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .document-meta {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .document-list-item {
-            background: var(--background);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: var(--spacing-md);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-md);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .document-list-item:hover {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .document-list-icon {
-            font-size: 32px;
-            width: 48px;
-            text-align: center;
-        }
-
-        .document-list-info {
-            flex: 1;
-        }
-
-        .document-list-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-md);
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .breadcrumb-item {
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .breadcrumb-item:hover {
-            color: var(--primary);
-        }
-
-        .upload-area {
-            border: 2px dashed var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-xl);
-            text-align: center;
-            transition: all 0.3s ease;
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .upload-area.dragover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        .storage-bar {
-            margin-top: var(--spacing-lg);
-            padding: var(--spacing-md);
-            background: var(--background);
-            border-radius: var(--radius-md);
-        }
-
-        .storage-progress {
-            height: 8px;
-            background: var(--gray-200);
-            border-radius: 4px;
-            overflow: hidden;
-            margin: var(--spacing-sm) 0;
-        }
-
-        .storage-used {
-            height: 100%;
-            background: var(--primary);
-            transition: width 0.3s ease;
-        }
-
-        .quick-access {
-            margin-top: var(--spacing-lg);
-        }
-
-        .quick-access-item {
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            transition: all 0.3s ease;
-        }
-
-        .quick-access-item:hover {
-            background: var(--background);
-        }
-
-        .document-preview {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 400px;
-            height: 100vh;
-            background: white;
-            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-
-        .document-preview.active {
-            transform: translateX(0);
-        }
-
-        .preview-header {
-            padding: var(--spacing-lg);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .preview-content {
-            padding: var(--spacing-lg);
-        }
-
-        .preview-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-lg);
-            border-top: 1px solid var(--border-color);
-        }
-
-        .file-type-icon {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: var(--radius-sm);
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .type-pdf { background: #FF5252; color: white; }
-        .type-doc { background: #2196F3; color: white; }
-        .type-xls { background: #4CAF50; color: white; }
-        .type-ppt { background: #FF9800; color: white; }
-        .type-img { background: #9C27B0; color: white; }
-        .type-video { background: #F44336; color: white; }
-        .type-code { background: #607D8B; color: white; }
-        .type-archive { background: #795548; color: white; }
-
-        @media (max-width: 768px) {
-            .documents-container {
-                grid-template-columns: 1fr;
-            }
-
-            .documents-sidebar {
-                display: none;
-            }
-
-            .document-preview {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../shared/components.css">
+    <link rel="stylesheet" href="../shared/navigation.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="nav-container">
-        <div class="nav-brand">
-            <span class="nav-logo">📊</span>
-            <span class="nav-title">CAOS CRM</span>
-        </div>
-        <ul class="nav-menu">
-            <li><a href="../dashboard/Dashboard.html" class="nav-link">Dashboard</a></li>
-            <li><a href="../leads/Leads.html" class="nav-link">Leads</a></li>
-            <li><a href="../campaigns/CampaignsList.html" class="nav-link">Campaigns</a></li>
-            <li><a href="../products/ProductCatalog.html" class="nav-link">Products</a></li>
-            <li><a href="../analytics/Analytics.html" class="nav-link">Analytics</a></li>
-            <li><a href="../tasks/Tasks.html" class="nav-link">Tasks</a></li>
-            <li><a href="../calendar/Calendar.html" class="nav-link">Calendar</a></li>
-            <li><a href="../email/Email.html" class="nav-link">Email</a></li>
-            <li><a href="../reports/Reports.html" class="nav-link">Reports</a></li>
-            <li><a href="../teams/Teams.html" class="nav-link">Teams</a></li>
-            <li><a href="#" class="nav-link active">Documents</a></li>
-            <li><a href="../settings/Settings.html" class="nav-link">Settings</a></li>
-        </ul>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container-fluid" style="padding-top: 80px;">
-        <!-- Page Header -->
+    <div id="page-content">
         <div class="page-header">
-            <div>
-                <h1 class="page-title">Document Management</h1>
-                <p class="page-description">Store, organize, and share your documents</p>
+            <div class="page-header-content">
+                <h1 class="page-title">Documents Management</h1>
+                <p class="page-description">Manage and organize your documents</p>
             </div>
             <div class="page-actions">
-                <button class="btn btn-secondary" onclick="showNewFolderModal()">
-                    <span>📁 New Folder</span>
-                </button>
-                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                    <span>⬆️ Upload Document</span>
-                </button>
-                <input type="file" id="fileInput" style="display: none;" multiple onchange="handleFileUpload(this.files)">
+                <button class="btn btn-secondary" onclick="exportToCSV()" aria-label="Export documents"><span>📥</span> Export CSV</button>
+                <button class="btn btn-primary" onclick="showCreateModal()" aria-label="Upload document"><span>+</span> Upload Document</button>
             </div>
         </div>
-
-        <!-- Documents Container -->
-        <div class="documents-container">
-            <!-- Sidebar -->
-            <div class="documents-sidebar">
-                <!-- Search -->
-                <div class="form-group">
-                    <input type="text" class="form-control" id="docSearch" placeholder="🔍 Search documents..." onkeyup="searchDocuments(this.value)">
-                </div>
-
-                <!-- Quick Access -->
-                <div class="quick-access">
-                    <h4>Quick Access</h4>
-                    <div class="quick-access-item" onclick="filterDocuments('recent')">
-                        <span>🕒</span> Recent
-                    </div>
-                    <div class="quick-access-item" onclick="filterDocuments('starred')">
-                        <span>⭐</span> Starred
-                    </div>
-                    <div class="quick-access-item" onclick="filterDocuments('shared')">
-                        <span>👥</span> Shared with me
-                    </div>
-                    <div class="quick-access-item" onclick="filterDocuments('trash')">
-                        <span>🗑️</span> Trash
-                    </div>
-                </div>
-
-                <!-- Folders -->
-                <div class="folder-tree">
-                    <h4>Folders</h4>
-                    <div id="folderTree">
-                        <div class="folder-item active" onclick="selectFolder(null)">
-                            <span>📁</span> All Documents
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Storage -->
-                <div class="storage-bar">
-                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                        <span>Storage Used</span>
-                        <span id="storagePercent">0%</span>
-                    </div>
-                    <div class="storage-progress">
-                        <div class="storage-used" id="storageBar" style="width: 0%"></div>
-                    </div>
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: var(--spacing-xs);">
-                        <span id="storageText">0 MB of 10 GB</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Content Area -->
-            <div class="documents-main">
-                <!-- Upload Area -->
-                <div class="upload-area" id="uploadArea" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
-                    <div style="font-size: 48px; margin-bottom: var(--spacing-md);">📤</div>
-                    <h3>Drop files here to upload</h3>
-                    <p style="color: var(--text-secondary);">or click the upload button above</p>
-                </div>
-
-                <!-- Breadcrumb -->
-                <div class="breadcrumb" id="breadcrumb">
-                    <span class="breadcrumb-item" onclick="selectFolder(null)">Documents</span>
-                </div>
-
-                <!-- Documents Header -->
-                <div class="documents-header">
-                    <div>
-                        <h3 id="folderTitle">All Documents</h3>
-                        <span class="text-secondary" id="documentCount">0 documents</span>
-                    </div>
-                    <div class="view-toggle">
-                        <button class="view-btn active" onclick="setView('grid')" id="gridViewBtn">
-                            <span>⚏</span>
-                        </button>
-                        <button class="view-btn" onclick="setView('list')" id="listViewBtn">
-                            <span>☰</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Documents Display -->
-                <div id="documentsDisplay" class="documents-grid">
-                    <!-- Documents will be loaded here -->
-                </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-content"><div class="stat-label">Total Documents</div><div class="stat-value" id="stat-total">0</div></div></div>
+            <div class="stat-card"><div class="stat-icon">📁</div><div class="stat-content"><div class="stat-label">Folders</div><div class="stat-value" id="stat-folders">0</div></div></div>
+            <div class="stat-card"><div class="stat-icon">💾</div><div class="stat-content"><div class="stat-label">Total Size</div><div class="stat-value" id="stat-size">0 MB</div></div></div>
+            <div class="stat-card"><div class="stat-icon">🆕</div><div class="stat-content"><div class="stat-label">This Week</div><div class="stat-value" id="stat-week">0</div></div></div>
+        </div>
+        <div class="filter-bar">
+            <div class="filter-group">
+                <select id="filter-type" class="form-select" onchange="filterData()">
+                    <option value="">All Types</option><option value="pdf">PDF</option><option value="doc">Document</option><option value="image">Image</option><option value="other">Other</option>
+                </select>
             </div>
         </div>
+        <div class="card"><div id="data-table-container"></div></div>
     </div>
-
-    <!-- Document Preview Panel -->
-    <div class="document-preview" id="documentPreview">
-        <div class="preview-header">
-            <h3 id="previewTitle">Document Preview</h3>
-            <button class="btn btn-sm" onclick="closePreview()">✕</button>
-        </div>
-        <div class="preview-content">
-            <div style="text-align: center; padding: var(--spacing-xl);">
-                <div id="previewIcon" style="font-size: 64px; margin-bottom: var(--spacing-md);">📄</div>
-                <h4 id="previewName">Document Name</h4>
-                <p id="previewType" style="color: var(--text-secondary);">Document Type</p>
-            </div>
-
-            <div style="margin-top: var(--spacing-lg);">
-                <h4>Details</h4>
-                <div class="form-group">
-                    <label class="form-label">Size</label>
-                    <p id="previewSize">0 KB</p>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Modified</label>
-                    <p id="previewModified">-</p>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Owner</label>
-                    <p id="previewOwner">-</p>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-control" id="previewDescription" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Tags</label>
-                    <input type="text" class="form-control" id="previewTags" placeholder="Add tags...">
-                </div>
-            </div>
-
-            <div style="margin-top: var(--spacing-lg);">
-                <h4>Sharing</h4>
-                <div class="form-group">
-                    <label class="form-label">Share with</label>
-                    <input type="email" class="form-control" id="shareEmail" placeholder="Enter email address">
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="shareDocument()">Share</button>
-            </div>
-        </div>
-        <div class="preview-actions">
-            <button class="btn btn-primary" onclick="downloadDocument()">
-                <span>⬇️ Download</span>
-            </button>
-            <button class="btn btn-secondary" onclick="starDocument()">
-                <span>⭐ Star</span>
-            </button>
-            <button class="btn btn-danger" onclick="deleteDocument()">
-                <span>🗑️ Delete</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- New Folder Modal -->
-    <div id="newFolderModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Create New Folder</h2>
-                <span class="modal-close" onclick="closeModal('newFolderModal')">&times;</span>
-            </div>
-            <form id="newFolderForm">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Folder Name</label>
-                        <input type="text" class="form-control" id="folderName" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Description (Optional)</label>
-                        <textarea class="form-control" id="folderDescription" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Color</label>
-                        <input type="color" class="form-control" id="folderColor" value="#4F46E5">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('newFolderModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Folder</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
+    <script src="../utils/apiClient.js"></script>
+    <script src="../shared/components.js"></script>
+    <script src="../shared/navigation.js"></script>
     <script>
-        // API Configuration
-        const API_BASE = 'http://localhost:3001/api';
-        let currentFolder = null;
-        let currentView = 'grid';
-        let documents = [];
-        let folders = [];
-        let selectedDocument = null;
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDocuments();
-            loadFolders();
-            loadStatistics();
-            setupEventListeners();
-        });
-
-        // Setup Event Listeners
-        function setupEventListeners() {
-            document.getElementById('newFolderForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await createFolder();
+        if (!apiClient.isAuthenticated()) window.location.href = '../auth/login.html';
+        let allData = []; let dataTable = null;
+        document.addEventListener('DOMContentLoaded', loadData);
+        async function loadData() {
+            try {
+                LoadingSpinner.show('Loading...');
+                const response = await apiClient.get('/api/documents');
+                allData = Array.isArray(response) ? response : (response.documents || response.data || []);
+                updateStats(); renderTable(); LoadingSpinner.hide();
+            } catch (error) { LoadingSpinner.hide(); Toast.show('Failed to load: ' + error.message, 'error'); }
+        }
+        function updateStats() {
+            const total = allData.length;
+            const folders = new Set(allData.map(d => d.folder || 'root')).size;
+            const size = allData.reduce((s, d) => s + (d.size || 0), 0) / (1024 * 1024);
+            const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+            const thisWeek = allData.filter(d => d.createdAt && new Date(d.createdAt) > weekAgo).length;
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-folders').textContent = folders;
+            document.getElementById('stat-size').textContent = size.toFixed(2) + ' MB';
+            document.getElementById('stat-week').textContent = thisWeek;
+        }
+        function renderTable() {
+            dataTable = new DataTable({
+                columns: [
+                    { label: 'Name', field: 'name' },
+                    { label: 'Type', field: 'type', render: (v) => {
+                        const b = {pdf:'<span class="badge badge-danger">PDF</span>',doc:'<span class="badge badge-primary">Document</span>',image:'<span class="badge badge-info">Image</span>',other:'<span class="badge badge-secondary">Other</span>'};
+                        return b[v] || v;
+                    }},
+                    { label: 'Size', field: 'size', render: (v) => {
+                        if (!v) return 'N/A';
+                        const kb = v / 1024;
+                        const mb = kb / 1024;
+                        return mb > 1 ? mb.toFixed(2) + ' MB' : kb.toFixed(2) + ' KB';
+                    }},
+                    { label: 'Folder', field: 'folder', render: (v) => v || 'Root' },
+                    { label: 'Uploaded', field: 'createdAt', render: (v) => v ? new Date(v).toLocaleDateString() : 'N/A' },
+                    { label: 'Actions', field: 'id', sortable: false, render: (v) => '<div class="table-actions"><button class="btn btn-sm btn-secondary" onclick="showEditModal(\\'' + v + '\\')" aria-label="Edit document">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteItem(\\'' + v + '\\')" aria-label="Delete document">Delete</button></div>' }
+                ],
+                data: allData, searchable: true, sortable: true, pagination: true, pageSize: 10
             });
+            dataTable.render('data-table-container');
         }
-
-        // Load documents
-        async function loadDocuments(folderId = null) {
-            try {
-                const params = new URLSearchParams();
-                if (folderId) params.append('folderId', folderId);
-
-                const response = await fetch(`${API_BASE}/documents?${params}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    documents = result.data;
-                    displayDocuments(documents);
-                    document.getElementById('documentCount').textContent = `${documents.length} documents`;
+        function filterData() {
+            const typeFilter = document.getElementById('filter-type').value;
+            let filtered = allData;
+            if (typeFilter) filtered = filtered.filter(d => d.type === typeFilter);
+            dataTable.updateData(filtered); dataTable.render('data-table-container');
+        }
+        async function showCreateModal() {
+            const fb = new FormBuilder([
+                { name: 'name', label: 'Document Name', type: 'text', required: true, validation: { minLength: 3 } },
+                { name: 'type', label: 'Type', type: 'select', required: true, options: [{value:'pdf',label:'PDF'},{value:'doc',label:'Document'},{value:'image',label:'Image'},{value:'other',label:'Other'}] },
+                { name: 'folder', label: 'Folder', type: 'text', placeholder: 'e.g. Contracts, Invoices' },
+                { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Document description...' },
+                { name: 'tags', label: 'Tags', type: 'text', placeholder: 'Comma-separated tags' }
+            ]);
+            const modal = new Modal({
+                title: 'Upload Document',
+                content: '<form id="createForm">' + fb.render() + '</form>',
+                confirmText: 'Upload',
+                size: 'large',
+                onConfirm: async () => {
+                    const form = document.getElementById('createForm');
+                    if (fb.validate(form)) {
+                        try {
+                            LoadingSpinner.show('Uploading...');
+                            const data = fb.getData(form);
+                            data.size = Math.floor(Math.random() * 5000000);
+                            await apiClient.post('/api/documents', data);
+                            Toast.show('Uploaded successfully!', 'success');
+                            await loadData(); LoadingSpinner.hide();
+                        } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); throw error; }
+                    } else { throw new Error('Validation failed'); }
                 }
-            } catch (error) {
-                console.error('Error loading documents:', error);
-            }
-        }
-
-        // Display documents
-        function displayDocuments(docs) {
-            const container = document.getElementById('documentsDisplay');
-
-            if (docs.length === 0) {
-                container.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: var(--spacing-xl);">
-                        <div style="font-size: 48px; margin-bottom: var(--spacing-md);">📁</div>
-                        <h3>No documents yet</h3>
-                        <p style="color: var(--text-secondary);">Upload your first document or create a folder</p>
-                    </div>
-                `;
-                return;
-            }
-
-            if (currentView === 'grid') {
-                container.className = 'documents-grid';
-                container.innerHTML = docs.map(doc => `
-                    <div class="document-card" onclick="selectDocument('${doc.id}')">
-                        <div class="document-icon">${getDocumentIcon(doc.type)}</div>
-                        <div class="document-name" title="${doc.name}">${doc.name}</div>
-                        <div class="document-meta">${doc.sizeFormatted}</div>
-                        <div class="document-meta">${formatDate(doc.metadata.modifiedAt)}</div>
-                    </div>
-                `).join('');
-            } else {
-                container.className = 'documents-list';
-                container.innerHTML = docs.map(doc => `
-                    <div class="document-list-item" onclick="selectDocument('${doc.id}')">
-                        <div class="document-list-icon">${getDocumentIcon(doc.type)}</div>
-                        <div class="document-list-info">
-                            <div class="document-name">${doc.name}</div>
-                            <div class="document-meta">
-                                ${doc.sizeFormatted} • Modified ${formatDate(doc.metadata.modifiedAt)}
-                            </div>
-                        </div>
-                        <div class="document-list-actions">
-                            <button class="btn btn-sm" onclick="event.stopPropagation(); starDocument('${doc.id}')">
-                                ${doc.isStarred ? '⭐' : '☆'}
-                            </button>
-                            <button class="btn btn-sm" onclick="event.stopPropagation(); downloadDocument('${doc.id}')">⬇️</button>
-                            <button class="btn btn-sm" onclick="event.stopPropagation(); shareDocument('${doc.id}')">🔗</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // Load folders
-        async function loadFolders(parentId = null) {
-            try {
-                const params = new URLSearchParams();
-                if (parentId) params.append('parentId', parentId);
-
-                const response = await fetch(`${API_BASE}/documents/folders?${params}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    folders = result.data;
-                    displayFolders(folders);
-                }
-            } catch (error) {
-                console.error('Error loading folders:', error);
-            }
-        }
-
-        // Display folders
-        function displayFolders(folderList) {
-            const container = document.getElementById('folderTree');
-
-            container.innerHTML = `
-                <div class="folder-item ${!currentFolder ? 'active' : ''}" onclick="selectFolder(null)">
-                    <span>📁</span> All Documents
-                </div>
-                ${folderList.map(folder => `
-                    <div class="folder-item ${currentFolder === folder.id ? 'active' : ''}" onclick="selectFolder('${folder.id}')">
-                        <span style="color: ${folder.color}">📁</span> ${folder.name}
-                        ${folder.metadata.documentCount > 0 ? `<span class="badge">${folder.metadata.documentCount}</span>` : ''}
-                    </div>
-                `).join('')}
-            `;
-        }
-
-        // Select folder
-        function selectFolder(folderId) {
-            currentFolder = folderId;
-            loadDocuments(folderId);
-
-            // Update UI
-            document.querySelectorAll('.folder-item').forEach(item => {
-                item.classList.remove('active');
             });
-            event.currentTarget.classList.add('active');
-
-            const folderName = folderId ? folders.find(f => f.id === folderId)?.name : 'All Documents';
-            document.getElementById('folderTitle').textContent = folderName;
+            modal.show();
         }
-
-        // Create folder
-        async function createFolder() {
-            const folderData = {
-                name: document.getElementById('folderName').value,
-                description: document.getElementById('folderDescription').value,
-                color: document.getElementById('folderColor').value,
-                parentId: currentFolder
-            };
-
+        async function showEditModal(id) {
             try {
-                const response = await fetch(`${API_BASE}/documents/folders`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(folderData)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showNotification('Folder created successfully', 'success');
-                    closeModal('newFolderModal');
-                    loadFolders();
-                    document.getElementById('newFolderForm').reset();
-                }
-            } catch (error) {
-                console.error('Error creating folder:', error);
-                showNotification('Failed to create folder', 'error');
-            }
-        }
-
-        // Handle file upload
-        async function handleFileUpload(files) {
-            for (const file of files) {
-                const documentData = {
-                    name: file.name,
-                    size: file.size,
-                    mimeType: file.type,
-                    folderId: currentFolder,
-                    file: await fileToBase64(file)
-                };
-
-                try {
-                    const response = await fetch(`${API_BASE}/documents`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify(documentData)
-                    });
-
-                    const result = await response.json();
-
-                    if (result.success) {
-                        showNotification(`${file.name} uploaded successfully`, 'success');
+                const item = allData.find(d => d.id === id);
+                if (!item) { Toast.show('Not found', 'error'); return; }
+                const fb = new FormBuilder([
+                    { name: 'name', label: 'Document Name', type: 'text', required: true, value: item.name || '' },
+                    { name: 'type', label: 'Type', type: 'select', required: true, value: item.type || '', options: [{value:'pdf',label:'PDF'},{value:'doc',label:'Document'},{value:'image',label:'Image'},{value:'other',label:'Other'}] },
+                    { name: 'folder', label: 'Folder', type: 'text', value: item.folder || '' },
+                    { name: 'description', label: 'Description', type: 'textarea', value: item.description || '' },
+                    { name: 'tags', label: 'Tags', type: 'text', value: item.tags || '' }
+                ]);
+                const modal = new Modal({
+                    title: 'Edit Document',
+                    content: '<form id="editForm">' + fb.render() + '</form>',
+                    confirmText: 'Update',
+                    size: 'large',
+                    onConfirm: async () => {
+                        const form = document.getElementById('editForm');
+                        if (fb.validate(form)) {
+                            try {
+                                LoadingSpinner.show('Updating...');
+                                await apiClient.put('/api/documents/' + id, fb.getData(form));
+                                Toast.show('Updated successfully!', 'success');
+                                await loadData(); LoadingSpinner.hide();
+                            } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); throw error; }
+                        } else { throw new Error('Validation failed'); }
                     }
-                } catch (error) {
-                    console.error('Error uploading file:', error);
-                    showNotification(`Failed to upload ${file.name}`, 'error');
-                }
-            }
-
-            loadDocuments(currentFolder);
-            loadStatistics();
+                });
+                modal.show();
+            } catch (error) { Toast.show('Error: ' + error.message, 'error'); }
         }
-
-        // File to base64
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
+        async function deleteItem(id) {
+            const modal = new Modal({
+                title: 'Delete Document',
+                content: '<p>Are you sure?</p>',
+                confirmText: 'Delete',
+                onConfirm: async () => {
+                    try { LoadingSpinner.show('Deleting...'); await apiClient.delete('/api/documents/' + id);
+                        Toast.show('Deleted successfully!', 'success'); await loadData(); LoadingSpinner.hide();
+                    } catch (error) { LoadingSpinner.hide(); Toast.show('Failed: ' + error.message, 'error'); }
+                }
             });
+            modal.show();
         }
-
-        // Select document
-        async function selectDocument(documentId) {
-            try {
-                const response = await fetch(`${API_BASE}/documents/${documentId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    selectedDocument = result.data;
-                    showPreview(result.data);
-                }
-            } catch (error) {
-                console.error('Error loading document:', error);
-            }
-        }
-
-        // Show preview
-        function showPreview(doc) {
-            document.getElementById('previewTitle').textContent = 'Document Preview';
-            document.getElementById('previewIcon').textContent = getDocumentIcon(doc.type);
-            document.getElementById('previewName').textContent = doc.name;
-            document.getElementById('previewType').textContent = doc.type.toUpperCase();
-            document.getElementById('previewSize').textContent = doc.sizeFormatted;
-            document.getElementById('previewModified').textContent = formatDate(doc.metadata.modifiedAt);
-            document.getElementById('previewOwner').textContent = doc.permissions.owner;
-            document.getElementById('previewDescription').value = doc.description;
-            document.getElementById('previewTags').value = doc.tags.join(', ');
-
-            document.getElementById('documentPreview').classList.add('active');
-        }
-
-        // Close preview
-        function closePreview() {
-            document.getElementById('documentPreview').classList.remove('active');
-            selectedDocument = null;
-        }
-
-        // Load statistics
-        async function loadStatistics() {
-            try {
-                const response = await fetch(`${API_BASE}/documents/statistics`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    const stats = result.data;
-                    document.getElementById('storageBar').style.width = `${stats.storageUsagePercent}%`;
-                    document.getElementById('storagePercent').textContent = `${stats.storageUsagePercent}%`;
-                    document.getElementById('storageText').textContent =
-                        `${stats.storageUsedFormatted} of ${stats.storageLimitFormatted}`;
-                }
-            } catch (error) {
-                console.error('Error loading statistics:', error);
-            }
-        }
-
-        // Search documents
-        async function searchDocuments(query) {
-            if (query.length < 2) {
-                loadDocuments(currentFolder);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/documents/search?q=${encodeURIComponent(query)}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    displayDocuments(result.data);
-                }
-            } catch (error) {
-                console.error('Error searching documents:', error);
-            }
-        }
-
-        // Set view
-        function setView(view) {
-            currentView = view;
-            document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
-            document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
-            displayDocuments(documents);
-        }
-
-        // Drag and drop handlers
-        function handleDragOver(e) {
-            e.preventDefault();
-            document.getElementById('uploadArea').classList.add('dragover');
-        }
-
-        function handleDragLeave(e) {
-            e.preventDefault();
-            document.getElementById('uploadArea').classList.remove('dragover');
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            document.getElementById('uploadArea').classList.remove('dragover');
-            handleFileUpload(e.dataTransfer.files);
-        }
-
-        // Helper functions
-        function getDocumentIcon(type) {
-            const icons = {
-                text: '📄',
-                spreadsheet: '📊',
-                presentation: '📈',
-                pdf: '📕',
-                image: '🖼️',
-                video: '🎬',
-                audio: '🎵',
-                code: '💻',
-                archive: '📦',
-                other: '📎'
-            };
-            return icons[type] || icons.other;
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diff = now - date;
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-            if (days === 0) return 'Today';
-            if (days === 1) return 'Yesterday';
-            if (days < 7) return `${days} days ago`;
-            return date.toLocaleDateString();
-        }
-
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `alert alert-${type}`;
-            notification.textContent = message;
-            notification.style.position = 'fixed';
-            notification.style.top = '20px';
-            notification.style.right = '20px';
-            notification.style.zIndex = '10000';
-            notification.style.minWidth = '300px';
-
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-
-        function showNewFolderModal() {
-            document.getElementById('newFolderModal').style.display = 'block';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // Close modals on outside click
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
+        function exportToCSV() {
+            if (allData.length === 0) { Toast.show('No data to export', 'warning'); return; }
+            const headers = ['Name','Type','Folder','Size (KB)','Description','Tags','Uploaded'];
+            const rows = allData.map(d => [
+                d.name||'',
+                d.type||'',
+                d.folder||'Root',
+                d.size ? (d.size/1024).toFixed(2) : '0',
+                d.description||'',
+                d.tags||'',
+                d.createdAt?new Date(d.createdAt).toLocaleDateString():''
+            ]);
+            const csv = [headers.join(','), ...rows.map(r => r.map(c => '"' + c + '"').join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' }); const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob); link.download = 'documents_' + new Date().toISOString().split('T')[0] + '.csv';
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            Toast.show('Exported!', 'success');
         }
     </script>
 </body>
